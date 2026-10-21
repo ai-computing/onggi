@@ -19,6 +19,7 @@ import (
 
 	"github.com/ai-computing/onggi/pkg/backend"
 	"github.com/ai-computing/onggi/pkg/chunker"
+	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 	"github.com/ai-computing/onggi/pkg/layout"
 )
@@ -29,6 +30,7 @@ type PushOptions struct {
 	Uploads  int               // packs uploaded at once
 	TempDir  string            // where packs are assembled before upload
 	Labels   map[string]string // stored in the manifest
+	Compress codec.Mode        // how new chunks are stored; "" means none
 	Progress func(PushStats)   // called after each file
 }
 
@@ -36,7 +38,7 @@ type PushOptions struct {
 type PushStats struct {
 	Files      int           `json:"files"`
 	Bytes      int64         `json:"bytes"`       // logical bytes read
-	NewBytes   int64         `json:"new_bytes"`   // chunk bytes the store did not have
+	NewBytes   int64         `json:"new_bytes"`   // chunk bytes the store did not have (raw)
 	Packs      int           `json:"packs"`       // packs written
 	PackBytes  int64         `json:"pack_bytes"`  // bytes uploaded in packs
 	Skipped    []string      `json:"skipped"`     // symlinks and special files
@@ -46,7 +48,9 @@ type PushStats struct {
 }
 
 type pending struct {
-	data  []byte
+	data  []byte // stored form
+	raw   uint32
+	codec codec.ID
 	chunk digest.Digest
 }
 
@@ -155,7 +159,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				continue
 			}
 			h.Write(p.data)
-			entries = append(entries, indexEntry{Chunk: p.chunk, Loc: Loc{Offset: uint32(size), Length: uint32(len(p.data))}})
+			entries = append(entries, indexEntry{Chunk: p.chunk, Loc: Loc{Offset: uint32(size), Stored: uint32(len(p.data)), Length: p.raw, Codec: p.codec}})
 			size += int64(len(p.data))
 			if size >= s.Config.PackSize {
 				seal()
@@ -202,7 +206,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				if ctx.Err() != nil {
 					continue
 				}
-				list, nb, err := s.chunkFile(ctx, files[i].abs, claim, chunks)
+				list, nb, err := s.chunkFile(ctx, files[i].abs, o.Compress, claim, chunks)
 				if err != nil {
 					fail(fmt.Errorf("%s: %w", files[i].rel, err))
 					continue
@@ -276,7 +280,7 @@ func (s *Store) upload(ctx context.Context, p sealed) error {
 	return s.addIndex(name, idx)
 }
 
-func (s *Store) chunkFile(ctx context.Context, path string, claim func(digest.Digest) bool, out chan<- pending) ([]ChunkRef, int64, error) {
+func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, claim func(digest.Digest) bool, out chan<- pending) ([]ChunkRef, int64, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, 0, err
@@ -297,8 +301,12 @@ func (s *Store) chunkFile(ctx context.Context, path string, claim func(digest.Di
 		list = append(list, ChunkRef{Digest: d, Length: uint32(len(ch))})
 		if claim(d) {
 			nb += int64(len(ch))
+			data, id := codec.Encode(ch, mode)
+			if id == codec.None {
+				data = append([]byte(nil), ch...) // the chunker reuses its buffer
+			}
 			select {
-			case out <- pending{data: append([]byte(nil), ch...), chunk: d}:
+			case out <- pending{data: data, raw: uint32(len(ch)), codec: id, chunk: d}:
 			case <-ctx.Done():
 				return nil, 0, context.Cause(ctx)
 			}
