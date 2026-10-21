@@ -172,9 +172,10 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	sf := addStoreFlags(fs)
 	workers := fs.Int("workers", 8, "ranges read at once")
+	cacheDir := fs.String("cache", "", "node chunk cache: a local directory; chunks it holds are not read from the store, chunks read from the store are added")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
-		fmt.Fprintln(stderr, "usage: onggi pull --store S <ref|sha256:...> <dir>")
+		fmt.Fprintln(stderr, "usage: onggi pull --store S [--cache DIR] <ref|sha256:...> <dir>")
 		return 2
 	}
 	ctx := context.Background()
@@ -188,8 +189,20 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
+	o := store.PullOptions{Workers: *workers}
+	if *cacheDir != "" {
+		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
+		if err == nil {
+			o.Cache, err = store.OpenWith(ctx, cb, store.Create{Chunker: s.Config.Chunker, Sub: s.Config.Sub,
+				SubKinds: s.Config.SubKinds, PackSize: s.Config.PackSize})
+		}
+		if err != nil {
+			fmt.Fprintln(stderr, "onggi: node cache:", err)
+			return 1
+		}
+	}
 	stopMem := startMemProfile()
-	st, err := s.Pull(ctx, md, fs.Arg(1), store.PullOptions{Workers: *workers})
+	st, err := s.Pull(ctx, md, fs.Arg(1), o)
 	if peak := stopMem(); peak > 0 {
 		fmt.Fprintln(stderr, "peak heap in use", human(int64(peak)))
 	}
@@ -203,6 +216,9 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "manifest %s\nfiles    %d\nwritten  %s (read %s in %d ranges)\ntook     %s (%.0f MB/s)\n",
 		md, st.Files, human(st.Bytes), human(st.ReadBytes), st.Ranges, st.Duration.Round(time.Second),
 		float64(st.Bytes)/1e6/max(st.Duration.Seconds(), 1e-9))
+	if o.Cache != nil {
+		fmt.Fprintln(stdout, "cache    read", human(st.CacheBytes), "from the node cache, added", human(st.Cached), "to it")
+	}
 	return 0
 }
 

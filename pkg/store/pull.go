@@ -22,15 +22,22 @@ import (
 type PullOptions struct {
 	Workers  int   // ranges read at once
 	MaxRange int64 // largest single read; adjacent chunks of a pack are read together up to this
+	// Cache is the node's chunk cache (#23): a local store whose chunks are read instead of the
+	// store's, and which receives every chunk read from the store, so the next pull of a similar
+	// artifact reads only what the node lacks. Its index is loaded by Pull.
+	Cache    *Store
+	CacheTmp string // where cache packs are assembled (default: system temp)
 }
 
 // PullStats reports a pull.
 type PullStats struct {
-	Files     int           `json:"files"`
-	Bytes     int64         `json:"bytes"`      // logical bytes written
-	ReadBytes int64         `json:"read_bytes"` // bytes read from the backend (stored form)
-	Ranges    int           `json:"ranges"`
-	Duration  time.Duration `json:"duration_ns"`
+	Files      int           `json:"files"`
+	Bytes      int64         `json:"bytes"`       // logical bytes written
+	ReadBytes  int64         `json:"read_bytes"`  // bytes read from the store (stored form)
+	CacheBytes int64         `json:"cache_bytes"` // bytes read from the node cache
+	Cached     int64         `json:"cached"`      // stored bytes added to the node cache
+	Ranges     int           `json:"ranges"`
+	Duration   time.Duration `json:"duration_ns"`
 }
 
 type target struct {
@@ -51,15 +58,16 @@ type edge struct {
 // multiply the plan by the sub-chunks per chunk (#17). Most nodes have at most one target and
 // one parent, so the first of each is inline.
 type node struct {
-	chunk  digest.Digest
-	loc    Loc
-	stored bool
-	hasT   bool
-	hasP   bool
-	firstT target
-	moreT  []target
-	firstP edge
-	moreP  []edge
+	chunk     digest.Digest
+	loc       Loc
+	stored    bool
+	fromCache bool // read from the node cache (loc is in the cache's packs)
+	hasT      bool
+	hasP      bool
+	firstT    target
+	moreT     []target
+	firstP    edge
+	moreP     []edge
 }
 
 // planner builds the nodes of one pull.
@@ -123,8 +131,29 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	if err != nil {
 		return st, err
 	}
+	srcs := []source{{s, packs}}
+	var fill *packWriter
+	if c := o.Cache; c != nil {
+		if err := c.LoadIndex(ctx); err != nil {
+			return st, fmt.Errorf("node cache: %w", err)
+		}
+		for i := range nodes {
+			nd := &nodes[i]
+			if !nd.stored {
+				continue
+			}
+			if _, e, ok := c.lookup(nd.chunk); ok && e.state == stateStored && e.loc.Length == nd.loc.Length {
+				nd.fromCache, nd.loc = true, e.loc
+			}
+		}
+		c.mu.RLock()
+		srcs = append(srcs, source{c, append([]digest.Digest(nil), c.packs...)})
+		c.mu.RUnlock()
+		fill = c.newPackWriter(o.CacheTmp)
+		defer fill.abort()
+	}
 
-	// stored chunks in pack order, coalesced into ranges of that order
+	// stored chunks by source and pack order, coalesced into ranges of that order
 	var order []int32
 	for i := range nodes {
 		if nodes[i].stored {
@@ -132,7 +161,11 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		}
 	}
 	sort.Slice(order, func(i, j int) bool {
-		a, b := nodes[order[i]].loc, nodes[order[j]].loc
+		x, y := &nodes[order[i]], &nodes[order[j]]
+		if x.fromCache != y.fromCache {
+			return y.fromCache
+		}
+		a, b := x.loc, y.loc
 		if a.Pack != b.Pack {
 			return a.Pack < b.Pack
 		}
@@ -145,7 +178,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if n := len(ranges); n > 0 {
 			r := &ranges[n-1]
 			first, prev := nodes[order[r.a]].loc, nodes[order[r.b-1]].loc
-			if prev.Pack == l.Pack && prev.Offset+prev.Stored == l.Offset &&
+			if nodes[order[r.b-1]].fromCache == nodes[i].fromCache && prev.Pack == l.Pack && prev.Offset+prev.Stored == l.Offset &&
 				int64(l.Offset+l.Stored-first.Offset) <= o.MaxRange {
 				r.b = k + 1
 				continue
@@ -159,7 +192,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	defer cancel(nil)
 	jobs := make(chan span)
 	var wg sync.WaitGroup
-	var readBytes atomic.Int64
+	var readBytes, cacheBytes atomic.Int64
 	for w := 0; w < o.Workers; w++ {
 		wg.Add(1)
 		go func() {
@@ -169,12 +202,21 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 				if ctx.Err() != nil {
 					continue
 				}
-				n, err := s.readRange(ctx, nodes, packs, order[r.a:r.b], handles, &buf)
+				ids := order[r.a:r.b]
+				src, fl := srcs[0], fill
+				if nodes[ids[0]].fromCache {
+					src, fl = srcs[1], nil
+				}
+				n, err := src.store.readRange(ctx, nodes, src.packs, ids, handles, &buf, fl)
 				if err != nil {
 					cancel(err)
 					continue
 				}
-				readBytes.Add(n)
+				if fl == nil && o.Cache != nil {
+					cacheBytes.Add(n)
+				} else {
+					readBytes.Add(n)
+				}
 			}
 		}()
 	}
@@ -205,7 +247,13 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		st.Files++
 		st.Bytes += f.Size
 	}
-	st.ReadBytes = readBytes.Load()
+	if fill != nil {
+		if err := fill.close(ctx); err != nil {
+			return st, fmt.Errorf("node cache: %w", err)
+		}
+		st.Cached = fill.bytes
+	}
+	st.ReadBytes, st.CacheBytes = readBytes.Load(), cacheBytes.Load()
 	st.Duration = time.Since(start)
 	return st, nil
 }
@@ -352,9 +400,16 @@ func emit(nodes []node, id int32, raw []byte, base int64, handles []*os.File) er
 	return nil
 }
 
+// source is a store a pull reads from, with the pack names its Loc.Pack numbers index.
+type source struct {
+	store *Store
+	packs []digest.Digest
+}
+
 // readRange reads one range of a pack into *buf (reused across calls of one worker), decodes and
-// checks each chunk, and writes it everywhere it goes.
-func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Digest, ids []int32, handles []*os.File, buf *[]byte) (int64, error) {
+// checks each chunk, writes it everywhere it goes, and hands it in stored form to fill (the
+// node cache) when fill is set.
+func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Digest, ids []int32, handles []*os.File, buf *[]byte, fill *packWriter) (int64, error) {
 	first, last := nodes[ids[0]].loc, nodes[ids[len(ids)-1]].loc
 	pack := packs[first.Pack]
 	n := int64(last.Offset+last.Stored) - int64(first.Offset)
@@ -382,6 +437,12 @@ func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Dige
 		}
 		if err := emit(nodes, i, raw, 0, handles); err != nil {
 			return 0, err
+		}
+		if fill != nil {
+			stored := b[int64(nd.loc.Offset)-int64(first.Offset):][:nd.loc.Stored]
+			if err := fill.add(ctx, nd.chunk, stored, nd.loc.Codec, nd.loc.Length); err != nil {
+				return 0, fmt.Errorf("node cache: %w", err)
+			}
 		}
 	}
 	return n, nil
