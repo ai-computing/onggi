@@ -146,3 +146,25 @@ func BenchmarkChunker(b *testing.B) {
 		}
 	}
 }
+
+// Split must cut exactly where a Chunker cuts: stores made by either must dedup against each other.
+func TestSplitMatchesChunker(t *testing.T) {
+	for _, p := range []Params{Default, {Min: 1 << 10, Avg: 4 << 10, Max: 16 << 10}} {
+		for _, n := range []int{0, 100, p.Min, p.Max, p.Max + 1, 70_001, 3 << 20} {
+			data := random(int64(n)+7, n)
+			want := chunks(t, data, p)
+			var got [][]byte
+			if err := p.Split(data, func(c []byte) error { got = append(got, c); return nil }); err != nil {
+				t.Fatal(err)
+			}
+			if len(got) != len(want) {
+				t.Fatalf("%+v, %d bytes: Split made %d chunks, Chunker %d", p, n, len(got), len(want))
+			}
+			for i := range got {
+				if !bytes.Equal(got[i], want[i]) {
+					t.Fatalf("%+v, %d bytes: chunk %d differs", p, n, i)
+				}
+			}
+		}
+	}
+}

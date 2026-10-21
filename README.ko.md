@@ -64,7 +64,7 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 메모리:
 - pull은 저장소 전체 색인이 아니라 결과물의 locator만 읽습니다. 이 묶음에서 기본 설정은 최대 3.6 GB RSS이고,
   `GOMEMLIMIT=1800MiB`(Go의 소프트 메모리 한도)를 주면 1.9 GB 아래로 유지됩니다. 노드 agent에는 이 한도를 설정하기를 권장합니다.
-- push는 중복 제거를 위해 저장소 색인을 메모리에 들고 있습니다. 기본 설정은 2.9 GB이고, 같은 한도에서는 1.9 GB로 줄지만 시간이 약 2배 걸립니다.
+- push는 중복 제거를 위해 저장소 색인(압축 배열)을 메모리에 들고 있으며, 기본 설정에서 최대 1.9 GiB입니다(push 2분 24초).
 
 ## 문서
 

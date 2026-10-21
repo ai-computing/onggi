@@ -28,8 +28,10 @@ func codecsIn(s *Store) map[codec.ID]int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	out := map[codec.ID]int{}
-	for _, l := range s.index {
-		out[l.Codec]++
+	for _, e := range s.idx.ent {
+		if e.state == stateStored {
+			out[e.loc.Codec]++
+		}
 	}
 	return out
 }

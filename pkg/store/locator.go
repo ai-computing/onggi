@@ -53,20 +53,26 @@ func (s *Store) writeLocator(lists [][]ChunkRef, f *os.File) (int64, error) {
 	raw(locatorMagic[:])
 	w(0) // node count, set at the end
 	var nodes uint32
-	nodeOf := map[digest.Digest]uint32{}
+	// node number of each index entry, +1 (0: not written yet); an array, not a map by digest (#19)
+	s.mu.RLock()
+	nodeOf := make([]uint32, len(s.idx.dig))
+	s.mu.RUnlock()
 	packOf := map[uint32]uint32{} // store pack number -> locator pack number
 	var packs []digest.Digest
 	var add func(c ChunkRef) (uint32, error)
 	add = func(c ChunkRef) (uint32, error) {
-		if id, ok := nodeOf[c.Digest]; ok {
-			return id, nil
+		ix, e, ok := s.lookup(c.Digest)
+		if ok && nodeOf[ix] != 0 {
+			return nodeOf[ix] - 1, nil
 		}
-		s.mu.RLock()
-		loc, stored := s.index[c.Digest]
-		subs, comp := s.comps[c.Digest]
-		s.mu.RUnlock()
+		loc := e.loc
+		var subs []ChunkRef
+		comp := ok && e.state == stateComp
+		if comp {
+			subs = s.subRefs(e)
+		}
 		switch {
-		case stored:
+		case ok && e.state == stateStored:
 			p, ok := packOf[loc.Pack]
 			if !ok {
 				p = uint32(len(packs))
@@ -101,7 +107,7 @@ func (s *Store) writeLocator(lists [][]ChunkRef, f *os.File) (int64, error) {
 		}
 		id := nodes
 		nodes++
-		nodeOf[c.Digest] = id
+		nodeOf[ix] = id + 1
 		return id, nil
 	}
 	files := make([][]uint32, len(lists))
