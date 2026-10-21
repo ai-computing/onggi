@@ -267,13 +267,16 @@ func (pl *planner) ref(c ChunkRef) (int32, error) {
 		return id, nil
 	}
 	s := pl.s
-	s.mu.RLock()
-	loc, ok := s.index[c.Digest]
-	subs, isComp := s.comps[c.Digest]
-	s.mu.RUnlock()
+	_, e, ok := s.lookup(c.Digest)
+	loc := e.loc
+	var subs []ChunkRef
+	isComp := ok && e.state == stateComp
+	if isComp {
+		subs = s.subRefs(e)
+	}
 	id := int32(len(pl.nodes))
 	switch {
-	case ok:
+	case ok && e.state == stateStored:
 		if loc.Length != c.Length {
 			return 0, fmt.Errorf("chunk %s length %d in the list, %d in the index", c.Digest, c.Length, loc.Length)
 		}

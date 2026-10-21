@@ -28,9 +28,8 @@ type Store struct {
 	Config Config
 
 	mu    sync.RWMutex
-	index map[digest.Digest]Loc        // every chunk the store holds as bytes in a pack
-	comps map[digest.Digest][]ChunkRef // chunks the store holds as sub-chunks
-	packs []digest.Digest              // Loc.Pack numbers these
+	idx   *chunkIndex     // every chunk the store holds, as bytes in a pack or as sub-chunks
+	packs []digest.Digest // Loc.Pack numbers these
 	packN map[digest.Digest]uint32
 
 	loadMu sync.Mutex // LoadIndex runs once
@@ -95,8 +94,7 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 	if err != nil {
 		return nil, err
 	}
-	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}, comps: map[digest.Digest][]ChunkRef{},
-		packN: map[digest.Digest]uint32{}}
+	s := &Store{B: b, Config: cfg, idx: newChunkIndex(), packN: map[digest.Digest]uint32{}}
 	return s, nil
 }
 
@@ -190,10 +188,8 @@ func (s *Store) addIndex(name string, data []byte) error {
 		s.packN[pack] = id
 	}
 	for _, e := range entries {
-		if _, ok := s.index[e.Chunk]; !ok {
-			e.Loc.Pack = id
-			s.index[e.Chunk] = e.Loc
-		}
+		e.Loc.Pack = id
+		s.idx.addStored(e.Chunk, e.Loc)
 	}
 	return nil
 }
@@ -208,9 +204,7 @@ func (s *Store) addComposites(cs []composite) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, c := range cs {
-		if _, ok := s.comps[c.Chunk]; !ok {
-			s.comps[c.Chunk] = c.Subs
-		}
+		s.idx.addComposite(c)
 	}
 }
 
@@ -233,27 +227,45 @@ func (s *Store) subChunks(rel string) bool {
 
 // has reports whether the store can produce chunk d, as bytes or as sub-chunks.
 func (s *Store) has(d digest.Digest) bool {
+	_, _, ok := s.lookup(d)
+	return ok
+}
+
+// lookup returns the entry of chunk d if the store can produce it.
+func (s *Store) lookup(d digest.Digest) (uint32, entry, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if _, ok := s.index[d]; ok {
-		return true
+	id, ok := s.idx.find(d)
+	if !ok || s.idx.ent[id].state == stateUnknown {
+		return 0, entry{}, false
 	}
-	_, ok := s.comps[d]
-	return ok
+	return id, s.idx.ent[id], true
+}
+
+// subRefs returns the sub-chunks of composite entry e.
+func (s *Store) subRefs(e entry) []ChunkRef {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	ids := s.idx.subsOf(e)
+	out := make([]ChunkRef, len(ids))
+	for i, id := range ids {
+		out[i] = s.idx.ref(id)
+	}
+	return out
 }
 
 // Stats summarizes the loaded index: chunks held as bytes, packs, and chunks held as sub-chunks.
 func (s *Store) Stats() (chunks, packs int) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return len(s.index), len(s.packs)
+	return s.idx.stored, len(s.packs)
 }
 
 // Composites is the number of chunks held as sub-chunks.
 func (s *Store) Composites() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return len(s.comps)
+	return s.idx.comps
 }
 
 // Resolve turns a ref name or a "sha256:" digest into a manifest digest.
