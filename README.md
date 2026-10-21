@@ -67,7 +67,7 @@ then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
-holds the store's index for dedup: 2.9 GB by default, 1.9 GB with the same limit, at about twice the time.
+holds the store's index (compact arrays) for dedup and peaks at 1.9 GiB by default (push 2 min 24 s).
 
 ## Documents
 
