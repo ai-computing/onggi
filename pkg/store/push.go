@@ -350,6 +350,14 @@ func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, cla
 			}
 			sd := digest.Of(sub)
 			subs = append(subs, ChunkRef{Digest: sd, Length: uint32(len(sub))})
+			if sd == d { // the whole chunk is one sub-chunk (a short tail): this push owns d already
+				n, err := send(ctx, sub, sd, mode, out)
+				if err != nil {
+					return nil, 0, err
+				}
+				nb += n
+				continue
+			}
 			if claim(sd) {
 				n, err := send(ctx, sub, sd, mode, out)
 				if err != nil {

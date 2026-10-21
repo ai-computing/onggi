@@ -88,6 +88,29 @@ func TestTwoLevelFindsRearrangedBlocks(t *testing.T) {
 	}
 }
 
+// Short files and short tails are one sub-chunk equal to the chunk; they must still be stored.
+// A small file equal to a piece of a large one exercises sub-chunks that are whole chunks elsewhere.
+func TestTwoLevelShortChunksAndNesting(t *testing.T) {
+	ctx := context.Background()
+	src, storeDir, out := t.TempDir(), t.TempDir(), t.TempDir()
+	big := random(16, 3<<20+5_000) // ends in a short tail
+	write(t, filepath.Join(src, "big.bin"), big)
+	write(t, filepath.Join(src, "config.json"), []byte(`{"tiny": true}`))
+	write(t, filepath.Join(src, "small.bin"), random(17, 9_000))
+	for i, n := range []int{1_000, 3_000, 6_000, 12_000} {
+		write(t, filepath.Join(src, "piece", string(rune('a'+i))+".bin"), big[200_000:200_000+n])
+	}
+	s := openTwoLevel(t, storeDir)
+	md, _, err := s.Push(ctx, src, PushOptions{Compress: codec.ModeAuto, Workers: 4})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := openTwoLevel(t, storeDir).Pull(ctx, md, out, PullOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+}
+
 func TestTwoLevelWithCompression(t *testing.T) {
 	ctx := context.Background()
 	src, storeDir, out := t.TempDir(), t.TempDir(), t.TempDir()

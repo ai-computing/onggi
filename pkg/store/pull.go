@@ -204,15 +204,14 @@ func (s *Store) plan(wants map[digest.Digest]*want, c ChunkRef, t target) error 
 		return nil
 	case isComp:
 		var n int64
+		// A sub-chunk may itself be a composite: another file stored those bytes as a whole chunk.
+		// Each level is strictly shorter, so the recursion ends.
 		for _, sc := range subs {
-			s.mu.RLock()
-			sl, ok := s.index[sc.Digest]
-			s.mu.RUnlock()
-			if !ok || sl.Length != sc.Length {
-				return fmt.Errorf("chunk %s: sub-chunk %s is not in the store", c.Digest, sc.Digest)
+			if sc.Length >= c.Length {
+				return fmt.Errorf("chunk %s: sub-chunk %s is not shorter than the chunk", c.Digest, sc.Digest)
 			}
 			if err := s.plan(wants, sc, target{file: t.file, off: t.off + n}); err != nil {
-				return err
+				return fmt.Errorf("chunk %s: %w", c.Digest, err)
 			}
 			n += int64(sc.Length)
 		}
