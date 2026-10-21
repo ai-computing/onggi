@@ -1,4 +1,4 @@
-// Command onggi is the onggi CLI. P0 has one subcommand, dedup-report.
+// Command onggi is the onggi CLI.
 package main
 
 import (
@@ -21,8 +21,14 @@ var version = "dev"
 const usage = `onggi — content-addressed store for model weights and compiled artifacts
 
 usage:
-  onggi dedup-report [flags] <path>...   measure how much the files would shrink in onggi
+  onggi push    --store S [--ref NAME] <dir>     store a directory; only missing chunks are uploaded
+  onggi pull    --store S <ref|sha256:...> <dir> restore an artifact, every chunk hash-checked
+  onggi ls      --store S                        refs and store totals
+  onggi inspect --store S <ref|sha256:...>       files of an artifact
+  onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
   onggi version
+
+A store S is a directory or file:// URL on any POSIX mount (local disk, NFS, SMB, CephFS, ...).
 `
 
 func main() {
@@ -33,6 +39,14 @@ func main() {
 	switch os.Args[1] {
 	case "dedup-report":
 		os.Exit(dedupReport(os.Args[2:], os.Stdout, os.Stderr))
+	case "push":
+		os.Exit(push(os.Args[2:], os.Stdout, os.Stderr))
+	case "pull":
+		os.Exit(pull(os.Args[2:], os.Stdout, os.Stderr))
+	case "ls":
+		os.Exit(ls(os.Args[2:], os.Stdout, os.Stderr))
+	case "inspect":
+		os.Exit(inspect(os.Args[2:], os.Stdout, os.Stderr))
 	case "version":
 		fmt.Println(version)
 	case "-h", "--help", "help":
