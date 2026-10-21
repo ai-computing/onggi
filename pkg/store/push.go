@@ -92,7 +92,9 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	defer cancel(nil)
 	fail := func(err error) { cancel(err) }
 
-	claimed := map[digest.Digest]bool{} // chunks queued for a pack in this push
+	// chunks this push has queued for a pack and not yet indexed; an entry leaves once its pack's
+	// index is loaded, so the set holds only chunks in flight (#17)
+	claimed := map[digest.Digest]bool{}
 	var claimMu sync.Mutex
 	claim := func(d digest.Digest) bool {
 		if s.has(d) {
@@ -107,12 +109,47 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		return true
 	}
 
-	var comps []composite // chunks this push stores as sub-chunks
+	var comps []composite // chunks this push stores as sub-chunks, not yet published
 	var compMu sync.Mutex
 	addComp := func(c composite) {
 		compMu.Lock()
 		comps = append(comps, c)
 		compMu.Unlock()
+	}
+	// publishReady writes the composites whose sub-chunks are all indexed (durable), so pending
+	// composites do not pile up until the end of the push.
+	publishReady := func() error {
+		compMu.Lock()
+		if len(comps) < compFlushAt {
+			compMu.Unlock()
+			return nil
+		}
+		var ready, wait []composite
+		for _, c := range comps {
+			ok := true
+			for _, sc := range c.Subs {
+				if !s.has(sc.Digest) {
+					ok = false
+					break
+				}
+			}
+			if ok {
+				ready = append(ready, c)
+			} else {
+				wait = append(wait, c)
+			}
+		}
+		comps = wait
+		compMu.Unlock()
+		if err := s.putComposites(ctx, ready); err != nil {
+			return err
+		}
+		claimMu.Lock()
+		for _, c := range ready {
+			delete(claimed, c.Chunk)
+		}
+		claimMu.Unlock()
+		return nil
 	}
 
 	chunks := make(chan pending, 64)
@@ -191,6 +228,14 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 					} else {
 						packCount.Add(1)
 						packBytes.Add(p.size)
+						claimMu.Lock()
+						for _, e := range p.entries {
+							delete(claimed, e.Chunk) // indexed now: s.has answers for it
+						}
+						claimMu.Unlock()
+						if err := publishReady(); err != nil {
+							fail(err)
+						}
 					}
 				}
 				os.Remove(p.path)
@@ -302,6 +347,9 @@ func (s *Store) upload(ctx context.Context, p sealed) error {
 
 // compTableMax bounds one composite table object (about 40 MB at 64 KiB chunks of 4 KiB subs).
 const compTableMax = 64 << 10
+
+// compFlushAt is how many pending composites make an uploader try to publish the ready ones.
+var compFlushAt = 16 << 10 // a variable so tests can lower it
 
 func (s *Store) putComposites(ctx context.Context, cs []composite) error {
 	for len(cs) > 0 {
