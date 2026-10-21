@@ -49,6 +49,8 @@ func Of(path string) Kind {
 			return RNGDParams
 		}
 		return HF
+	case strings.Contains(p, "/models--") && strings.Contains(p, "/blobs/"):
+		return HF // Hugging Face hub cache: snapshot files are links to blobs named by hash
 	}
 	return Other
 }

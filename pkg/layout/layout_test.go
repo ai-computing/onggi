@@ -15,6 +15,7 @@ func TestOf(t *testing.T) {
 		"cache/furiosa/llm/param_files/params-x.safetensors/model-1.safetensors": RNGDParams,
 		"artifacts/llama8b-coarse/params-Llama/model-00001-of-00004.safetensors": RNGDParams,
 		`hub\models--meta-llama\snapshots\abc\model-00001-of-00004.safetensors`:  HF,
+		"hub/models--meta-llama--Llama-3.1-8B-Instruct/blobs/2b1879f356aed35003": HF,
 		"artifacts/llama8b-fine/tokenizer.json":                                  Other,
 	} {
 		if got := Of(path); got != want {
