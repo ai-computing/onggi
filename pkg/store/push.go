@@ -416,33 +416,21 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 			continue
 		}
 		// two levels: store the new chunk as sub-chunks, sending only the ones the store lacks
-		sc := chunker.New(bytes.NewReader(ch), *s.Config.Sub)
 		var subs []ChunkRef
-		for {
-			sub, err := sc.Next()
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			if err != nil {
-				return nil, 0, err
-			}
+		err = s.Config.Sub.Split(ch, func(sub []byte) error {
 			sd := digest.Of(sub)
 			subs = append(subs, ChunkRef{Digest: sd, Length: uint32(len(sub))})
-			if sd == d { // the whole chunk is one sub-chunk (a short tail): this push owns d already
+			if sd == d || claim(sd) { // sd == d: the whole chunk is one sub-chunk; this push owns d already
 				n, err := send(ctx, sub, sd, mode, out)
 				if err != nil {
-					return nil, 0, err
-				}
-				nb += n
-				continue
-			}
-			if claim(sd) {
-				n, err := send(ctx, sub, sd, mode, out)
-				if err != nil {
-					return nil, 0, err
+					return err
 				}
 				nb += n
 			}
+			return nil
+		})
+		if err != nil {
+			return nil, 0, err
 		}
 		if len(subs) == 1 && subs[0].Digest == d {
 			continue // one sub-chunk equal to the chunk: it is stored as bytes under d

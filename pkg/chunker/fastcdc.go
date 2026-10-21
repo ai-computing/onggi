@@ -74,6 +74,24 @@ func (p Params) cut(data []byte, small, large uint64) int {
 	return n
 }
 
+// Split calls fn with each chunk of data, cut exactly where a Chunker over the same bytes would
+// cut. It allocates nothing, for data already in memory (sub-chunking a chunk, #19); a Chunker
+// keeps an 8 MiB buffer. It panics on invalid params; check them with Validate first.
+func (p Params) Split(data []byte, fn func([]byte) error) error {
+	if err := p.Validate(); err != nil {
+		panic(err)
+	}
+	small, large := p.masks()
+	for len(data) > 0 {
+		n := p.cut(data, small, large)
+		if err := fn(data[:n]); err != nil {
+			return err
+		}
+		data = data[n:]
+	}
+	return nil
+}
+
 // Chunker reads chunks from a stream. The slice returned by Next is valid until the next call.
 type Chunker struct {
 	r            io.Reader
