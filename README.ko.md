@@ -4,8 +4,9 @@
 
 [English](README.md) · 한국어
 
-> 상태: **P0.** 설계는 [docs/ko/design.md](docs/ko/design.md)에 있고, 첫 도구 `onggi dedup-report`로 저장소가 얼마나
-> 줄어드는지 측정합니다. 클러스터 구성요소(컨트롤러, 노드 agent, CSI 드라이버)는 P1–P3에서 이어집니다.
+> 상태: **P1.** 설계는 [docs/ko/design.md](docs/ko/design.md)에 있습니다. `onggi dedup-report`로 저장소가 얼마나
+> 줄어드는지 측정하고, `onggi push` / `pull`로 POSIX 마운트나 S3 서버에 결과물을 저장·복원합니다. 클러스터
+> 구성요소(노드 agent, CSI 드라이버, 컨트롤러)는 P2–P3에서 이어집니다.
 
 NPU는 모델을 미리 컴파일하며 모델 × SDK × 장치 × 길이 구간 × 배치 × 옵션 조합마다 결과물이 하나씩 생깁니다. 연구실
 RNGD + ATOM 노드에서 Rebellions ATOM용 Llama-3.1-8B 빌드 묶음 하나가 **262 GB**를 차지합니다. 그래프마다 가중치가 통째로
@@ -31,7 +32,7 @@ Onggi(옹기)는 서로 다른 바이트를 한 번만 저장하고, pod가 요�
 | **선언형 빌드** | `ArtifactSet` CRD가 컴파일 팜을 구동; 게시할 때 중복 제거 |
 | **멀티 노드** | 영속 계층은 기존 이레이저 코딩 오브젝트 스토어; 캐시는 노드 장애를 전제로 설계 |
 
-## 빠른 시작(P0)
+## 빠른 시작
 
 ```bash
 go build -o onggi ./cmd/onggi            # Go 1.24 이상
@@ -43,6 +44,19 @@ go build -o onggi ./cmd/onggi            # Go 1.24 이상
 `.rbln`)로 정렬해 원본이 먼저 오게 하고, 파일을 병렬로 내용 기반 분할(FastCDC, 기본 16/64/256 KiB)한 뒤 종류별 논리 크기,
 고유 바이트, 앞선 종류 대비 새로 추가되는 바이트를 출력합니다. `--fixed-block`은 비교용으로 고정 크기 블록 측정을 함께
 하고, `--pairs N`은 가장 큰 N개 파일끼리 서로 얼마나 겹치는지 보여줍니다.
+
+결과물 저장·복원(저장소에 없는 청크만 올리고, 복원할 때 모든 청크의 해시를 확인):
+
+```bash
+export ONGGI_STORE=/mnt/models/onggi        # 아무 POSIX 마운트: 로컬 디스크, NFS, SMB, CephFS, ...
+# 또는 S3 서버(Ceph RGW, SeaweedFS, Garage, VersityGW, 클라우드). 버킷은 미리 만들어 둬야 함
+export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
+./onggi push --ref llama-3.1-8b@atom/pd <빌드 디렉터리>
+./onggi pull llama-3.1-8b@atom/pd <복원 디렉터리>
+./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
+```
+
+연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 46.8 GB로 저장됩니다(push 3분, pull 5분, 원본과 바이트 단위 동일).
 
 ## 문서
 

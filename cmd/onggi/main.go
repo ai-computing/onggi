@@ -29,6 +29,8 @@ usage:
   onggi version
 
 A store S is a directory or file:// URL on any POSIX mount (local disk, NFS, SMB, CephFS, ...).
+S may also be s3://bucket/prefix?endpoint=host:port[&insecure=1][&region=r]; credentials come from
+AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY or the usual AWS files.
 `
 
 func main() {

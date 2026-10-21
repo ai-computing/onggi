@@ -22,3 +22,55 @@ jobs:
         run: go test -run xxx -bench . -benchtime 3x ./pkg/chunker
       - name: build linux/amd64 CLI
         run: CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o onggi ./cmd/onggi && ./onggi version
+
+  # The s3 driver against real S3 servers: the backend conformance suite, then a CLI round trip.
+  # (MinIO community edition is archived and no longer ships binaries, so CI uses these two.)
+  s3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        server: [versitygw, seaweedfs]
+    env:
+      AWS_ACCESS_KEY_ID: onggitest
+      AWS_SECRET_ACCESS_KEY: onggitestsecret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: start ${{ matrix.server }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/srv/data" && cd "$RUNNER_TEMP/srv"
+          if [ "${{ matrix.server }}" = versitygw ]; then
+            curl -sSfL https://github.com/versity/versitygw/releases/download/v1.8.0/versitygw_v1.8.0_Linux_x86_64.tar.gz | tar xz
+            bin=$(find . -name versitygw -type f | head -1)
+            nohup "$bin" --access "$AWS_ACCESS_KEY_ID" --secret "$AWS_SECRET_ACCESS_KEY" --port 127.0.0.1:7070 posix "$PWD/data" > server.log 2>&1 &
+            echo "ONGGI_TEST_S3=s3://onggitest?endpoint=127.0.0.1:7070&insecure=1" >> "$GITHUB_ENV"
+            port=7070
+          else
+            curl -sSfL https://github.com/seaweedfs/seaweedfs/releases/download/4.47/linux_amd64.tar.gz | tar xz
+            printf '{"identities":[{"name":"ci","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}' "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" > s3.json
+            nohup ./weed server -dir="$PWD/data" -ip=127.0.0.1 -master.port=9333 -volume.port=18080 -filer -s3 -s3.port=8333 -s3.config="$PWD/s3.json" > server.log 2>&1 &
+            echo "ONGGI_TEST_S3=s3://onggitest?endpoint=127.0.0.1:8333&insecure=1" >> "$GITHUB_ENV"
+            port=8333
+          fi
+          for i in $(seq 1 90); do curl -s -o /dev/null "127.0.0.1:$port" && exit 0; sleep 1; done
+          cat server.log; exit 1
+      - name: conformance suite
+        run: go test -count=1 -race -v ./pkg/backend/s3
+      - name: CLI round trip (push, push again, pull, compare)
+        run: |
+          go build -o onggi ./cmd/onggi
+          mkdir -p src/sub && head -c 50000000 /dev/urandom > src/a.bin && cp src/a.bin src/sub/copy.bin && echo hi > src/sub/small.txt
+          export ONGGI_STORE="${ONGGI_TEST_S3/onggitest?/onggitest/cli?}"
+          ./onggi push --ref demo src
+          ./onggi push --ref demo src | tee second.txt
+          grep -E '^new +0 B' second.txt
+          ./onggi pull demo out
+          diff -r src out
+          ./onggi ls
+      - name: server log
+        if: failure()
+        run: tail -100 "$RUNNER_TEMP/srv/server.log"
