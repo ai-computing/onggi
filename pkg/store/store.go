@@ -19,6 +19,7 @@ import (
 	"github.com/ai-computing/onggi/pkg/backend"
 	"github.com/ai-computing/onggi/pkg/chunker"
 	"github.com/ai-computing/onggi/pkg/digest"
+	"github.com/ai-computing/onggi/pkg/layout"
 )
 
 // Store is an open store.
@@ -45,8 +46,12 @@ var DefaultSub = chunker.Params{Min: 1 << 10, Avg: 4 << 10, Max: 16 << 10}
 type Create struct {
 	Chunker  chunker.Params
 	Sub      *chunker.Params // nil: one level of chunks
+	SubKinds []layout.Kind   // file kinds that get sub-chunks; empty: all
 	PackSize int64
 }
+
+// DefaultSubKinds are the kinds whose compile variants rearrange the same bytes (#15).
+var DefaultSubKinds = []layout.Kind{layout.ATOMPrefill, layout.ATOMDecode, layout.ATOMOther}
 
 // Open reads the store's config, creating it with p and packSize (one level of chunks) if the
 // store is empty, and loads the chunk index.
@@ -74,6 +79,9 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 			packSize = DefaultPackSize
 		}
 		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Sub: c.Sub, Created: time.Now().UTC()}
+		if c.Sub != nil {
+			cfg.SubKinds = c.SubKinds
+		}
 		data, _ := json.MarshalIndent(cfg, "", "  ")
 		if err := b.Put(ctx, configKey, bytes.NewReader(data), int64(len(data))); err != nil {
 			return nil, err
@@ -172,6 +180,23 @@ func (s *Store) addComposites(cs []composite) {
 			s.comps[c.Chunk] = c.Subs
 		}
 	}
+}
+
+// subChunks reports whether files of this path get sub-chunks.
+func (s *Store) subChunks(rel string) bool {
+	if s.Config.Sub == nil {
+		return false
+	}
+	if len(s.Config.SubKinds) == 0 {
+		return true
+	}
+	k := layout.Of(rel)
+	for _, x := range s.Config.SubKinds {
+		if x == k {
+			return true
+		}
+	}
+	return false
 }
 
 // has reports whether the store can produce chunk d, as bytes or as sub-chunks.

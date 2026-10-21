@@ -211,7 +211,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				if ctx.Err() != nil {
 					continue
 				}
-				list, nb, err := s.chunkFile(ctx, files[i].abs, o.Compress, claim, addComp, chunks)
+				list, nb, err := s.chunkFile(ctx, files[i].abs, s.subChunks(files[i].rel), o.Compress, claim, addComp, chunks)
 				if err != nil {
 					fail(fmt.Errorf("%s: %w", files[i].rel, err))
 					continue
@@ -307,7 +307,7 @@ func (s *Store) putComposites(ctx context.Context, cs []composite) error {
 	return nil
 }
 
-func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, claim func(digest.Digest) bool, addComp func(composite), out chan<- pending) ([]ChunkRef, int64, error) {
+func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode codec.Mode, claim func(digest.Digest) bool, addComp func(composite), out chan<- pending) ([]ChunkRef, int64, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, 0, err
@@ -329,7 +329,7 @@ func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, cla
 		if !claim(d) {
 			continue
 		}
-		if s.Config.Sub == nil {
+		if !twoLevel {
 			n, err := send(ctx, ch, d, mode, out)
 			if err != nil {
 				return nil, 0, err

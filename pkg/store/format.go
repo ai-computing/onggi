@@ -198,8 +198,11 @@ type Config struct {
 	PackSize int64          `json:"pack_size"`
 	// Sub, when set, makes push split every chunk the store lacks into content-defined
 	// sub-chunks (two-level chunking, #15). Stores created before it have none.
-	Sub     *chunker.Params `json:"sub_chunker,omitempty"`
-	Created time.Time       `json:"created"`
+	Sub *chunker.Params `json:"sub_chunker,omitempty"`
+	// SubKinds limits sub-chunking to these file kinds (by name, pkg/layout); empty means all.
+	// Weights that equal their HF source dedup whole at 64 KiB, and finer chunks only add metadata.
+	SubKinds []layout.Kind `json:"sub_kinds,omitempty"`
+	Created  time.Time     `json:"created"`
 }
 
 // File is one file of an artifact.

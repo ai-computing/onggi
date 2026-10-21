@@ -111,6 +111,39 @@ func TestTwoLevelShortChunksAndNesting(t *testing.T) {
 	sameTree(t, src, out)
 }
 
+func TestSubKindsLimitSubChunking(t *testing.T) {
+	ctx := context.Background()
+	src, storeDir, out := t.TempDir(), t.TempDir(), t.TempDir()
+	w := random(18, 4<<20)
+	write(t, filepath.Join(src, "model.safetensors"), w)
+	write(t, filepath.Join(src, "copy.safetensors"), shuffled(w, 19))
+	b, _ := bfs.Open(storeDir, backend.DurabilityNone)
+	sub := DefaultSub
+	s, err := OpenWith(ctx, b, Create{Chunker: chunker.Default, Sub: &sub, SubKinds: DefaultSubKinds, PackSize: 1 << 20})
+	if err != nil {
+		t.Fatal(err)
+	}
+	md, st, err := s.Push(ctx, src, PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Composites() != 0 || st.NewBytes < int64(len(w))*17/10 {
+		t.Fatalf("safetensors were sub-chunked: %d composites, %d new bytes", s.Composites(), st.NewBytes)
+	}
+	write(t, filepath.Join(src, "prefill.rbln"), shuffled(w, 20))
+	md, st, err = s.Push(ctx, src, PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Composites() == 0 {
+		t.Fatal("an .rbln file was not sub-chunked")
+	}
+	if _, err := openStore(t, storeDir).Pull(ctx, md, out, PullOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+}
+
 func TestTwoLevelWithCompression(t *testing.T) {
 	ctx := context.Background()
 	src, storeDir, out := t.TempDir(), t.TempDir(), t.TempDir()
