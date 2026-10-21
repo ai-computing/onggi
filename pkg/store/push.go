@@ -92,10 +92,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	claimed := map[digest.Digest]bool{} // chunks queued for a pack in this push
 	var claimMu sync.Mutex
 	claim := func(d digest.Digest) bool {
-		s.mu.RLock()
-		_, have := s.index[d]
-		s.mu.RUnlock()
-		if have {
+		if s.has(d) {
 			return false
 		}
 		claimMu.Lock()
@@ -105,6 +102,14 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		}
 		claimed[d] = true
 		return true
+	}
+
+	var comps []composite // chunks this push stores as sub-chunks
+	var compMu sync.Mutex
+	addComp := func(c composite) {
+		compMu.Lock()
+		comps = append(comps, c)
+		compMu.Unlock()
 	}
 
 	chunks := make(chan pending, 64)
@@ -206,7 +211,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				if ctx.Err() != nil {
 					continue
 				}
-				list, nb, err := s.chunkFile(ctx, files[i].abs, o.Compress, claim, chunks)
+				list, nb, err := s.chunkFile(ctx, files[i].abs, o.Compress, claim, addComp, chunks)
 				if err != nil {
 					fail(fmt.Errorf("%s: %w", files[i].rel, err))
 					continue
@@ -235,6 +240,11 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	packerWG.Wait()
 	upWG.Wait()
 	if err := context.Cause(ctx); err != nil {
+		return digest.Digest{}, st, err
+	}
+
+	// composites after every pack (their sub-chunks are durable), before the lists that name them
+	if err := s.putComposites(ctx, comps); err != nil {
 		return digest.Digest{}, st, err
 	}
 
@@ -280,7 +290,24 @@ func (s *Store) upload(ctx context.Context, p sealed) error {
 	return s.addIndex(name, idx)
 }
 
-func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, claim func(digest.Digest) bool, out chan<- pending) ([]ChunkRef, int64, error) {
+// compTableMax bounds one composite table object (about 40 MB at 64 KiB chunks of 4 KiB subs).
+const compTableMax = 64 << 10
+
+func (s *Store) putComposites(ctx context.Context, cs []composite) error {
+	for len(cs) > 0 {
+		n := min(len(cs), compTableMax)
+		data := encodeComposites(cs[:n])
+		name := digest.Of(data).Hex()
+		if err := s.B.Put(ctx, backend.Key{Kind: backend.Index, Name: name}, bytes.NewReader(data), int64(len(data))); err != nil {
+			return fmt.Errorf("composite table: %w", err)
+		}
+		s.addComposites(cs[:n])
+		cs = cs[n:]
+	}
+	return nil
+}
+
+func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, claim func(digest.Digest) bool, addComp func(composite), out chan<- pending) ([]ChunkRef, int64, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, 0, err
@@ -299,18 +326,56 @@ func (s *Store) chunkFile(ctx context.Context, path string, mode codec.Mode, cla
 		}
 		d := digest.Of(ch)
 		list = append(list, ChunkRef{Digest: d, Length: uint32(len(ch))})
-		if claim(d) {
-			nb += int64(len(ch))
-			data, id := codec.Encode(ch, mode)
-			if id == codec.None {
-				data = append([]byte(nil), ch...) // the chunker reuses its buffer
+		if !claim(d) {
+			continue
+		}
+		if s.Config.Sub == nil {
+			n, err := send(ctx, ch, d, mode, out)
+			if err != nil {
+				return nil, 0, err
 			}
-			select {
-			case out <- pending{data: data, raw: uint32(len(ch)), codec: id, chunk: d}:
-			case <-ctx.Done():
-				return nil, 0, context.Cause(ctx)
+			nb += n
+			continue
+		}
+		// two levels: store the new chunk as sub-chunks, sending only the ones the store lacks
+		sc := chunker.New(bytes.NewReader(ch), *s.Config.Sub)
+		var subs []ChunkRef
+		for {
+			sub, err := sc.Next()
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				return nil, 0, err
+			}
+			sd := digest.Of(sub)
+			subs = append(subs, ChunkRef{Digest: sd, Length: uint32(len(sub))})
+			if claim(sd) {
+				n, err := send(ctx, sub, sd, mode, out)
+				if err != nil {
+					return nil, 0, err
+				}
+				nb += n
 			}
 		}
+		if len(subs) == 1 && subs[0].Digest == d {
+			continue // one sub-chunk equal to the chunk: it is stored as bytes under d
+		}
+		addComp(composite{Chunk: d, Subs: subs})
+	}
+}
+
+// send queues one new chunk for a pack, compressed per mode, and returns its raw size.
+func send(ctx context.Context, raw []byte, d digest.Digest, mode codec.Mode, out chan<- pending) (int64, error) {
+	data, id := codec.Encode(raw, mode)
+	if id == codec.None {
+		data = append([]byte(nil), raw...) // the chunker reuses its buffer
+	}
+	select {
+	case out <- pending{data: data, raw: uint32(len(raw)), codec: id, chunk: d}:
+		return int64(len(raw)), nil
+	case <-ctx.Done():
+		return 0, context.Cause(ctx)
 	}
 }
 

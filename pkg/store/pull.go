@@ -94,21 +94,9 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		}
 		var off int64
 		for _, c := range list {
-			w := wants[c.Digest]
-			if w == nil {
-				s.mu.RLock()
-				loc, ok := s.index[c.Digest]
-				s.mu.RUnlock()
-				if !ok {
-					return st, fmt.Errorf("%s: chunk %s is not in the store", f.Path, c.Digest)
-				}
-				if loc.Length != c.Length {
-					return st, fmt.Errorf("%s: chunk %s length %d in the list, %d in the index", f.Path, c.Digest, c.Length, loc.Length)
-				}
-				w = &want{chunk: c.Digest, loc: loc}
-				wants[c.Digest] = w
+			if err := s.plan(wants, c, target{file: i, off: off}); err != nil {
+				return st, fmt.Errorf("%s: %w", f.Path, err)
 			}
-			w.dst = append(w.dst, target{file: i, off: off})
 			off += int64(c.Length)
 		}
 		if off != f.Size {
@@ -195,6 +183,45 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	st.ReadBytes = readBytes.Load()
 	st.Duration = time.Since(start)
 	return st, nil
+}
+
+// plan records that chunk c goes to t: as stored bytes, or through its sub-chunks.
+func (s *Store) plan(wants map[digest.Digest]*want, c ChunkRef, t target) error {
+	if w := wants[c.Digest]; w != nil {
+		w.dst = append(w.dst, t)
+		return nil
+	}
+	s.mu.RLock()
+	loc, ok := s.index[c.Digest]
+	subs, isComp := s.comps[c.Digest]
+	s.mu.RUnlock()
+	switch {
+	case ok:
+		if loc.Length != c.Length {
+			return fmt.Errorf("chunk %s length %d in the list, %d in the index", c.Digest, c.Length, loc.Length)
+		}
+		wants[c.Digest] = &want{chunk: c.Digest, loc: loc, dst: []target{t}}
+		return nil
+	case isComp:
+		var n int64
+		for _, sc := range subs {
+			s.mu.RLock()
+			sl, ok := s.index[sc.Digest]
+			s.mu.RUnlock()
+			if !ok || sl.Length != sc.Length {
+				return fmt.Errorf("chunk %s: sub-chunk %s is not in the store", c.Digest, sc.Digest)
+			}
+			if err := s.plan(wants, sc, target{file: t.file, off: t.off + n}); err != nil {
+				return err
+			}
+			n += int64(sc.Length)
+		}
+		if n != int64(c.Length) {
+			return fmt.Errorf("chunk %s: sub-chunks add up to %d bytes, want %d", c.Digest, n, c.Length)
+		}
+		return nil
+	}
+	return fmt.Errorf("chunk %s is not in the store", c.Digest)
 }
 
 func (s *Store) readRange(ctx context.Context, r []*want, handles []*os.File) (int64, error) {

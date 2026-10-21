@@ -23,7 +23,7 @@ import (
 )
 
 type storeFlags struct {
-	url, durability, min, avg, max, packSize *string
+	url, durability, min, avg, max, sub, packSize *string
 }
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
@@ -33,6 +33,7 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 		min:        fs.String("min", "16KiB", "minimum chunk size (only when creating a store)"),
 		avg:        fs.String("avg", "64KiB", "average chunk size (only when creating a store)"),
 		max:        fs.String("max", "256KiB", "maximum chunk size (only when creating a store)"),
+		sub:        fs.String("sub", "4KiB", "average sub-chunk size for two-level chunking, 0 for one level (only when creating a store)"),
 		packSize:   fs.String("pack-size", "64MiB", "pack object size (only when creating a store)"),
 	}
 }
@@ -76,7 +77,15 @@ func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error
 	if err != nil {
 		return nil, nil, err
 	}
-	s, err := store.Open(ctx, b, p, int64(pack))
+	c := store.Create{Chunker: p, PackSize: int64(pack)}
+	if *f.sub != "0" {
+		avg, err := size(*f.sub)
+		if err != nil {
+			return nil, nil, err
+		}
+		c.Sub = &chunker.Params{Min: avg / 4, Avg: avg, Max: avg * 4}
+	}
+	s, err := store.OpenWith(ctx, b, c)
 	return s, b, err
 }
 
@@ -224,6 +233,10 @@ func ls(args []string, stdout, stderr io.Writer) int {
 	c := s.Config.Chunker
 	fmt.Fprintf(stdout, "\nstore: %d chunks in %d packs, %s; chunker %s/%s/%s; durability %s\n", chunks, packs, human(packBytes),
 		human(int64(c.Min)), human(int64(c.Avg)), human(int64(c.Max)), s.B.Caps().Durability)
+	if sc := s.Config.Sub; sc != nil {
+		fmt.Fprintf(stdout, "two-level: %d chunks held as sub-chunks of %s/%s/%s\n", s.Composites(),
+			human(int64(sc.Min)), human(int64(sc.Avg)), human(int64(sc.Max)))
+	}
 	return 0
 }
 
