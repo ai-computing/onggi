@@ -4,10 +4,11 @@
 
 English · [한국어](README.ko.md)
 
-> Status: **design stage.** This repository holds the design ([docs/design.md](docs/design.md)); code starts with P0.
+> Status: **P0.** The design is in [docs/design.md](docs/design.md); the first tool, `onggi dedup-report`, measures what
+> a store would deduplicate. The cluster components (controller, node agent, CSI driver) follow in P1–P3.
 
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
-RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **246 GB** because every graph embeds the
+RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
 weights, and FuriosaAI RNGD keeps three copies of weights that are byte-identical to the HF checkpoint. Content-defined
 chunking finds 99.3 % shared bytes between ATOM variants that fixed-size blocks miss entirely
 ([measurements](docs/artifact-formats.md)).
@@ -24,6 +25,20 @@ that need them before a pod asks, and hands them to any engine as plain files.
 | **Deliver as files** | CSI volume: kubelet mounts a ready artifact; vLLM, vllm-rbln, furiosa-llm, rngd-pd and Optimus Prime need no changes |
 | **Build declaratively** | `ArtifactSet` CRDs drive a compile farm; results are deduplicated on publish |
 | **Stay multi-node** | durable tier on an existing erasure-coded object store; caches survive node loss by design |
+
+## Quick start (P0)
+
+```bash
+go build -o onggi ./cmd/onggi            # Go 1.24+
+./onggi dedup-report --pairs 6 --fixed-block 1MiB <model store paths>...
+./onggi dedup-report --json <paths>... > report.json
+```
+
+It walks the paths (symlinks are not followed), sorts files by kind (HF source, RNGD params/graphs/bundles, ATOM
+decode/prefill `.rbln`) so source checkpoints come first, chunks files in parallel at content-defined boundaries
+(FastCDC, 16/64/256 KiB by default) and prints, per kind, the logical size, the distinct bytes and the bytes each
+kind adds on top of the earlier ones. `--fixed-block` repeats the measurement with fixed-size blocks for comparison;
+`--pairs N` prints which share of each of the N largest files occurs in each other.
 
 ## Documents
 

@@ -1,0 +1,24 @@
+name: onggi
+protocol: "0.1"
+layer: l2-memory
+kind: tool                    # P0: a CLI; the controller, node agent and CSI driver follow in P2-P3 (docs/design.md)
+summary: Content-addressed store for model weights and accelerator-compiled artifacts (P0 dedup-report)
+maturity: experimental
+hardware: [RNGD, ATOM, A100]  # reads their artifacts; runs on any Linux/Windows host without an accelerator
+install:
+  - go build -o onggi ./cmd/onggi
+test:
+  - go vet ./...
+  - go test ./...
+deploy:
+  target: none                # P0 runs where the files are; cluster components come with P2
+  manifests: null
+  image: null
+config:
+  env_example: null
+interfaces:
+  provides: []                # ArtifactStore is proposed for rm-core protocol v0.2
+  uses: []
+kpi: [storage-efficiency, cold-start]
+adapters: []                  # Go; no rm-core import
+metrics: []
