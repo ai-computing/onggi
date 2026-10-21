@@ -15,6 +15,12 @@ RNGD + ATOM 노드에서 Rebellions ATOM용 Llama-3.1-8B 빌드 묶음 하나가
 Onggi(옹기)는 서로 다른 바이트를 한 번만 저장하고, pod가 요청하기 전에 필요한 노드로 옮겨 두며, 어떤 엔진에도 일반
 파일로 넘겨줍니다.
 
+<p align="center"><img src="docs/assets/architecture.svg" width="100%" alt="Onggi 구조: 사용자는 Kubernetes API로 조작하고, onggi-controller가 컴파일 팜·프리페치·GC·웹훅을 맡으며, 영속 계층은 교체 가능한 fs·s3·oci 백엔드, 캐시 계층은 노드 agent가 없는 청크를 받아 peer끼리 나누고 엔진 pod에 마운트한다. rm-core, rm-accel, rm-controller, llm-d, npu-train, lmd-top, Optimus Prime과 연결된다"></p>
+
+**흐름:** ① 컴파일 Job(또는 `onggi push`)이 결과물을 청크로 나눠 영속 계층에 없는 청크만 올리고 ② Kubernetes API의 Ref를
+커밋합니다. ③ pod가 결과물을 마운트하면 그 노드의 agent가 없는 청크를 peer나 영속 계층에서 받아 모든 해시를 검증한 뒤 엔진에
+일반 파일로 넘깁니다. ai-rm·llm-d의 배치 결정과 확장 신호가 들어오면 pod가 생기기 전에 미리 받기 시작합니다.
+
 ## 하는 일
 
 | | |
