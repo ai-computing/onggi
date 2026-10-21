@@ -60,8 +60,10 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
 ```
 
-On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in 29.3 GB: 46.8 GB after dedup, then 1.6× from
-per-chunk compression (push 2 min, pull 6 min, byte-identical). `--compress none` turns compression off.
+On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in **15.9 GB** (push 3 min, pull 5 min,
+byte-identical). Two steps get it there. Two-level chunking re-splits new ATOM chunks into ~4 KiB sub-chunks, so prefill
+variants that hold the same weights in a different order dedup (24.9 GB new instead of 46.8 GB). Per-chunk compression
+then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
 
 ## Documents
 

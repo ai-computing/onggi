@@ -103,6 +103,24 @@ followed. The run covered the node's model directories, not every `.rbln` on the
 
 Fixed 1 MiB blocks on the 330 GB set: 150.0 GB (2.20×), against 64.0 GB content-defined.
 
+**Chunk size and ATOM prefill variants** (#15). These are byte comparisons only; nothing in the files is parsed.
+
+Two prefill variants (S256 C16 and C128, 28.2 GB):
+
+| avg chunk | share of one variant found in the other | stored after dedup |
+|---|---:|---:|
+| 64 KiB | 37 % | 22.9 GB |
+| 16 KiB | 60 % | 19.7 GB |
+| 4 KiB | 86 % | 16.0 GB |
+| 1 KiB | 96 % | 14.5 GB |
+
+All four prefill variants (56.5 GB), compared with the HF source blobs:
+- Pair shares are 78–87 % at 4 KiB and 87–93 % at 2 KiB.
+- The share of HF source bytes found is 0.0 % at both sizes.
+
+The variants hold the same bytes rearranged in runs of a few KiB, which finer chunks recover. Their bytes do not occur
+in the HF source at these sizes. The store sub-chunks new ATOM chunks at 4 KiB (two-level chunking).
+
 ## Consequences for the design
 
 1. Weights are the unit that matters. Store them once per **weight layout** (`hf`/`rngd`, `atom-decode`,

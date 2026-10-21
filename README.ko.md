@@ -56,8 +56,10 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
 ```
 
-연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 29.3 GB로 저장됩니다. 중복 제거로 46.8 GB, 청크 단위 압축으로
-1.6배 더 줄어듭니다(push 2분, pull 6분, 원본과 바이트 단위 동일). `--compress none`으로 압축을 끌 수 있습니다.
+연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 **15.9 GB**로 저장됩니다(push 3분, pull 5분, 원본과 바이트 단위
+동일). 2단계 청크 분할이 새 ATOM 청크를 약 4 KiB 하위 청크로 다시 나눠서, 같은 가중치를 다른 순서로 담은 prefill
+변형끼리 중복을 찾습니다(새 데이터 46.8 GB → 24.9 GB). 여기에 청크 단위 압축이 1.6배를 더합니다. `--compress none`,
+`--sub 0`으로 각각 끌 수 있습니다.
 
 ## 문서
 

@@ -19,6 +19,7 @@ import (
 	"github.com/ai-computing/onggi/pkg/backend"
 	"github.com/ai-computing/onggi/pkg/chunker"
 	"github.com/ai-computing/onggi/pkg/digest"
+	"github.com/ai-computing/onggi/pkg/layout"
 )
 
 // Store is an open store.
@@ -27,7 +28,8 @@ type Store struct {
 	Config Config
 
 	mu    sync.RWMutex
-	index map[digest.Digest]Loc // every chunk the store holds
+	index map[digest.Digest]Loc        // every chunk the store holds as bytes in a pack
+	comps map[digest.Digest][]ChunkRef // chunks the store holds as sub-chunks
 	packs int
 }
 
@@ -36,18 +38,50 @@ const DefaultPackSize = 64 << 20
 
 var configKey = backend.Key{Kind: backend.Config, Name: "store"}
 
-// Open reads the store's config, creating it with p and packSize if the store is empty, and
-// loads the chunk index.
+// DefaultSub is the sub-chunk setting for new stores: 1 KiB / 4 KiB / 16 KiB. At 4 KiB, ATOM
+// prefill variants share 78–87 % of their bytes instead of 29–37 % at 64 KiB (#15).
+var DefaultSub = chunker.Params{Min: 1 << 10, Avg: 4 << 10, Max: 16 << 10}
+
+// Create holds the settings a new store is created with. An existing store keeps its own.
+type Create struct {
+	Chunker  chunker.Params
+	Sub      *chunker.Params // nil: one level of chunks
+	SubKinds []layout.Kind   // file kinds that get sub-chunks; empty: all
+	PackSize int64
+}
+
+// DefaultSubKinds are the kinds whose compile variants rearrange the same bytes (#15).
+var DefaultSubKinds = []layout.Kind{layout.ATOMPrefill, layout.ATOMDecode, layout.ATOMOther}
+
+// Open reads the store's config, creating it with p and packSize (one level of chunks) if the
+// store is empty, and loads the chunk index.
 func Open(ctx context.Context, b backend.Backend, p chunker.Params, packSize int64) (*Store, error) {
+	return OpenWith(ctx, b, Create{Chunker: p, PackSize: packSize})
+}
+
+// OpenWith is Open with every creation setting.
+func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) {
+	p, packSize := c.Chunker, c.PackSize
 	cfg, err := readConfig(ctx, b)
 	if errors.Is(err, backend.ErrNotFound) {
 		if err := p.Validate(); err != nil {
 			return nil, err
 		}
+		if c.Sub != nil {
+			if err := c.Sub.Validate(); err != nil {
+				return nil, fmt.Errorf("sub-chunks: %v", err)
+			}
+			if c.Sub.Max > p.Min {
+				return nil, fmt.Errorf("sub-chunk max %d exceeds chunk min %d", c.Sub.Max, p.Min)
+			}
+		}
 		if packSize <= 0 {
 			packSize = DefaultPackSize
 		}
-		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Created: time.Now().UTC()}
+		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Sub: c.Sub, Created: time.Now().UTC()}
+		if c.Sub != nil {
+			cfg.SubKinds = c.SubKinds
+		}
 		data, _ := json.MarshalIndent(cfg, "", "  ")
 		if err := b.Put(ctx, configKey, bytes.NewReader(data), int64(len(data))); err != nil {
 			return nil, err
@@ -57,7 +91,7 @@ func Open(ctx context.Context, b backend.Backend, p chunker.Params, packSize int
 	if err != nil {
 		return nil, err
 	}
-	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}}
+	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}, comps: map[digest.Digest][]ChunkRef{}}
 	return s, s.loadIndex(ctx)
 }
 
@@ -73,6 +107,11 @@ func readConfig(ctx context.Context, b backend.Backend) (Config, error) {
 	if cfg.Schema != "onggi.store.v1" {
 		return cfg, fmt.Errorf("store config: unknown schema %q", cfg.Schema)
 	}
+	if cfg.Sub != nil {
+		if err := cfg.Sub.Validate(); err != nil {
+			return cfg, fmt.Errorf("store config: sub-chunks: %v", err)
+		}
+	}
 	return cfg, cfg.Chunker.Validate()
 }
 
@@ -85,7 +124,7 @@ func readAll(ctx context.Context, b backend.Backend, k backend.Key) ([]byte, err
 	return io.ReadAll(r)
 }
 
-// loadIndex reads every pack index. A store of 45 GB has about 700 of them.
+// loadIndex reads every pack index and composite table. A store of 45 GB has about 700 indexes.
 func (s *Store) loadIndex(ctx context.Context) error {
 	var names []string
 	if err := s.B.List(ctx, backend.Index, func(name string, _ int64) error {
@@ -110,6 +149,14 @@ func (s *Store) addIndex(name string, data []byte) error {
 	if digest.Of(data).Hex() != name {
 		return fmt.Errorf("index %s: content does not match its name", name)
 	}
+	if bytes.HasPrefix(data, compMagic[:]) {
+		cs, err := decodeComposites(data)
+		if err != nil {
+			return fmt.Errorf("composite table %s: %v", name, err)
+		}
+		s.addComposites(cs)
+		return nil
+	}
 	_, entries, err := decodeIndex(data)
 	if err != nil {
 		return fmt.Errorf("index %s: %v", name, err)
@@ -125,11 +172,56 @@ func (s *Store) addIndex(name string, data []byte) error {
 	return nil
 }
 
-// Stats summarizes the loaded index.
+func (s *Store) addComposites(cs []composite) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, c := range cs {
+		if _, ok := s.comps[c.Chunk]; !ok {
+			s.comps[c.Chunk] = c.Subs
+		}
+	}
+}
+
+// subChunks reports whether files of this path get sub-chunks.
+func (s *Store) subChunks(rel string) bool {
+	if s.Config.Sub == nil {
+		return false
+	}
+	if len(s.Config.SubKinds) == 0 {
+		return true
+	}
+	k := layout.Of(rel)
+	for _, x := range s.Config.SubKinds {
+		if x == k {
+			return true
+		}
+	}
+	return false
+}
+
+// has reports whether the store can produce chunk d, as bytes or as sub-chunks.
+func (s *Store) has(d digest.Digest) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if _, ok := s.index[d]; ok {
+		return true
+	}
+	_, ok := s.comps[d]
+	return ok
+}
+
+// Stats summarizes the loaded index: chunks held as bytes, packs, and chunks held as sub-chunks.
 func (s *Store) Stats() (chunks, packs int) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return len(s.index), s.packs
+}
+
+// Composites is the number of chunks held as sub-chunks.
+func (s *Store) Composites() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.comps)
 }
 
 // Resolve turns a ref name or a "sha256:" digest into a manifest digest.
