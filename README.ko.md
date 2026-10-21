@@ -4,7 +4,8 @@
 
 [English](README.md) · 한국어
 
-> 상태: **설계 단계.** 이 저장소에는 설계([docs/ko/design.md](docs/ko/design.md))가 있고, 코드는 P0부터 시작합니다.
+> 상태: **P0.** 설계는 [docs/ko/design.md](docs/ko/design.md)에 있고, 첫 도구 `onggi dedup-report`로 저장소가 얼마나
+> 줄어드는지 측정합니다. 클러스터 구성요소(컨트롤러, 노드 agent, CSI 드라이버)는 P1–P3에서 이어집니다.
 
 NPU는 모델을 미리 컴파일하며 모델 × SDK × 장치 × 길이 구간 × 배치 × 옵션 조합마다 결과물이 하나씩 생깁니다. 연구실
 RNGD + ATOM 노드에서 Rebellions ATOM용 Llama-3.1-8B 빌드 묶음 하나가 **246 GB**를 차지합니다. 그래프마다 가중치가 통째로
@@ -23,6 +24,19 @@ Onggi(옹기)는 서로 다른 바이트를 한 번만 저장하고, pod가 요�
 | **파일로 전달** | CSI 볼륨: kubelet이 준비된 결과물을 마운트; vLLM, vllm-rbln, furiosa-llm, rngd-pd, Optimus Prime 수정 불필요 |
 | **선언형 빌드** | `ArtifactSet` CRD가 컴파일 팜을 구동; 게시할 때 중복 제거 |
 | **멀티 노드** | 영속 계층은 기존 이레이저 코딩 오브젝트 스토어; 캐시는 노드 장애를 전제로 설계 |
+
+## 빠른 시작(P0)
+
+```bash
+go build -o onggi ./cmd/onggi            # Go 1.24 이상
+./onggi dedup-report --pairs 6 --fixed-block 1MiB <모델 저장소 경로>...
+./onggi dedup-report --json <경로>... > report.json
+```
+
+경로를 훑어(심볼릭 링크는 따라가지 않음) 파일을 종류별(HF 원본, RNGD 변환 가중치·그래프·묶음, ATOM decode·prefill
+`.rbln`)로 정렬해 원본이 먼저 오게 하고, 파일을 병렬로 내용 기반 분할(FastCDC, 기본 16/64/256 KiB)한 뒤 종류별 논리 크기,
+고유 바이트, 앞선 종류 대비 새로 추가되는 바이트를 출력합니다. `--fixed-block`은 비교용으로 고정 크기 블록 측정을 함께
+하고, `--pairs N`은 가장 큰 N개 파일끼리 서로 얼마나 겹치는지 보여줍니다.
 
 ## 문서
 
