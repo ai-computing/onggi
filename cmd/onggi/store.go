@@ -18,6 +18,7 @@ import (
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
 	bs3 "github.com/ai-computing/onggi/pkg/backend/s3"
 	"github.com/ai-computing/onggi/pkg/chunker"
+	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/store"
 )
 
@@ -86,11 +87,17 @@ func push(args []string, stdout, stderr io.Writer) int {
 	ref := fs.String("ref", "", "set this ref to the new manifest")
 	workers := fs.Int("workers", runtime.NumCPU(), "files chunked at once")
 	uploads := fs.Int("uploads", 4, "packs uploaded at once")
+	compress := fs.String("compress", "auto", "how new chunks are stored: auto (zstd or byte planes + Huffman, whichever is smaller), zstd, none")
 	tmp := fs.String("tmp", "", "directory for packs being assembled (default: system temp)")
 	asJSON := fs.Bool("json", false, "print JSON")
 	quiet := fs.Bool("quiet", false, "no progress on stderr")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 1 {
 		fmt.Fprintln(stderr, "usage: onggi push --store S [--ref NAME] <dir>")
+		return 2
+	}
+	mode, err := codec.ParseMode(*compress)
+	if err != nil {
+		fmt.Fprintln(stderr, "onggi:", err)
 		return 2
 	}
 	ctx := context.Background()
@@ -99,7 +106,7 @@ func push(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
-	o := store.PushOptions{Workers: *workers, Uploads: *uploads, TempDir: *tmp}
+	o := store.PushOptions{Workers: *workers, Uploads: *uploads, TempDir: *tmp, Compress: mode}
 	start := time.Now()
 	if !*quiet {
 		o.Progress = func(st store.PushStats) {
@@ -134,8 +141,8 @@ func push(args []string, stdout, stderr io.Writer) int {
 	if *ref != "" {
 		fmt.Fprintf(stdout, "ref      %s\n", *ref)
 	}
-	fmt.Fprintf(stdout, "files    %d (%d skipped)\nread     %s\nnew      %s in %d packs\ntook     %s (%.0f MB/s)\n",
-		st.Files, len(st.Skipped), human(st.Bytes), human(st.NewBytes), st.Packs, st.Duration.Round(time.Second),
+	fmt.Fprintf(stdout, "files    %d (%d skipped)\nread     %s\nnew      %s, stored as %s in %d packs\ntook     %s (%.0f MB/s)\n",
+		st.Files, len(st.Skipped), human(st.Bytes), human(st.NewBytes), human(st.PackBytes), st.Packs, st.Duration.Round(time.Second),
 		float64(st.Bytes)/1e6/max(st.Duration.Seconds(), 1e-9))
 	return 0
 }

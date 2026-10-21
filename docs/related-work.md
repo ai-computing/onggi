@@ -37,6 +37,11 @@ contribution.
 bound 1.50–1.51×. These match the published figures. Any onggi work here is engineering (speed, integration with
 packs), not a new algorithm.
 
+What onggi ships (`pkg/codec`, #8): after dedup, each new chunk is stored with Zstandard or as two byte planes, each
+Huffman-coded, whichever is smaller, or raw. Zstandard alone stores bf16 planes raw at its fast levels because weights
+have no repeats, so the planes are entropy-coded directly, as ZipNN and DFloat11 do. On the lab node the ATOM
+Llama-3.1-8B set went from 46.8 GB after dedup to 29.3 GB (1.60×), and the RNGD artifacts from 16.2 to 10.7 GB (1.51×).
+
 ## 3. Delta transfer between similar files (#9)
 
 | Work | What it already does |

@@ -45,7 +45,7 @@ go build -o onggi ./cmd/onggi            # Go 1.24 이상
 고유 바이트, 앞선 종류 대비 새로 추가되는 바이트를 출력합니다. `--fixed-block`은 비교용으로 고정 크기 블록 측정을 함께
 하고, `--pairs N`은 가장 큰 N개 파일끼리 서로 얼마나 겹치는지 보여줍니다.
 
-결과물 저장·복원(저장소에 없는 청크만 올리고, 복원할 때 모든 청크의 해시를 확인):
+결과물 저장·복원(저장소에 없는 청크만 청크 단위로 압축해 올리고, 복원할 때 모든 청크의 해시를 확인):
 
 ```bash
 export ONGGI_STORE=/mnt/models/onggi        # 아무 POSIX 마운트: 로컬 디스크, NFS, SMB, CephFS, ...
@@ -56,7 +56,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
 ```
 
-연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 46.8 GB로 저장됩니다(push 3분, pull 5분, 원본과 바이트 단위 동일).
+연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 29.3 GB로 저장됩니다. 중복 제거로 46.8 GB, 청크 단위 압축으로
+1.6배 더 줄어듭니다(push 2분, pull 6분, 원본과 바이트 단위 동일). `--compress none`으로 압축을 끌 수 있습니다.
 
 ## 문서
 

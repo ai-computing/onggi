@@ -48,7 +48,8 @@ decode/prefill `.rbln`) so source checkpoints come first, chunks files in parall
 kind adds on top of the earlier ones. `--fixed-block` repeats the measurement with fixed-size blocks for comparison;
 `--pairs N` prints which share of each of the N largest files occurs in each other.
 
-Store and restore an artifact (only chunks the store lacks are uploaded; every chunk is hash-checked on the way back):
+Store and restore an artifact (only chunks the store lacks are uploaded and are compressed per chunk; every chunk is
+hash-checked on the way back):
 
 ```bash
 export ONGGI_STORE=/mnt/models/onggi        # any POSIX mount: local disk, NFS, SMB, CephFS, ...
@@ -59,7 +60,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
 ```
 
-On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in 46.8 GB (push 3 min, pull 5 min, byte-identical).
+On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in 29.3 GB: 46.8 GB after dedup, then 1.6× from
+per-chunk compression (push 2 min, pull 6 min, byte-identical). `--compress none` turns compression off.
 
 ## Documents
 

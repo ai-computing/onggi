@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
+	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 )
 
@@ -27,7 +28,7 @@ type PullOptions struct {
 type PullStats struct {
 	Files     int           `json:"files"`
 	Bytes     int64         `json:"bytes"`      // logical bytes written
-	ReadBytes int64         `json:"read_bytes"` // bytes read from the backend
+	ReadBytes int64         `json:"read_bytes"` // bytes read from the backend (stored form)
 	Ranges    int           `json:"ranges"`
 	Duration  time.Duration `json:"duration_ns"`
 }
@@ -132,8 +133,8 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if n := len(ranges); n > 0 {
 			last := ranges[n-1]
 			first, prev := last[0], last[len(last)-1]
-			if prev.loc.Pack == w.loc.Pack && prev.loc.Offset+prev.loc.Length == w.loc.Offset &&
-				int64(w.loc.Offset+w.loc.Length-first.loc.Offset) <= o.MaxRange {
+			if prev.loc.Pack == w.loc.Pack && prev.loc.Offset+prev.loc.Stored == w.loc.Offset &&
+				int64(w.loc.Offset+w.loc.Stored-first.loc.Offset) <= o.MaxRange {
 				ranges[n-1] = append(last, w)
 				continue
 			}
@@ -198,7 +199,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 
 func (s *Store) readRange(ctx context.Context, r []*want, handles []*os.File) (int64, error) {
 	first, last := r[0].loc, r[len(r)-1].loc
-	n := int64(last.Offset+last.Length) - int64(first.Offset)
+	n := int64(last.Offset+last.Stored) - int64(first.Offset)
 	rc, err := s.B.Get(ctx, backend.Key{Kind: backend.Pack, Name: first.Pack.Hex()}, int64(first.Offset), n)
 	if err != nil {
 		return 0, err
@@ -210,7 +211,10 @@ func (s *Store) readRange(ctx context.Context, r []*want, handles []*os.File) (i
 		return 0, fmt.Errorf("pack %s: %w", first.Pack, err)
 	}
 	for _, w := range r {
-		b := buf[int64(w.loc.Offset)-int64(first.Offset):][:w.loc.Length]
+		b, err := codec.Decode(buf[int64(w.loc.Offset)-int64(first.Offset):][:w.loc.Stored], w.loc.Codec, int(w.loc.Length))
+		if err != nil {
+			return 0, fmt.Errorf("pack %s offset %d: chunk %s: %w", first.Pack, w.loc.Offset, w.chunk, err)
+		}
 		if digest.Of(b) != w.chunk {
 			return 0, fmt.Errorf("pack %s offset %d: chunk %s fails its hash check", first.Pack, w.loc.Offset, w.chunk)
 		}

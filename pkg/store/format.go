@@ -8,28 +8,35 @@ import (
 	"time"
 
 	"github.com/ai-computing/onggi/pkg/chunker"
+	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 	"github.com/ai-computing/onggi/pkg/layout"
 )
 
 // On-disk formats. Binary objects start with an 8-byte magic that names the format and version.
 //
-//	index  (one per pack): magic "ONGGIIX1", pack digest [32], count uint32,
-//	                       then count × (chunk digest [32], offset uint32, length uint32)
+//	index  (one per pack): magic "ONGGIIX2", pack digest [32], count uint32, then count ×
+//	                       (chunk digest [32], offset uint32, stored length uint32,
+//	                        raw length uint32, codec uint8, 3 zero bytes)
+//	                       Version 1 ("ONGGIIX1", entries of digest, offset, length; every chunk
+//	                       raw) is still read.
 //	list   (one per file): magic "ONGGICL1", count uint32, then count × (chunk digest [32], length uint32)
 //
 // Integers are little-endian. Manifests and the store config are JSON.
 
 var (
-	indexMagic = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '1'}
-	listMagic  = [8]byte{'O', 'N', 'G', 'G', 'I', 'C', 'L', '1'}
+	indexMagic   = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '2'}
+	indexMagicV1 = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '1'}
+	listMagic    = [8]byte{'O', 'N', 'G', 'G', 'I', 'C', 'L', '1'}
 )
 
-// Loc is where a chunk's bytes lie.
+// Loc is where a chunk's bytes lie and how they are stored.
 type Loc struct {
 	Pack   digest.Digest
 	Offset uint32
-	Length uint32
+	Stored uint32 // bytes in the pack
+	Length uint32 // raw bytes
+	Codec  codec.ID
 }
 
 type indexEntry struct {
@@ -45,27 +52,44 @@ func encodeIndex(pack digest.Digest, entries []indexEntry) []byte {
 	for _, e := range entries {
 		b.Write(e.Chunk[:])
 		binary.Write(&b, binary.LittleEndian, e.Loc.Offset)
+		binary.Write(&b, binary.LittleEndian, e.Loc.Stored)
 		binary.Write(&b, binary.LittleEndian, e.Loc.Length)
+		b.Write([]byte{byte(e.Loc.Codec), 0, 0, 0})
 	}
 	return b.Bytes()
 }
 
 func decodeIndex(data []byte) (digest.Digest, []indexEntry, error) {
 	var pack digest.Digest
-	if len(data) < 44 || !bytes.Equal(data[:8], indexMagic[:]) {
+	if len(data) < 44 {
 		return pack, nil, errors.New("not an onggi index")
+	}
+	v1 := bytes.Equal(data[:8], indexMagicV1[:])
+	if !v1 && !bytes.Equal(data[:8], indexMagic[:]) {
+		return pack, nil, errors.New("not an onggi index")
+	}
+	size := uint64(48)
+	if v1 {
+		size = 40
 	}
 	copy(pack[:], data[8:40])
 	n := binary.LittleEndian.Uint32(data[40:44])
-	if uint64(len(data)) != 44+uint64(n)*40 {
+	if uint64(len(data)) != 44+uint64(n)*size {
 		return pack, nil, fmt.Errorf("index: %d entries but %d bytes", n, len(data))
 	}
 	out := make([]indexEntry, n)
 	p := data[44:]
 	for i := range out {
 		copy(out[i].Chunk[:], p[:32])
-		out[i].Loc = Loc{Pack: pack, Offset: binary.LittleEndian.Uint32(p[32:36]), Length: binary.LittleEndian.Uint32(p[36:40])}
-		p = p[40:]
+		l := Loc{Pack: pack, Offset: binary.LittleEndian.Uint32(p[32:36]), Stored: binary.LittleEndian.Uint32(p[36:40])}
+		if v1 {
+			l.Length = l.Stored
+		} else {
+			l.Length = binary.LittleEndian.Uint32(p[40:44])
+			l.Codec = codec.ID(p[44])
+		}
+		out[i].Loc = l
+		p = p[size:]
 	}
 	return pack, out, nil
 }
