@@ -76,6 +76,12 @@ const minGainNum, minGainDen = 97, 100
 // maxPlane is the largest plane huff0 codes in one block; larger chunks skip Shuffle2Huffman.
 const maxPlane = huff0.BlockSizeMax
 
+// maxChunk bounds the chunks the store hands to Encode (the chunker's largest maximum).
+const maxChunk = 256 << 10
+
+// scratches are reused across decodes: a fresh huff0.Scratch allocates its output on every call.
+var scratches = sync.Pool{New: func() any { return new(huff0.Scratch) }}
+
 const (
 	planeRaw  = 0
 	planeHuff = 1
@@ -91,11 +97,14 @@ var (
 func coders() (*zstd.Encoder, *zstd.Decoder) {
 	coderOnce.Do(func() {
 		// EncodeAll/DecodeAll are safe for concurrent use; the concurrency options bound how many
-		// run at once, so they follow GOMAXPROCS.
+		// run at once, so they follow GOMAXPROCS. A chunk is at most 256 KiB, so a 256 KiB window
+		// loses nothing; the default window keeps 8 MiB of history per encoder (1.5 GB on 96
+		// cores, #17).
 		n := runtime.GOMAXPROCS(0)
 		enc, _ = zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedDefault), zstd.WithEncoderConcurrency(n),
-			zstd.WithZeroFrames(true))
-		dec, _ = zstd.NewReader(nil, zstd.WithDecoderConcurrency(n), zstd.WithDecoderMaxMemory(1<<30))
+			zstd.WithWindowSize(maxChunk), zstd.WithLowerEncoderMem(true), zstd.WithZeroFrames(true))
+		dec, _ = zstd.NewReader(nil, zstd.WithDecoderConcurrency(n), zstd.WithDecoderLowmem(true),
+			zstd.WithDecoderMaxMemory(1<<30))
 	})
 	return enc, dec
 }
@@ -176,37 +185,60 @@ func appendPlane(dst, p []byte) []byte {
 	return append(append(dst, planeRaw), p...)
 }
 
-func readPlane(rec []byte, n int) ([]byte, error) {
+// readPlane writes plane rec (n bytes) to every second byte of out, starting at out[first]. A
+// plane of n bytes fills out[first], out[first+2], ..., and, for the high plane of an odd-length
+// chunk, the last byte (tail).
+func readPlane(rec []byte, n int, out []byte, first int, tail bool) error {
 	if len(rec) == 0 {
-		return nil, errors.New("empty plane record")
+		return errors.New("empty plane record")
 	}
 	data := rec[1:]
+	var p []byte
 	switch rec[0] {
 	case planeRaw:
 		if len(data) != n {
-			return nil, fmt.Errorf("raw plane is %d bytes, want %d", len(data), n)
+			return fmt.Errorf("raw plane is %d bytes, want %d", len(data), n)
 		}
-		return data, nil
+		p = data
 	case planeRLE:
 		if len(data) != 1 {
-			return nil, errors.New("bad RLE plane")
+			return errors.New("bad RLE plane")
 		}
-		out := make([]byte, n)
-		for i := range out {
-			out[i] = data[0]
+		for i := 0; i < n; i++ {
+			out[place(i, n, first, tail, len(out))] = data[0]
 		}
-		return out, nil
+		return nil
 	case planeHuff:
 		if n > maxPlane {
-			return nil, fmt.Errorf("Huffman plane of %d bytes exceeds %d", n, maxPlane)
+			return fmt.Errorf("Huffman plane of %d bytes exceeds %d", n, maxPlane)
 		}
-		s, rem, err := huff0.ReadTable(data, nil)
+		sc := scratches.Get().(*huff0.Scratch)
+		defer scratches.Put(sc)
+		s, rem, err := huff0.ReadTable(data, sc)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return s.Decompress4X(rem, n)
+		if p, err = s.Decompress4X(rem, n); err != nil {
+			return err
+		}
+		if len(p) != n {
+			return fmt.Errorf("Huffman plane decodes to %d bytes, want %d", len(p), n)
+		}
+	default:
+		return fmt.Errorf("unknown plane mode %d", rec[0])
 	}
-	return nil, fmt.Errorf("unknown plane mode %d", rec[0])
+	for i, b := range p {
+		out[place(i, n, first, tail, len(out))] = b
+	}
+	return nil
+}
+
+// place is where byte i of a plane goes in the chunk.
+func place(i, n, first int, tail bool, size int) int {
+	if tail && i == n-1 {
+		return size - 1
+	}
+	return 2*i + first
 }
 
 func decodePlanes(stored []byte, rawLen int) ([]byte, error) {
@@ -218,24 +250,12 @@ func decodePlanes(stored []byte, rawLen int) ([]byte, error) {
 		return nil, errors.New("shuffle2+huffman chunk: bad record length")
 	}
 	n := rawLen / 2
-	lo, err := readPlane(stored[4:4+a], n)
-	if err != nil {
+	out := make([]byte, rawLen)
+	if err := readPlane(stored[4:4+a], n, out, 0, false); err != nil {
 		return nil, fmt.Errorf("low plane: %w", err)
 	}
-	hi, err := readPlane(stored[4+a:], rawLen-n)
-	if err != nil {
+	if err := readPlane(stored[4+a:], rawLen-n, out, 1, rawLen%2 == 1); err != nil {
 		return nil, fmt.Errorf("high plane: %w", err)
-	}
-	if len(lo) != n || len(hi) != rawLen-n {
-		return nil, fmt.Errorf("shuffle2+huffman chunk decodes to %d+%d bytes, want %d", len(lo), len(hi), rawLen)
-	}
-	out := make([]byte, rawLen)
-	for i := 0; i < n; i++ {
-		out[2*i] = lo[i]
-		out[2*i+1] = hi[i]
-	}
-	if rawLen%2 == 1 {
-		out[rawLen-1] = hi[n]
 	}
 	return out, nil
 }

@@ -30,7 +30,8 @@ type Store struct {
 	mu    sync.RWMutex
 	index map[digest.Digest]Loc        // every chunk the store holds as bytes in a pack
 	comps map[digest.Digest][]ChunkRef // chunks the store holds as sub-chunks
-	packs int
+	packs []digest.Digest              // Loc.Pack numbers these
+	packN map[digest.Digest]uint32
 }
 
 // DefaultPackSize keeps object counts low on any backend (ADR-0001).
@@ -91,7 +92,8 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 	if err != nil {
 		return nil, err
 	}
-	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}, comps: map[digest.Digest][]ChunkRef{}}
+	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}, comps: map[digest.Digest][]ChunkRef{},
+		packN: map[digest.Digest]uint32{}}
 	return s, s.loadIndex(ctx)
 }
 
@@ -157,19 +159,31 @@ func (s *Store) addIndex(name string, data []byte) error {
 		s.addComposites(cs)
 		return nil
 	}
-	_, entries, err := decodeIndex(data)
+	pack, entries, err := decodeIndex(data)
 	if err != nil {
 		return fmt.Errorf("index %s: %v", name, err)
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	id, ok := s.packN[pack]
+	if !ok {
+		id = uint32(len(s.packs))
+		s.packs = append(s.packs, pack)
+		s.packN[pack] = id
+	}
 	for _, e := range entries {
 		if _, ok := s.index[e.Chunk]; !ok {
+			e.Loc.Pack = id
 			s.index[e.Chunk] = e.Loc
 		}
 	}
-	s.packs++
 	return nil
+}
+
+func (s *Store) packName(id uint32) digest.Digest {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.packs[id]
 }
 
 func (s *Store) addComposites(cs []composite) {
@@ -214,7 +228,7 @@ func (s *Store) has(d digest.Digest) bool {
 func (s *Store) Stats() (chunks, packs int) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return len(s.index), s.packs
+	return len(s.index), len(s.packs)
 }
 
 // Composites is the number of chunks held as sub-chunks.

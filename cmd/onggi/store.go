@@ -131,7 +131,11 @@ func push(args []string, stdout, stderr io.Writer) int {
 				human(st.BytesTotal), human(st.NewBytes), float64(st.Bytes)/1e6/max(el, 1e-9))
 		}
 	}
+	stopMem := startMemProfile()
 	md, st, err := s.Push(ctx, fs.Arg(0), o)
+	if peak := stopMem(); peak > 0 {
+		fmt.Fprintln(stderr, "peak heap in use", human(int64(peak)))
+	}
 	if !*quiet {
 		fmt.Fprintln(stderr)
 	}
@@ -184,7 +188,11 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
+	stopMem := startMemProfile()
 	st, err := s.Pull(ctx, md, fs.Arg(1), store.PullOptions{Workers: *workers})
+	if peak := stopMem(); peak > 0 {
+		fmt.Fprintln(stderr, "peak heap in use", human(int64(peak)))
+	}
 	if err != nil {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
