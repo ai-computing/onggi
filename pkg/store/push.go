@@ -305,12 +305,8 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		m.Bytes += f.Size
 	}
 	claimed = nil // no longer needed; the locator's own map replaces it
-	ldata, err := s.writeLocator(lists)
+	ld, err := s.putLocator(ctx, lists, o.TempDir)
 	if err != nil {
-		return digest.Digest{}, st, err
-	}
-	ld := digest.Of(ldata)
-	if err := s.B.Put(ctx, backend.Key{Kind: backend.List, Name: ld.Hex()}, bytes.NewReader(ldata), int64(len(ldata))); err != nil {
 		return digest.Digest{}, st, fmt.Errorf("locator: %w", err)
 	}
 	m.Locator = &ld
@@ -325,6 +321,30 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	st.NewBytes, st.Packs, st.PackBytes = newBytes.Load(), int(packCount.Load()), packBytes.Load()
 	st.Duration = time.Since(start)
 	return md, st, nil
+}
+
+// putLocator writes the locator to a temporary file, names it by its digest and uploads it.
+func (s *Store) putLocator(ctx context.Context, lists [][]ChunkRef, dir string) (digest.Digest, error) {
+	f, err := os.CreateTemp(dir, "onggi-locator-*")
+	if err != nil {
+		return digest.Digest{}, err
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+	size, err := s.writeLocator(lists, f)
+	if err != nil {
+		return digest.Digest{}, err
+	}
+	h := sha256.New()
+	if _, err := io.Copy(h, io.NewSectionReader(f, 0, size)); err != nil {
+		return digest.Digest{}, err
+	}
+	var d digest.Digest
+	copy(d[:], h.Sum(nil))
+	if err := s.B.Put(ctx, backend.Key{Kind: backend.List, Name: d.Hex()}, io.NewSectionReader(f, 0, size), size); err != nil {
+		return digest.Digest{}, err
+	}
+	return d, nil
 }
 
 func (s *Store) upload(ctx context.Context, p sealed) error {

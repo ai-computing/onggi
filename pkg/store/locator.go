@@ -1,10 +1,12 @@
 package store
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
@@ -28,16 +30,27 @@ import (
 
 var locatorMagic = [8]byte{'O', 'N', 'G', 'G', 'I', 'L', 'C', '1'}
 
-// writeLocator encodes the locator of files whose chunk lists are lists. The store's index must
-// be loaded and hold every chunk.
-func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
-	var b bytes.Buffer
+// writeLocator writes the locator of files whose chunk lists are lists to f, from its start,
+// and returns its size. The store's index must be loaded and hold every chunk. Writing to a file
+// keeps a locator of hundreds of MB out of memory (#17).
+func (s *Store) writeLocator(lists [][]ChunkRef, f *os.File) (int64, error) {
+	b := bufio.NewWriterSize(f, 1<<20)
+	var size int64
 	var tmp [4]byte
 	w := func(v uint32) {
 		binary.LittleEndian.PutUint32(tmp[:], v)
 		b.Write(tmp[:])
+		size += 4
 	}
-	b.Write(locatorMagic[:])
+	raw := func(p []byte) {
+		b.Write(p)
+		size += int64(len(p))
+	}
+	one := func(c byte) {
+		b.WriteByte(c)
+		size++
+	}
+	raw(locatorMagic[:])
 	w(0) // node count, set at the end
 	var nodes uint32
 	nodeOf := map[digest.Digest]uint32{}
@@ -60,13 +73,13 @@ func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 				packOf[loc.Pack] = p
 				packs = append(packs, s.packName(loc.Pack))
 			}
-			b.Write(c.Digest[:])
+			raw(c.Digest[:])
 			w(c.Length)
-			b.WriteByte(0)
+			one(0)
 			w(p)
 			w(loc.Offset)
 			w(loc.Stored)
-			b.WriteByte(byte(loc.Codec))
+			one(byte(loc.Codec))
 		case comp:
 			kids := make([]uint32, len(subs))
 			for i, sc := range subs {
@@ -76,9 +89,9 @@ func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 				}
 				kids[i] = k
 			}
-			b.Write(c.Digest[:])
+			raw(c.Digest[:])
 			w(c.Length)
-			b.WriteByte(1)
+			one(1)
 			w(uint32(len(kids)))
 			for _, k := range kids {
 				w(k)
@@ -97,7 +110,7 @@ func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 		for j, c := range list {
 			id, err := add(c)
 			if err != nil {
-				return nil, err
+				return 0, err
 			}
 			files[i][j] = id
 		}
@@ -105,7 +118,7 @@ func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 	nodeOf = nil
 	w(uint32(len(packs)))
 	for _, p := range packs {
-		b.Write(p[:])
+		raw(p[:])
 	}
 	w(uint32(len(files)))
 	for _, f := range files {
@@ -114,9 +127,14 @@ func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 			w(id)
 		}
 	}
-	data := b.Bytes()
-	binary.LittleEndian.PutUint32(data[8:12], nodes)
-	return data, nil
+	if err := b.Flush(); err != nil {
+		return 0, err
+	}
+	binary.LittleEndian.PutUint32(tmp[:], nodes)
+	if _, err := f.WriteAt(tmp[:], 8); err != nil {
+		return 0, err
+	}
+	return size, nil
 }
 
 type reader struct {
