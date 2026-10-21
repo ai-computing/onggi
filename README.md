@@ -58,12 +58,17 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi push --ref llama-3.1-8b@atom/pd <build dir>
 ./onggi pull llama-3.1-8b@atom/pd <restore dir>
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
+./onggi pull --cache /var/lib/onggi/cache llama-3.1-8b@atom/pd-b8 <dir>   # node cache: read only what the node lacks
 ```
 
 On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in **15.9 GB** (push 3 min, pull 5 min,
 byte-identical). Two steps get it there. Two-level chunking re-splits new ATOM chunks into ~4 KiB sub-chunks, so prefill
 variants that hold the same weights in a different order dedup (24.9 GB new instead of 46.8 GB). Per-chunk compression
 then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
+
+With `--cache DIR` a pull reads chunks the node already holds from a local cache store and adds what it fetches. On
+the lab node, after one ATOM decode variant (10.2 GB read), a second one read 28 MB from the store (0.3 %), a prefill
+build 1.9 GB, and a repeat 0 B; every restore was byte-identical. Eviction comes with the node agent.
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push

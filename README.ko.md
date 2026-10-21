@@ -54,12 +54,18 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi push --ref llama-3.1-8b@atom/pd <빌드 디렉터리>
 ./onggi pull llama-3.1-8b@atom/pd <복원 디렉터리>
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
+./onggi pull --cache /var/lib/onggi/cache llama-3.1-8b@atom/pd-b8 <디렉터리>   # 노드 캐시: 노드에 없는 것만 읽음
 ```
 
 연구실 노드에서 ATOM Llama-3.1-8B 빌드 묶음 264 GB가 **15.9 GB**로 저장됩니다(push 3분, pull 5분, 원본과 바이트 단위
 동일). 2단계 청크 분할이 새 ATOM 청크를 약 4 KiB 하위 청크로 다시 나눠서, 같은 가중치를 다른 순서로 담은 prefill
 변형끼리 중복을 찾습니다(새 데이터 46.8 GB → 24.9 GB). 여기에 청크 단위 압축이 1.6배를 더합니다. `--compress none`,
 `--sub 0`으로 각각 끌 수 있습니다.
+
+`--cache DIR`를 주면 pull이 노드에 이미 있는 청크는 로컬 캐시 저장소에서 읽고, 새로 받은 청크는 캐시에 더합니다.
+연구실 노드에서 ATOM decode 변형 하나(저장소에서 10.2 GB 읽음)를 받은 뒤, 두 번째 변형은 저장소에서 28 MB(0.3%)만,
+prefill 빌드는 1.9 GB를 읽었고, 같은 변형을 다시 받을 때는 0 B를 읽었습니다. 모두 원본과 바이트 단위로 같았습니다.
+캐시 정리(eviction)는 노드 agent에서 다룹니다.
 
 메모리:
 - pull은 저장소 전체 색인이 아니라 결과물의 locator만 읽습니다. 이 묶음에서 기본 설정은 최대 3.6 GB RSS이고,
