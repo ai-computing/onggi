@@ -68,6 +68,7 @@ On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in 46.8 GB (pu
 | [Design](docs/design.md) | problem, goals, quality attributes, principles, architecture, flows, multi-node storage, roadmap |
 | [Artifact formats](docs/artifact-formats.md) | what RNGD and ATOM artifacts contain and how much they share (measured) |
 | [Integration](docs/integration.md) | how onggi connects to ai-rm components, lmd-top and llm-d |
+| [Related work](docs/related-work.md) | prior work per component, what onggi does not claim, where it differs |
 | [ADRs](docs/adr/README.md) | architecture decisions |
 
 ## Part of ai-rm

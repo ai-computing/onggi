@@ -6,7 +6,7 @@ Measured 2026-10-21 on the lab's RNGD + ATOM node (read-only) · [한국어](ko/
 
 | Item | Finding |
 |---|---|
-| Graphs | `.edf` files, a few KB to 16 MB each, named by a content hash (sha256 or a 24-hex prefix). Binary, self-describing node lists. |
+| Graphs | `.edf` files, a few KB to 16 MB each, named by a content hash (sha256 or a 24-hex prefix). Binary; onggi treats them as opaque ([ADR-0009](adr/0009-clean-room-and-vendor-formats.md)). |
 | Weight references | `.w` files (≈ 2.5 KB zip with a `data.pkl`) point at weights; they carry no tensor data. |
 | Weights | `param_files/params-<model>-<layers>-W16A16KV16-shard_size=…-<hash>.safetensors/`: the HF checkpoint re-sharded into four files. The bytes are **identical** to the HF source (64-byte probes at four offsets all found; content-defined chunking: 100 % shared). |
 | Artifact bundle | `artifact.json` (compiler and furiosa-llm versions, tensor/pipeline parallel sizes, pipeline metadata) + `binary_bundle.zip` (≈ 90 `.edf`, 15 MB) + tokenizer and config files. A Llama-3.1-8B artifact without weights: 34–53 MB. |
@@ -14,6 +14,21 @@ Measured 2026-10-21 on the lab's RNGD + ATOM node (read-only) · [한국어](ko/
 
 The graphs are already small and content-addressed. The waste is copies of a converted weight set that equals the
 source checkpoint.
+
+**Four Llama-3.1-8B artifacts with different bucket sets** (`coarse`, `fine`, prefill-batch, preset), measured from the
+zip directory, `artifact.json` and whole-member hashes only:
+
+| Finding | Value |
+|---|---|
+| `binary_bundle.zip` members | stored uncompressed (zip method 0), so chunking sees the graph bytes directly |
+| Bucket lists | `artifact.json` → `pipeline_metadata_list[].attention_buckets` (attention size, batch, KV size) |
+| Graph sharing between artifacts | identical members per bucket: all 73 graphs (13.5 MB) of `coarse` occur in `fine`; other pairs share 21–45 graphs (4.1–8.1 MB) |
+| Union of the four graph sets | 217 distinct graphs, 62.2 MB, against 90.4 MB stored separately |
+| Graph compressibility (16.1 MB, one bundle) | zlib 3.4×, LZMA (preset 1) 9.9× |
+| Weights (bf16, 32 MB samples of four tensors) | zlib 1.26×; zlib on split high/low byte planes 1.43×; exponent-entropy bound 1.50–1.51× |
+
+So for RNGD, graphs dedup per bucket and compress about 10× with a strong general codec. Weights reuse the HF source
+and gain ~1.4× from byte planes ([related work](related-work.md) §2).
 
 ## Rebellions ATOM (optimum-rbln / rebel-compiler)
 
