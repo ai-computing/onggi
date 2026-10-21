@@ -52,7 +52,8 @@ Goals
 
 Non-goals (for now)
 
-- Building a durable distributed object store. The durable tier is an existing one (§6).
+- Building a durable distributed store. The durable tier is whatever storage the site runs, behind one backend
+  interface (§6, ADR-0008).
 - Changing vendor formats or compilers. Onggi stores what the vendor tools produce.
 - KV-cache storage. The chunk layer could hold prefix KV blocks later; it is out of scope until P5.
 
@@ -84,7 +85,7 @@ Targets are initial and are fixed by measurement in P0–P2 (ISO/IEC 25010 categ
 | Placement without a central index | Dynamo (2007); rendezvous/HRW hashing (1998); CRUSH | owners computed from the chunk hash and membership |
 | Content-defined chunking | LBFS (2001); FastCDC (2016) | dedup across shifted offsets (§1) |
 | Test the distributed protocol, not just functions | FoundationDB simulation; Jepsen; chaos engineering | §11 |
-| Build only what differentiates | — | durable storage, consensus and formats are reused (§6, ADR-0002) |
+| Build only what differentiates | — | durable storage, consensus and formats are reused (§6, ADR-0008) |
 
 ## 5. Domain model
 
@@ -120,8 +121,8 @@ Four bounded contexts, each with its own vocabulary and owner component:
  └──────────────┬───────────────────────────────────────────────────────────────┘
                 │ refs in etcd (small); manifests and chunks in the data plane
  ┌──────────────▼─────────────── Data plane ──────────────────────────────────┐
- │ Durable tier: existing object store (MinIO distributed / Ceph RGW,            │
- │               erasure-coded, multi-node) — chunks, packs, manifests           │
+ │ Durable tier: pluggable backend (fs: local/NFS/SMB/CephFS/JuiceFS · s3 · oci)  │
+ │               durability from the backend — chunks, packs, manifests          │
  │ Cache tier:   onggi-agent on every node (DaemonSet, local NVMe)               │
  │               HRW owners per chunk · peer-to-peer fetch · hot-chunk replicas   │
  │ Hot:          files materialized on the node, loaded by the engine            │
@@ -139,6 +140,9 @@ Components
 | `onggi` CLI | Go | push, pull, inspect, `dedup-report`, ref operations |
 | adapters | Python | read and write vendor artifacts (Furiosa, Rebellions, HF); run inside compile Jobs |
 | `pkg/chunker` | Go | FastCDC + hashing; the single hot loop, benchmarked in CI |
+
+The durable tier is reached only through the `Backend` interface (`Put`, `Get`, `Has`, `List`, `Delete`, `Caps`)
+with `fs`, `s3` and `oci` drivers; each driver passes one conformance suite (ADR-0008).
 
 Go for everything that runs in the cluster (controller-runtime, CSI, the llm-d Go template); Python only where the
 vendor SDKs are (ADR-0006).
@@ -180,8 +184,8 @@ The durable tier and the cache tier have different jobs, which keeps each simple
 | | Durable tier | Cache tier |
 |---|---|---|
 | Holds | every committed chunk, pack and manifest | chunks recently used or prefetched on this node |
-| Durability | erasure-coded across nodes by the object store | none: a lost cache is refilled |
-| Placement | the object store's | HRW: owners = top-R nodes by `hash(chunk, node)` among live agents, spread over topology labels |
+| Durability | the backend's (declared: none / replicated / erasure-coded) | none: a lost cache is refilled |
+| Placement | the backend's | HRW: owners = top-R nodes by `hash(chunk, node)` among live agents, spread over topology labels |
 | Consistency | immutable objects; only existence matters | immutable; a chunk is valid if its hash matches |
 
 - **Membership**: each agent holds a `Lease`; the live set changes owners for ≈ 1/N of chunks when a node joins or
@@ -197,7 +201,7 @@ Failure handling
 |---|---|
 | agent crash mid-download | partial chunks discarded (hash mismatch); restart resumes from the manifest |
 | node loss | its cache is gone; owners recomputed; readers fall back to other holders or the durable tier |
-| durable-tier node loss | covered by the object store's erasure coding |
+| durable-tier node loss | covered by the backend's durability (policy can require a class) |
 | corrupt chunk anywhere | rejected by hash; fetched from another source; counted in a metric |
 | controller down | existing mounts and reads continue; no new publishes or GC until it returns |
 | network partition | reads continue from local and reachable peers; GC never deletes during an unknown lease state |
@@ -272,7 +276,7 @@ publish, compile and delete. The CSI mount is read-only. No credentials or site 
 | Phase | Deliverable | Done when |
 |---|---|---|
 | P0 | `onggi dedup-report`; import of an existing store layout (`hub/`, `compiled/`) | §1 numbers reproduced from a command |
-| P1 | chunker, durable-tier backend, CLI push/pull | the 262 GB ATOM set stored in ≈ 45 GB; pulled files byte-identical |
+| P1 | backend interface + `fs`/`s3` drivers + conformance suite, CLI push/pull | the 262 GB ATOM set stored in ≈ 45 GB; pulled files byte-identical |
 | P2 | agent + CSI volume + materializer | an engine serves from an onggi volume; cold start measured vs baselines |
 | P3 | CRDs, controller, compile farm, GC | an `ArtifactSet` produces its artifacts unattended |
 | P4 | prefetch, webhook placement, llm-d autoscaling hook | scale-from-zero cold start reduced and measured |
@@ -283,7 +287,7 @@ publish, compile and delete. The CSI mount is read-only. No credentials or site 
 1. Does the ATOM toolchain have a supported way to share weights across profiles (one vendor build showed prefill
    15 GB + decoders 1 GB), which would beat dedup?
 2. Chunk size and pack size for weight-heavy data (ADR-0001).
-3. Durable tier for the lab: MinIO distributed vs Ceph RGW vs the existing SMB share behind a gateway.
+3. Durable tier for the lab: start on the existing SMB share (`fs` driver), then MinIO or Ceph (ADR-0008).
 4. How much of OME's model CRDs and agent can be reused instead of rebuilt.
 
 ## References

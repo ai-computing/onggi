@@ -1,6 +1,6 @@
 # ADR-0002: The durable tier is an existing object store
 
-Status: proposed (2026-10-21)
+Status: superseded by [ADR-0008](0008-pluggable-storage-backends.md) (2026-10-21)
 
 ## Context
 Durable, multi-node, erasure-coded storage is hard to get right and is not what makes onggi different. Proven systems
