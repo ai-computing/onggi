@@ -19,7 +19,7 @@ of them. On the lab's RNGD + ATOM node (measured 2026-10-21, details in [artifac
 |---|---|---|
 | Graph files | `.edf`, KB to 16 MB, named by content hash; 531 files, 0.28 GB on the node | inside each `.rbln` |
 | Weights | HF safetensors re-sharded, **byte-identical** to the source; one converted copy per artifact directory (3 copies of Llama-3.1-8B = 48 GB) | re-laid-out by the compiler and **embedded in every `.rbln`** |
-| Footprint | small graphs, duplicated weights | 215 `.rbln` files, **979 GB**; one Llama-3.1-8B build set: 18 files, 246 GB |
+| Footprint | small graphs, duplicated weights | 215 `.rbln` files, **979 GB**; one Llama-3.1-8B build set: 18 files, 262 GB |
 
 Content-defined chunking over a 121 GB sample (HF source, RNGD params, six ATOM files) found:
 
@@ -30,8 +30,10 @@ Content-defined chunking over a 121 GB sample (HF source, RNGD params, six ATOM 
 - Fixed-size blocks (1 MiB or 4 KiB) find 0 % between ATOM batch variants, because the same bytes sit at shifted
   offsets. Only content-defined boundaries find them.
 
-The sample deduplicates 2.9×; applying the measured shares to the 246 GB build set gives an estimated 28–30 GB
-(≈ 8×). The graphs are small; the waste is weight copies. The node's disk was 80 % full.
+`onggi dedup-report` (P0) measured the full sets: the 262 GB ATOM build set holds 44.7 GB of distinct bytes (5.9×);
+with the HF source and the RNGD copies, 330 GB → 64.0 GB (5.2×); the node's model stores, 1.73 TB → 0.94 TB (1.84×).
+Prefill builds with different chunk sizes use different weight layouts and are the expensive dimension. The graphs
+are small; the waste is weight copies. The node's disk was 80 % full.
 
 Beyond space, the same artifacts drive cold start (download, materialize, load), scale-from-zero latency and which
 nodes a model can be placed on. Today these are handled by hand: a shared SMB volume, a discovery CronJob that
@@ -270,7 +272,7 @@ publish, compile and delete. The CSI mount is read-only. No credentials or site 
 | Phase | Deliverable | Done when |
 |---|---|---|
 | P0 | `onggi dedup-report`; import of an existing store layout (`hub/`, `compiled/`) | §1 numbers reproduced from a command |
-| P1 | chunker, durable-tier backend, CLI push/pull | the 246 GB ATOM set stored in ≈ 30 GB; pulled files byte-identical |
+| P1 | chunker, durable-tier backend, CLI push/pull | the 262 GB ATOM set stored in ≈ 45 GB; pulled files byte-identical |
 | P2 | agent + CSI volume + materializer | an engine serves from an onggi volume; cold start measured vs baselines |
 | P3 | CRDs, controller, compile farm, GC | an `ArtifactSet` produces its artifacts unattended |
 | P4 | prefetch, webhook placement, llm-d autoscaling hook | scale-from-zero cold start reduced and measured |

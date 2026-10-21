@@ -22,7 +22,7 @@ source checkpoint.
 | Format | one `.rbln` binary per compiled graph, header `RBLN2024`; `rbln_config.json` beside it. |
 | Weights | **embedded** in each `.rbln`, in a compiler-specific layout (0 % of chunks shared with the HF source). |
 | Sizes (Llama-3.1-8B) | 13.4–14.5 GB per decode or prefill graph, about the size of the bf16 weights. |
-| One build set | 18 files (decode S256/S512 × B1/B2/B4/B8, with and without lm_head; prefill S256/S512 with several chunk sizes): **246 GB**. |
+| One build set | 18 files (decode S256/S512 × B1/B2/B4/B8, with and without lm_head; prefill S256/S512 with several chunk sizes): **262 GB** (246 GiB). |
 | Node footprint | 215 `.rbln` files, **979 GB**. |
 | Vendor-style build | a separate build had `prefill.rbln` 15 GB with `decoder_batch_1/8.rbln` ≈ 1 GB each, which suggests weight sharing inside one compile. |
 
@@ -49,14 +49,44 @@ over a 121 GB sample: the HF Llama-3.1-8B source (4 files), one RNGD param copy 
 | **Total** | **121.2 GB** | **41.9 GB (2.9×)** |
 
 Each further ATOM decode variant adds 0.05–0.19 GB; the first prefill adds 10.1 GB (a second weight layout).
-Applied to the 18-file build set, this gives an estimated 28–30 GB for 246 GB (≈ 8×). The estimate is from the
-sample's per-file shares, not a run over all 18 files.
+The estimate drawn from these shares for the whole build set turned out too low; see the measurement below.
 
 Fixed-size block hashing misses the ATOM sharing entirely: 1 MiB blocks and 4 KiB blocks both found 0 % between batch
 variants and between decode and prefill, while 48-byte probes from one file were found in the other. The shared bytes
 sit at offsets that differ by amounts that are not block multiples. **Content-defined chunking is required.**
 
 Compression adds little: zlib level 6 on an 8 MB weight region of an `.rbln` gives 1.29×.
+
+## Measured with `onggi dedup-report` (P0)
+
+The same chunking in Go (FastCDC, 16/64/256 KiB, SHA-256) on the node, commit `033814e`. Each pass reads every file once:
+
+| Run | Files | Logical | Distinct | Ratio | Time |
+|---|--:|--:|--:|--:|--:|
+| The 121 GB sample above (reproduction) | 14 | 121.2 GB | 42.6 GB | 2.85× | 42 s |
+| One Llama-3.1-8B set: HF source, RNGD params and graphs, the full ATOM build set | 342 | 330.0 GB | 64.0 GB | 5.15× | 2 min |
+| The whole node's model stores (files ≥ 1 MiB) | 1,642 | 1,728.7 GB | 938.6 GB | 1.84× | — |
+
+The full ATOM Llama-3.1-8B build set is **262 GB** (246 GiB; 18 files). By kind, after the HF source:
+
+| Kind | Files | Logical | Distinct within the kind | New after earlier kinds |
+|---|--:|--:|--:|--:|
+| ATOM decode | 13 | 191.2 GB | 16.8 GB | 16.8 GB |
+| ATOM prefill | 4 | 56.5 GB | 40.7 GB | 27.8 GB |
+| ATOM other (`llama8b_S256_fp16`) | 1 | 14.1 GB | 14.1 GB | 0.1 GB |
+| **ATOM total** | 18 | **261.8 GB** | | **44.7 GB (5.9×)** |
+| RNGD params (3 copies) | 12 | 48.4 GB | 16.1 GB | 0.07 GB |
+
+**Correction:** the estimate made from the sample (28–30 GB, ≈ 8×) was too low. Decode variants behave as the sample
+said (each adds 0.05–0.2 GB), but **prefill builds with different chunk sizes use different weight layouts**: the
+four prefill files (C16, C128, C256, C512) share only 29–37 % of their bytes with each other, so each adds about
+10 GB. Prefill chunk size, not sequence length or batch, is the expensive dimension of an ATOM build set.
+
+Whole node, by kind: HF safetensors 811.6 GB → 742.6 GB (copies of the same checkpoints in several directories);
+ATOM `.rbln` 761.2 GB → 175.1 GB new; RNGD params 48.4 GB → 0.1 GB new. 524 symlinks (hub snapshot links) were not
+followed. The run covered the node's model directories, not every `.rbln` on the disk (979 GB in total).
+
+Fixed 1 MiB blocks on the 330 GB set: 150.0 GB (2.20×), against 64.0 GB content-defined.
 
 ## Consequences for the design
 
@@ -65,9 +95,10 @@ Compression adds little: zlib level 6 on an 8 MB weight region of an `.rbln` giv
 2. Chunk boundaries must be content-defined (ADR-0001).
 3. Cross-vendor dedup is not possible where a compiler re-lays weights out; dedup within a vendor and layout is.
 4. The RNGD layout equals the HF source, so the RNGD path can reference the source checkpoint directly.
+5. Each ATOM prefill chunk size costs a full weight layout; semantic compaction should look there first.
 
 ## Method
 
 The probes ran as read-only scripts on the node: file listings and sizes; magic bytes and headers; 48/64-byte
-substring searches; fixed-block and content-defined chunk hashing with Python and NumPy. They will be part of
-`onggi dedup-report` (P0) so the numbers can be reproduced.
+substring searches; fixed-block and content-defined chunk hashing with Python and NumPy. `onggi dedup-report` (P0) now
+reproduces them with one command.

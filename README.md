@@ -8,7 +8,7 @@ English · [한국어](README.ko.md)
 > a store would deduplicate. The cluster components (controller, node agent, CSI driver) follow in P1–P3.
 
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
-RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **246 GB** because every graph embeds the
+RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
 weights, and FuriosaAI RNGD keeps three copies of weights that are byte-identical to the HF checkpoint. Content-defined
 chunking finds 99.3 % shared bytes between ATOM variants that fixed-size blocks miss entirely
 ([measurements](docs/artifact-formats.md)).
