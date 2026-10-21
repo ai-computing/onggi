@@ -26,8 +26,8 @@ engine wrong data.
 
    `Capabilities` declares range reads, server-side copy, presigned URLs, atomic create (rename or conditional put),
    and a **durability class** (`none`, `replicated`, `erasure-coded`, `unknown`).
-2. **Drivers.** `fs` (any POSIX mount: local disk, NFS, SMB, CephFS, JuiceFS, Lustre/GPFS), `s3` (MinIO, Ceph RGW,
-   cloud), `oci` (registries, OCI artifact layout). More (native RADOS, …) only when a site needs them.
+2. **Drivers.** `fs` (any POSIX mount: local disk, NFS, SMB, CephFS, JuiceFS, Lustre/GPFS), `s3` (Ceph RGW, SeaweedFS,
+   Garage, VersityGW, cloud; MinIO community edition is archived and no longer ships binaries), `oci` (registries, OCI artifact layout). More (native RADOS, …) only when a site needs them.
 3. **Durability is the backend's job.** Onggi never replicates within a backend. It reports the declared durability
    class, and `StorePolicy` can require one (for example, refuse `none` for the durable tier).
 4. **Selection per policy.** A `StorePolicy` names one or more backends per tier (hot artifacts on CephFS, superseded
@@ -43,7 +43,7 @@ The node cache tier (local disk, HRW placement, peer transfer) stays onggi's own
 whichever backend is underneath.
 
 ## Consequences
-- The lab can start on its existing SMB share through `fs` and move to MinIO or Ceph later without changing manifests
+- The lab can start on its existing SMB share through `fs` and move to Ceph RGW or another S3 server later without changing manifests
   or refs.
 - Onggi's correctness surface stays small (manifests, refs, cache tier); durability, rebuild and erasure coding are the
   backend's.

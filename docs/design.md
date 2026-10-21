@@ -287,7 +287,7 @@ publish, compile and delete. The CSI mount is read-only. No credentials or site 
 1. Does the ATOM toolchain have a supported way to share weights across profiles (one vendor build showed prefill
    15 GB + decoders 1 GB), which would beat dedup?
 2. Chunk size and pack size for weight-heavy data (ADR-0001).
-3. Durable tier for the lab: start on the existing SMB share (`fs` driver), then MinIO or Ceph (ADR-0008).
+3. Durable tier for the lab: start on the existing SMB share (`fs` driver), then Ceph RGW or another S3 server such as SeaweedFS (ADR-0008; MinIO community is archived).
 4. How much of OME's model CRDs and agent can be reused instead of rebuilt.
 
 ## References

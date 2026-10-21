@@ -16,6 +16,7 @@ import (
 
 	"github.com/ai-computing/onggi/pkg/backend"
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
+	bs3 "github.com/ai-computing/onggi/pkg/backend/s3"
 	"github.com/ai-computing/onggi/pkg/chunker"
 	"github.com/ai-computing/onggi/pkg/store"
 )
@@ -26,7 +27,7 @@ type storeFlags struct {
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
 	return storeFlags{
-		url:        fs.String("store", os.Getenv("ONGGI_STORE"), "store: a directory or file:// URL (env ONGGI_STORE)"),
+		url:        fs.String("store", os.Getenv("ONGGI_STORE"), "store: a directory, file:// URL or s3://bucket/prefix?endpoint=host:port URL (env ONGGI_STORE)"),
 		durability: fs.String("durability", "unknown", "what the storage guarantees: none, replicated, erasure-coded, unknown"),
 		min:        fs.String("min", "16KiB", "minimum chunk size (only when creating a store)"),
 		avg:        fs.String("avg", "64KiB", "average chunk size (only when creating a store)"),
@@ -35,16 +36,29 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 	}
 }
 
-// open returns the store and its refs. Only the fs backend exists so far; s3 follows (ADR-0008).
+// backendRefs is what a store driver provides: objects and refs.
+type backendRefs interface {
+	backend.Backend
+	backend.Refs
+}
+
+// open returns the store and its refs, picking the driver from the URL scheme (ADR-0008).
 func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error) {
 	u := *f.url
 	if u == "" {
 		return nil, nil, errors.New("no store: pass --store or set ONGGI_STORE")
 	}
-	if strings.Contains(u, "://") && !strings.HasPrefix(u, "file://") {
-		return nil, nil, fmt.Errorf("store %q: only directories and file:// URLs are supported so far", u)
+	var b backendRefs
+	var err error
+	d := backend.Durability(*f.durability)
+	switch {
+	case strings.HasPrefix(u, "s3://"):
+		b, err = bs3.Open(u, d)
+	case strings.Contains(u, "://") && !strings.HasPrefix(u, "file://"):
+		err = fmt.Errorf("store %q: want a directory, file:// or s3:// URL", u)
+	default:
+		b, err = bfs.Open(strings.TrimPrefix(u, "file://"), d)
 	}
-	b, err := bfs.Open(strings.TrimPrefix(u, "file://"), backend.Durability(*f.durability))
 	if err != nil {
 		return nil, nil, err
 	}

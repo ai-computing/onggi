@@ -273,7 +273,7 @@ rm-core 계약(protocol v0.2 제안): `ArtifactStore` — `resolve(ref) → mani
 1. ATOM 툴체인에 조합 간 가중치를 공유하는 공식 방법이 있는가(벤더 방식 빌드 하나는 prefill 15 GB + decoder 1 GB)?
    있다면 중복 제거보다 낫다
 2. 가중치 위주 데이터의 청크·묶음 크기(ADR-0001)
-3. 연구실 영속 계층: 기존 SMB 공유(`fs` 드라이버)로 시작, 이후 MinIO 또는 Ceph(ADR-0008)
+3. 연구실 영속 계층: 기존 SMB 공유(`fs` 드라이버)로 시작, 이후 Ceph RGW나 SeaweedFS 같은 S3 서버(ADR-0008, MinIO 커뮤니티판은 보관 처리됨)
 4. OME의 모델 CRD와 agent를 어디까지 재사용할 수 있는가
 
 ## 참고문헌

@@ -4,8 +4,9 @@
 
 English · [한국어](README.ko.md)
 
-> Status: **P0.** The design is in [docs/design.md](docs/design.md); the first tool, `onggi dedup-report`, measures what
-> a store would deduplicate. The cluster components (controller, node agent, CSI driver) follow in P1–P3.
+> Status: **P1.** The design is in [docs/design.md](docs/design.md). `onggi dedup-report` measures what a store would
+> deduplicate; `onggi push` / `pull` store and restore artifacts on a POSIX mount or an S3 server. The cluster
+> components (node agent, CSI driver, controller) follow in P2–P3.
 
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
 RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
@@ -33,7 +34,7 @@ Placement decisions and scale-up signals from ai-rm and llm-d start the fetch be
 | **Build declaratively** | `ArtifactSet` CRDs drive a compile farm; results are deduplicated on publish |
 | **Stay multi-node** | durable tier on an existing erasure-coded object store; caches survive node loss by design |
 
-## Quick start (P0)
+## Quick start
 
 ```bash
 go build -o onggi ./cmd/onggi            # Go 1.24+
@@ -46,6 +47,19 @@ decode/prefill `.rbln`) so source checkpoints come first, chunks files in parall
 (FastCDC, 16/64/256 KiB by default) and prints, per kind, the logical size, the distinct bytes and the bytes each
 kind adds on top of the earlier ones. `--fixed-block` repeats the measurement with fixed-size blocks for comparison;
 `--pairs N` prints which share of each of the N largest files occurs in each other.
+
+Store and restore an artifact (only chunks the store lacks are uploaded; every chunk is hash-checked on the way back):
+
+```bash
+export ONGGI_STORE=/mnt/models/onggi        # any POSIX mount: local disk, NFS, SMB, CephFS, ...
+# or an S3 server (Ceph RGW, SeaweedFS, Garage, VersityGW, cloud); the bucket must exist
+export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
+./onggi push --ref llama-3.1-8b@atom/pd <build dir>
+./onggi pull llama-3.1-8b@atom/pd <restore dir>
+./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
+```
+
+On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in 46.8 GB (push 3 min, pull 5 min, byte-identical).
 
 ## Documents
 
