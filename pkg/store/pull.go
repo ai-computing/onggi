@@ -250,50 +250,11 @@ func (s *Store) planFromLocator(ctx context.Context, m *Manifest, ld digest.Dige
 	if digest.Of(data) != ld {
 		return nil, nil, fmt.Errorf("locator %s: content does not match its digest", ld)
 	}
-	l, err := decodeLocator(data)
-	data = nil
+	nodes, packs, err := readLocator(data, m)
 	if err != nil {
-		return nil, nil, fmt.Errorf("locator %s: %v", ld, err)
+		return nil, nil, fmt.Errorf("locator %s: %w", ld, err)
 	}
-	if len(l.Files) != len(m.Files) {
-		return nil, nil, fmt.Errorf("locator %s: %d files, manifest has %d", ld, len(l.Files), len(m.Files))
-	}
-	nodes := make([]node, len(l.Nodes))
-	pl := &planner{nodes: nodes}
-	for i := range l.Nodes {
-		ln := &l.Nodes[i]
-		nodes[i].chunk = ln.Chunk
-		if !ln.Comp {
-			nodes[i].stored, nodes[i].loc = true, ln.Loc
-			continue
-		}
-		var n int64
-		for _, k := range ln.Subs {
-			if int(k) >= len(l.Nodes) || l.Nodes[k].Length >= ln.Length {
-				return nil, nil, fmt.Errorf("locator %s: chunk %s has a bad sub-chunk", ld, ln.Chunk)
-			}
-			pl.addParent(int32(k), edge{node: int32(i), off: uint32(n)})
-			n += int64(l.Nodes[k].Length)
-		}
-		if n != int64(ln.Length) {
-			return nil, nil, fmt.Errorf("locator %s: chunk %s: sub-chunks add up to %d bytes, want %d", ld, ln.Chunk, n, ln.Length)
-		}
-		ln.Subs = nil
-	}
-	for i, f := range m.Files {
-		var off int64
-		for _, id := range l.Files[i] {
-			if int(id) >= len(l.Nodes) {
-				return nil, nil, fmt.Errorf("locator %s: %s names node %d of %d", ld, f.Path, id, len(l.Nodes))
-			}
-			pl.addTarget(int32(id), target{file: int32(i), off: off})
-			off += int64(l.Nodes[id].Length)
-		}
-		if off != f.Size {
-			return nil, nil, fmt.Errorf("%s: chunks add up to %d bytes, manifest says %d", f.Path, off, f.Size)
-		}
-	}
-	return pl.nodes, l.Packs, nil
+	return nodes, packs, nil
 }
 
 // ref returns the node of chunk c, creating it, and for a composite its sub-chunk nodes, on

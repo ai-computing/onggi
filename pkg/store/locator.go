@@ -10,70 +10,113 @@ import (
 	"github.com/ai-computing/onggi/pkg/digest"
 )
 
-// A locator lists everything a pull of one artifact needs: the packs it reads, every chunk it
-// reaches (stored chunks with their place in a pack, composites with their sub-chunks by node
-// number) and each file's chunks by node number. Push writes it before the manifest, which
-// names it, so it is checked through the manifest digest. With it, pull reads neither the
-// store's whole index nor the chunk lists, and plans without a map by digest (#17).
+// A locator lists everything a pull of one artifact needs: every chunk it reaches (stored chunks
+// with their place in a pack, composites with their sub-chunks by node number), the packs it
+// reads and each file's chunks by node number. Push writes it before the manifest, which names
+// it, so it is checked through the manifest digest. With it, pull reads neither the store's
+// whole index nor the chunk lists, and plans without a map by digest (#17).
+//
+// Nodes are in post-order: a composite comes after all its sub-chunks, so push writes each node
+// as soon as it is known and pull links each composite to nodes it has already read.
 //
 //	magic "ONGGILC1"
-//	packs  uint32, then that many pack digests [32]
 //	nodes  uint32, then per node: chunk digest [32], raw length uint32, kind uint8, then
 //	       kind 0 (stored):    pack number uint32, offset uint32, stored length uint32, codec uint8
-//	       kind 1 (composite): sub-chunk count uint32, then that many node numbers uint32
+//	       kind 1 (composite): sub-chunk count uint32, then that many earlier node numbers uint32
+//	packs  uint32, then that many pack digests [32]
 //	files  uint32, then per file: chunk count uint32, then that many node numbers uint32
 
 var locatorMagic = [8]byte{'O', 'N', 'G', 'G', 'I', 'L', 'C', '1'}
 
-type locNode struct {
-	Chunk  digest.Digest
-	Length uint32
-	Comp   bool
-	Loc    Loc      // stored: Pack numbers Locator.Packs
-	Subs   []uint32 // composite
-}
-
-// Locator is the decoded form.
-type Locator struct {
-	Packs []digest.Digest
-	Nodes []locNode
-	Files [][]uint32
-}
-
-func (l *Locator) encode() []byte {
+// writeLocator encodes the locator of files whose chunk lists are lists. The store's index must
+// be loaded and hold every chunk.
+func (s *Store) writeLocator(lists [][]ChunkRef) ([]byte, error) {
 	var b bytes.Buffer
-	w := func(v uint32) { binary.Write(&b, binary.LittleEndian, v) }
+	var tmp [4]byte
+	w := func(v uint32) {
+		binary.LittleEndian.PutUint32(tmp[:], v)
+		b.Write(tmp[:])
+	}
 	b.Write(locatorMagic[:])
-	w(uint32(len(l.Packs)))
-	for _, p := range l.Packs {
+	w(0) // node count, set at the end
+	var nodes uint32
+	nodeOf := map[digest.Digest]uint32{}
+	packOf := map[uint32]uint32{} // store pack number -> locator pack number
+	var packs []digest.Digest
+	var add func(c ChunkRef) (uint32, error)
+	add = func(c ChunkRef) (uint32, error) {
+		if id, ok := nodeOf[c.Digest]; ok {
+			return id, nil
+		}
+		s.mu.RLock()
+		loc, stored := s.index[c.Digest]
+		subs, comp := s.comps[c.Digest]
+		s.mu.RUnlock()
+		switch {
+		case stored:
+			p, ok := packOf[loc.Pack]
+			if !ok {
+				p = uint32(len(packs))
+				packOf[loc.Pack] = p
+				packs = append(packs, s.packName(loc.Pack))
+			}
+			b.Write(c.Digest[:])
+			w(c.Length)
+			b.WriteByte(0)
+			w(p)
+			w(loc.Offset)
+			w(loc.Stored)
+			b.WriteByte(byte(loc.Codec))
+		case comp:
+			kids := make([]uint32, len(subs))
+			for i, sc := range subs {
+				k, err := add(sc)
+				if err != nil {
+					return 0, err
+				}
+				kids[i] = k
+			}
+			b.Write(c.Digest[:])
+			w(c.Length)
+			b.WriteByte(1)
+			w(uint32(len(kids)))
+			for _, k := range kids {
+				w(k)
+			}
+		default:
+			return 0, fmt.Errorf("chunk %s is not in the store", c.Digest)
+		}
+		id := nodes
+		nodes++
+		nodeOf[c.Digest] = id
+		return id, nil
+	}
+	files := make([][]uint32, len(lists))
+	for i, list := range lists {
+		files[i] = make([]uint32, len(list))
+		for j, c := range list {
+			id, err := add(c)
+			if err != nil {
+				return nil, err
+			}
+			files[i][j] = id
+		}
+	}
+	nodeOf = nil
+	w(uint32(len(packs)))
+	for _, p := range packs {
 		b.Write(p[:])
 	}
-	w(uint32(len(l.Nodes)))
-	for _, n := range l.Nodes {
-		b.Write(n.Chunk[:])
-		w(n.Length)
-		if n.Comp {
-			b.WriteByte(1)
-			w(uint32(len(n.Subs)))
-			for _, s := range n.Subs {
-				w(s)
-			}
-			continue
-		}
-		b.WriteByte(0)
-		w(n.Loc.Pack)
-		w(n.Loc.Offset)
-		w(n.Loc.Stored)
-		b.WriteByte(byte(n.Loc.Codec))
-	}
-	w(uint32(len(l.Files)))
-	for _, f := range l.Files {
+	w(uint32(len(files)))
+	for _, f := range files {
 		w(uint32(len(f)))
 		for _, id := range f {
 			w(id)
 		}
 	}
-	return b.Bytes()
+	data := b.Bytes()
+	binary.LittleEndian.PutUint32(data[8:12], nodes)
+	return data, nil
 }
 
 type reader struct {
@@ -118,110 +161,84 @@ func (r *reader) count(min int) int {
 	return int(n)
 }
 
-func decodeLocator(data []byte) (*Locator, error) {
+// readLocator decodes a locator straight into a pull plan for the files of m: the nodes with
+// their parent edges and targets, and the packs that node locations number.
+func readLocator(data []byte, m *Manifest) ([]node, []digest.Digest, error) {
 	if len(data) < 8 || !bytes.Equal(data[:8], locatorMagic[:]) {
-		return nil, errors.New("not an onggi locator")
+		return nil, nil, errors.New("not an onggi locator")
 	}
 	r := &reader{p: data[8:]}
-	l := &Locator{}
-	l.Packs = make([]digest.Digest, r.count(32))
-	for i := range l.Packs {
-		copy(l.Packs[i][:], r.take(32))
-	}
-	l.Nodes = make([]locNode, r.count(37))
-	for i := range l.Nodes {
-		n := &l.Nodes[i]
-		copy(n.Chunk[:], r.take(32))
-		n.Length = r.u32()
+	pl := &planner{nodes: make([]node, r.count(41))}
+	lengths := make([]uint32, len(pl.nodes))
+	for i := range pl.nodes {
+		nd := &pl.nodes[i]
+		copy(nd.chunk[:], r.take(32))
+		length := r.u32()
+		lengths[i] = length
 		switch r.u8() {
 		case 0:
-			n.Loc = Loc{Pack: r.u32(), Offset: r.u32(), Stored: r.u32(), Length: n.Length}
-			n.Loc.Codec = codec.ID(r.u8())
-			if r.err == nil && int(n.Loc.Pack) >= len(l.Packs) {
-				return nil, fmt.Errorf("locator: node %d names pack %d of %d", i, n.Loc.Pack, len(l.Packs))
-			}
+			nd.stored = true
+			nd.loc = Loc{Pack: r.u32(), Offset: r.u32(), Stored: r.u32(), Length: length}
+			nd.loc.Codec = codec.ID(r.u8())
 		case 1:
-			n.Comp = true
-			n.Subs = make([]uint32, r.count(4))
-			for j := range n.Subs {
-				n.Subs[j] = r.u32()
+			var off int64
+			for j, n := 0, r.count(4); j < n; j++ {
+				k := r.u32()
+				if r.err != nil {
+					break
+				}
+				if int(k) >= i || lengths[k] >= length { // post-order: sub-chunks come first and are shorter
+					return nil, nil, fmt.Errorf("locator: chunk %s has a bad sub-chunk", nd.chunk)
+				}
+				pl.addParent(int32(k), edge{node: int32(i), off: uint32(off)})
+				off += int64(lengths[k])
+			}
+			if r.err == nil && off != int64(length) {
+				return nil, nil, fmt.Errorf("locator: chunk %s: sub-chunks add up to %d bytes, want %d", nd.chunk, off, length)
 			}
 		default:
 			if r.err == nil {
-				return nil, fmt.Errorf("locator: node %d has an unknown kind", i)
+				return nil, nil, fmt.Errorf("locator: node %d has an unknown kind", i)
 			}
 		}
+		if r.err != nil {
+			return nil, nil, r.err
+		}
 	}
-	l.Files = make([][]uint32, r.count(4))
-	for i := range l.Files {
-		l.Files[i] = make([]uint32, r.count(4))
-		for j := range l.Files[i] {
-			l.Files[i][j] = r.u32()
+	packs := make([]digest.Digest, r.count(32))
+	for i := range packs {
+		copy(packs[i][:], r.take(32))
+	}
+	for i := range pl.nodes {
+		if pl.nodes[i].stored && int(pl.nodes[i].loc.Pack) >= len(packs) {
+			return nil, nil, fmt.Errorf("locator: node %d names pack %d of %d", i, pl.nodes[i].loc.Pack, len(packs))
+		}
+	}
+	if n := r.count(4); r.err == nil && n != len(m.Files) {
+		return nil, nil, fmt.Errorf("locator: %d files, manifest has %d", n, len(m.Files))
+	}
+	for i, f := range m.Files {
+		var off int64
+		for j, n := 0, r.count(4); j < n; j++ {
+			id := r.u32()
+			if r.err != nil {
+				break
+			}
+			if int(id) >= len(pl.nodes) {
+				return nil, nil, fmt.Errorf("locator: %s names node %d of %d", f.Path, id, len(pl.nodes))
+			}
+			pl.addTarget(int32(id), target{file: int32(i), off: off})
+			off += int64(lengths[id])
+		}
+		if r.err == nil && off != f.Size {
+			return nil, nil, fmt.Errorf("%s: chunks add up to %d bytes, manifest says %d", f.Path, off, f.Size)
 		}
 	}
 	if r.err != nil {
-		return nil, r.err
+		return nil, nil, r.err
 	}
 	if len(r.p) != 0 {
-		return nil, fmt.Errorf("locator: %d trailing bytes", len(r.p))
+		return nil, nil, fmt.Errorf("locator: %d trailing bytes", len(r.p))
 	}
-	return l, nil
-}
-
-// buildLocator collects the locator of files whose chunk lists are lists. The store's index must
-// be loaded and hold every chunk.
-func (s *Store) buildLocator(lists [][]ChunkRef) (*Locator, error) {
-	l := &Locator{}
-	nodeOf := map[digest.Digest]uint32{}
-	packOf := map[uint32]uint32{} // store pack number -> locator pack number
-	var add func(c ChunkRef) (uint32, error)
-	add = func(c ChunkRef) (uint32, error) {
-		if id, ok := nodeOf[c.Digest]; ok {
-			return id, nil
-		}
-		s.mu.RLock()
-		loc, stored := s.index[c.Digest]
-		subs, comp := s.comps[c.Digest]
-		s.mu.RUnlock()
-		id := uint32(len(l.Nodes))
-		switch {
-		case stored:
-			p, ok := packOf[loc.Pack]
-			if !ok {
-				p = uint32(len(l.Packs))
-				packOf[loc.Pack] = p
-				l.Packs = append(l.Packs, s.packName(loc.Pack))
-			}
-			loc.Pack = p
-			nodeOf[c.Digest] = id
-			l.Nodes = append(l.Nodes, locNode{Chunk: c.Digest, Length: c.Length, Loc: loc})
-		case comp:
-			nodeOf[c.Digest] = id
-			l.Nodes = append(l.Nodes, locNode{Chunk: c.Digest, Length: c.Length, Comp: true})
-			kids := make([]uint32, len(subs))
-			for i, sc := range subs {
-				k, err := add(sc)
-				if err != nil {
-					return 0, err
-				}
-				kids[i] = k
-			}
-			l.Nodes[id].Subs = kids
-		default:
-			return 0, fmt.Errorf("chunk %s is not in the store", c.Digest)
-		}
-		return id, nil
-	}
-	for _, list := range lists {
-		ids := make([]uint32, len(list))
-		for i, c := range list {
-			id, err := add(c)
-			if err != nil {
-				return nil, err
-			}
-			ids[i] = id
-		}
-		l.Files = append(l.Files, ids)
-	}
-	return l, nil
+	return pl.nodes, packs, nil
 }

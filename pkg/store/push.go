@@ -259,11 +259,11 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		m.Files = append(m.Files, File{Path: f.rel, Size: f.Size, Mode: uint32(f.Mode.Perm()), Kind: layout.Of(f.rel), List: d})
 		m.Bytes += f.Size
 	}
-	loc, err := s.buildLocator(lists)
+	claimed = nil // no longer needed; the locator's own map replaces it
+	ldata, err := s.writeLocator(lists)
 	if err != nil {
 		return digest.Digest{}, st, err
 	}
-	ldata := loc.encode()
 	ld := digest.Of(ldata)
 	if err := s.B.Put(ctx, backend.Key{Kind: backend.List, Name: ld.Hex()}, bytes.NewReader(ldata), int64(len(ldata))); err != nil {
 		return digest.Digest{}, st, fmt.Errorf("locator: %w", err)

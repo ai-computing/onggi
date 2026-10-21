@@ -100,11 +100,11 @@ func TestLocatorRejectsDamage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := decodeLocator(data); err != nil {
+	if _, _, err := readLocator(data, m); err != nil {
 		t.Fatalf("intact locator: %v", err)
 	}
 	for _, bad := range [][]byte{data[:len(data)-3], append(append([]byte(nil), data...), 0), data[:20]} {
-		if _, err := decodeLocator(bad); err == nil {
+		if _, _, err := readLocator(bad, m); err == nil {
 			t.Errorf("accepted a damaged locator of %d bytes", len(bad))
 		}
 	}
