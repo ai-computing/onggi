@@ -137,9 +137,6 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 			if err := f.Close(); err != nil {
 				fail(err)
 			}
-			for i := range entries {
-				entries[i].Loc.Pack = d
-			}
 			select {
 			case packs <- sealed{path: name, digest: d, size: size, entries: entries}:
 			case <-ctx.Done():

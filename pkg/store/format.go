@@ -36,9 +36,10 @@ var (
 	compMagic    = [8]byte{'O', 'N', 'G', 'G', 'I', 'C', 'X', '1'}
 )
 
-// Loc is where a chunk's bytes lie and how they are stored.
+// Loc is where a chunk's bytes lie and how they are stored. Pack numbers the pack within the open
+// store (Store.packName), so an index entry costs 20 bytes instead of 52 (#17).
 type Loc struct {
-	Pack   digest.Digest
+	Pack   uint32
 	Offset uint32
 	Stored uint32 // bytes in the pack
 	Length uint32 // raw bytes
@@ -87,7 +88,7 @@ func decodeIndex(data []byte) (digest.Digest, []indexEntry, error) {
 	p := data[44:]
 	for i := range out {
 		copy(out[i].Chunk[:], p[:32])
-		l := Loc{Pack: pack, Offset: binary.LittleEndian.Uint32(p[32:36]), Stored: binary.LittleEndian.Uint32(p[36:40])}
+		l := Loc{Offset: binary.LittleEndian.Uint32(p[32:36]), Stored: binary.LittleEndian.Uint32(p[36:40])}
 		if v1 {
 			l.Length = l.Stored
 		} else {

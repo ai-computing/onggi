@@ -104,14 +104,14 @@ func TestIndexV1StillReads(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := Loc{Pack: pack, Offset: 4096, Stored: 65536, Length: 65536, Codec: codec.None}
+	want := Loc{Offset: 4096, Stored: 65536, Length: 65536, Codec: codec.None}
 	if len(entries) != 1 || entries[0].Chunk != chunk || entries[0].Loc != want {
 		t.Fatalf("v1 index decoded as %+v", entries)
 	}
 
-	e := []indexEntry{{Chunk: chunk, Loc: Loc{Pack: pack, Offset: 7, Stored: 100, Length: 300, Codec: codec.Shuffle2Huffman}}}
-	_, got, err := decodeIndex(encodeIndex(pack, e))
-	if err != nil || len(got) != 1 || got[0] != e[0] {
+	e := []indexEntry{{Chunk: chunk, Loc: Loc{Offset: 7, Stored: 100, Length: 300, Codec: codec.Shuffle2Huffman}}}
+	p, got, err := decodeIndex(encodeIndex(pack, e))
+	if err != nil || p != pack || len(got) != 1 || got[0] != e[0] {
 		t.Fatalf("v2 round trip: %+v %v", got, err)
 	}
 }
