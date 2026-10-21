@@ -244,6 +244,10 @@ func ls(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
+	if err := s.LoadIndex(ctx); err != nil {
+		fmt.Fprintln(stderr, "onggi:", err)
+		return 1
+	}
 	chunks, _ := s.Stats()
 	c := s.Config.Chunker
 	fmt.Fprintf(stdout, "\nstore: %d chunks in %d packs, %s; chunker %s/%s/%s; durability %s\n", chunks, packs, human(packBytes),

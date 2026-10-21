@@ -65,6 +65,9 @@ type sealed struct {
 // store does not hold are uploaded.
 func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Digest, PushStats, error) {
 	start := time.Now()
+	if err := s.LoadIndex(ctx); err != nil {
+		return digest.Digest{}, PushStats{}, err
+	}
 	if o.Workers < 1 {
 		o.Workers = 4
 	}
@@ -89,7 +92,9 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	defer cancel(nil)
 	fail := func(err error) { cancel(err) }
 
-	claimed := map[digest.Digest]bool{} // chunks queued for a pack in this push
+	// chunks this push has queued for a pack and not yet indexed; an entry leaves once its pack's
+	// index is loaded, so the set holds only chunks in flight (#17)
+	claimed := map[digest.Digest]bool{}
 	var claimMu sync.Mutex
 	claim := func(d digest.Digest) bool {
 		if s.has(d) {
@@ -104,12 +109,47 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		return true
 	}
 
-	var comps []composite // chunks this push stores as sub-chunks
+	var comps []composite // chunks this push stores as sub-chunks, not yet published
 	var compMu sync.Mutex
 	addComp := func(c composite) {
 		compMu.Lock()
 		comps = append(comps, c)
 		compMu.Unlock()
+	}
+	// publishReady writes the composites whose sub-chunks are all indexed (durable), so pending
+	// composites do not pile up until the end of the push.
+	publishReady := func() error {
+		compMu.Lock()
+		if len(comps) < compFlushAt {
+			compMu.Unlock()
+			return nil
+		}
+		var ready, wait []composite
+		for _, c := range comps {
+			ok := true
+			for _, sc := range c.Subs {
+				if !s.has(sc.Digest) {
+					ok = false
+					break
+				}
+			}
+			if ok {
+				ready = append(ready, c)
+			} else {
+				wait = append(wait, c)
+			}
+		}
+		comps = wait
+		compMu.Unlock()
+		if err := s.putComposites(ctx, ready); err != nil {
+			return err
+		}
+		claimMu.Lock()
+		for _, c := range ready {
+			delete(claimed, c.Chunk)
+		}
+		claimMu.Unlock()
+		return nil
 	}
 
 	chunks := make(chan pending, 64)
@@ -188,6 +228,14 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 					} else {
 						packCount.Add(1)
 						packBytes.Add(p.size)
+						claimMu.Lock()
+						for _, e := range p.entries {
+							delete(claimed, e.Chunk) // indexed now: s.has answers for it
+						}
+						claimMu.Unlock()
+						if err := publishReady(); err != nil {
+							fail(err)
+						}
 					}
 				}
 				os.Remove(p.path)
@@ -256,6 +304,12 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		m.Files = append(m.Files, File{Path: f.rel, Size: f.Size, Mode: uint32(f.Mode.Perm()), Kind: layout.Of(f.rel), List: d})
 		m.Bytes += f.Size
 	}
+	claimed = nil // no longer needed; the locator's own map replaces it
+	ld, err := s.putLocator(ctx, lists, o.TempDir)
+	if err != nil {
+		return digest.Digest{}, st, fmt.Errorf("locator: %w", err)
+	}
+	m.Locator = &ld
 	data, err := json.MarshalIndent(m, "", " ")
 	if err != nil {
 		return digest.Digest{}, st, err
@@ -267,6 +321,30 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	st.NewBytes, st.Packs, st.PackBytes = newBytes.Load(), int(packCount.Load()), packBytes.Load()
 	st.Duration = time.Since(start)
 	return md, st, nil
+}
+
+// putLocator writes the locator to a temporary file, names it by its digest and uploads it.
+func (s *Store) putLocator(ctx context.Context, lists [][]ChunkRef, dir string) (digest.Digest, error) {
+	f, err := os.CreateTemp(dir, "onggi-locator-*")
+	if err != nil {
+		return digest.Digest{}, err
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+	size, err := s.writeLocator(lists, f)
+	if err != nil {
+		return digest.Digest{}, err
+	}
+	h := sha256.New()
+	if _, err := io.Copy(h, io.NewSectionReader(f, 0, size)); err != nil {
+		return digest.Digest{}, err
+	}
+	var d digest.Digest
+	copy(d[:], h.Sum(nil))
+	if err := s.B.Put(ctx, backend.Key{Kind: backend.List, Name: d.Hex()}, io.NewSectionReader(f, 0, size), size); err != nil {
+		return digest.Digest{}, err
+	}
+	return d, nil
 }
 
 func (s *Store) upload(ctx context.Context, p sealed) error {
@@ -289,6 +367,9 @@ func (s *Store) upload(ctx context.Context, p sealed) error {
 
 // compTableMax bounds one composite table object (about 40 MB at 64 KiB chunks of 4 KiB subs).
 const compTableMax = 64 << 10
+
+// compFlushAt is how many pending composites make an uploader try to publish the ready ones.
+var compFlushAt = 16 << 10 // a variable so tests can lower it
 
 func (s *Store) putComposites(ctx context.Context, cs []composite) error {
 	for len(cs) > 0 {

@@ -96,7 +96,6 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 			}
 		}
 	}()
-	pl := &planner{s: s, idx: map[digest.Digest]int32{}}
 	for i, f := range m.Files {
 		p, err := safeJoin(dest, f.Path)
 		if err != nil {
@@ -113,25 +112,17 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if err := h.Truncate(f.Size); err != nil {
 			return st, err
 		}
-		list, err := s.readList(ctx, f.List)
-		if err != nil {
-			return st, fmt.Errorf("%s: %w", f.Path, err)
-		}
-		var off int64
-		for _, c := range list {
-			id, err := pl.ref(c)
-			if err != nil {
-				return st, fmt.Errorf("%s: %w", f.Path, err)
-			}
-			pl.addTarget(id, target{file: int32(i), off: off})
-			off += int64(c.Length)
-		}
-		if off != f.Size {
-			return st, fmt.Errorf("%s: chunks add up to %d bytes, manifest says %d", f.Path, off, f.Size)
-		}
 	}
-	nodes := pl.nodes
-	pl.idx = nil // the digest index is not needed for reading
+	var nodes []node
+	var packs []digest.Digest
+	if m.Locator != nil {
+		nodes, packs, err = s.planFromLocator(ctx, m, *m.Locator)
+	} else {
+		nodes, packs, err = s.planFromIndex(ctx, m)
+	}
+	if err != nil {
+		return st, err
+	}
 
 	// stored chunks in pack order, coalesced into ranges of that order
 	var order []int32
@@ -178,7 +169,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 				if ctx.Err() != nil {
 					continue
 				}
-				n, err := s.readRange(ctx, nodes, order[r.a:r.b], handles, &buf)
+				n, err := s.readRange(ctx, nodes, packs, order[r.a:r.b], handles, &buf)
 				if err != nil {
 					cancel(err)
 					continue
@@ -217,6 +208,53 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	st.ReadBytes = readBytes.Load()
 	st.Duration = time.Since(start)
 	return st, nil
+}
+
+// planFromIndex plans with the store's index and the chunk lists (manifests without a locator).
+func (s *Store) planFromIndex(ctx context.Context, m *Manifest) ([]node, []digest.Digest, error) {
+	if err := s.LoadIndex(ctx); err != nil {
+		return nil, nil, err
+	}
+	pl := &planner{s: s, idx: map[digest.Digest]int32{}}
+	for i, f := range m.Files {
+		list, err := s.readList(ctx, f.List)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s: %w", f.Path, err)
+		}
+		var off int64
+		for _, c := range list {
+			id, err := pl.ref(c)
+			if err != nil {
+				return nil, nil, fmt.Errorf("%s: %w", f.Path, err)
+			}
+			pl.addTarget(id, target{file: int32(i), off: off})
+			off += int64(c.Length)
+		}
+		if off != f.Size {
+			return nil, nil, fmt.Errorf("%s: chunks add up to %d bytes, manifest says %d", f.Path, off, f.Size)
+		}
+	}
+	s.mu.RLock()
+	packs := append([]digest.Digest(nil), s.packs...)
+	s.mu.RUnlock()
+	return pl.nodes, packs, nil
+}
+
+// planFromLocator builds the same graph from the artifact's locator: no store index, no chunk
+// lists, no map by digest.
+func (s *Store) planFromLocator(ctx context.Context, m *Manifest, ld digest.Digest) ([]node, []digest.Digest, error) {
+	data, err := readAll(ctx, s.B, backend.Key{Kind: backend.List, Name: ld.Hex()})
+	if err != nil {
+		return nil, nil, fmt.Errorf("locator %s: %w", ld, err)
+	}
+	if digest.Of(data) != ld {
+		return nil, nil, fmt.Errorf("locator %s: content does not match its digest", ld)
+	}
+	nodes, packs, err := readLocator(data, m)
+	if err != nil {
+		return nil, nil, fmt.Errorf("locator %s: %w", ld, err)
+	}
+	return nodes, packs, nil
 }
 
 // ref returns the node of chunk c, creating it, and for a composite its sub-chunk nodes, on
@@ -313,9 +351,9 @@ func emit(nodes []node, id int32, raw []byte, base int64, handles []*os.File) er
 
 // readRange reads one range of a pack into *buf (reused across calls of one worker), decodes and
 // checks each chunk, and writes it everywhere it goes.
-func (s *Store) readRange(ctx context.Context, nodes []node, ids []int32, handles []*os.File, buf *[]byte) (int64, error) {
+func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Digest, ids []int32, handles []*os.File, buf *[]byte) (int64, error) {
 	first, last := nodes[ids[0]].loc, nodes[ids[len(ids)-1]].loc
-	pack := s.packName(first.Pack)
+	pack := packs[first.Pack]
 	n := int64(last.Offset+last.Stored) - int64(first.Offset)
 	rc, err := s.B.Get(ctx, backend.Key{Kind: backend.Pack, Name: pack.Hex()}, int64(first.Offset), n)
 	if err != nil {

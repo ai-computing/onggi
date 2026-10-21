@@ -210,6 +210,7 @@ func TestPullRejectsCompositeWithMissingSubChunk(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	md = withoutLocator(t, s, md) // the index path: a manifest from before locators
 	// drop the pack indexes: composites remain, their sub-chunks are gone
 	filepath.WalkDir(filepath.Join(storeDir, "index"), func(p string, d os.DirEntry, err error) error {
 		if err == nil && d.Type().IsRegular() {
@@ -224,5 +225,40 @@ func TestPullRejectsCompositeWithMissingSubChunk(t *testing.T) {
 	out := t.TempDir()
 	if _, err := openTwoLevel(t, storeDir).Pull(ctx, md, out, PullOptions{}); err == nil {
 		t.Fatal("pull succeeded without the sub-chunks")
+	}
+}
+
+// With a flush threshold of one, composites are published while the push runs, as soon as their
+// sub-chunks are indexed; the result must be the same.
+func TestCompositesPublishedDuringPush(t *testing.T) {
+	old := compFlushAt
+	compFlushAt = 1
+	defer func() { compFlushAt = old }()
+	ctx := context.Background()
+	src, storeDir, out := twoLevelSource(t), t.TempDir(), t.TempDir()
+	s := openTwoLevel(t, storeDir)
+	md, _, err := s.Push(ctx, src, PushOptions{Workers: 4, Uploads: 3})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tables := 0
+	filepath.WalkDir(filepath.Join(storeDir, "index"), func(p string, d os.DirEntry, err error) error {
+		if err == nil && d.Type().IsRegular() {
+			if data, _ := os.ReadFile(p); len(data) >= 8 && string(data[:8]) == string(compMagic[:]) {
+				tables++
+			}
+		}
+		return nil
+	})
+	if tables < 2 {
+		t.Fatalf("%d composite tables; want several, written during the push", tables)
+	}
+	if _, err := openTwoLevel(t, storeDir).Pull(ctx, withoutLocator(t, s, md), out, PullOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+	_, st, err := openTwoLevel(t, storeDir).Push(ctx, src, PushOptions{})
+	if err != nil || st.NewBytes != 0 {
+		t.Fatalf("second push: %d new bytes, %v", st.NewBytes, err)
 	}
 }
