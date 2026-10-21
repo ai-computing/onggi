@@ -223,4 +223,7 @@ type Manifest struct {
 	Bytes   int64             `json:"bytes"`
 	Files   []File            `json:"files"`
 	Labels  map[string]string `json:"labels,omitempty"`
+	// Locator names the artifact's locator object (locator.go). Manifests from before it have
+	// none, and pull then reads the store's index and the chunk lists.
+	Locator *digest.Digest `json:"locator,omitempty"`
 }

@@ -32,6 +32,9 @@ type Store struct {
 	comps map[digest.Digest][]ChunkRef // chunks the store holds as sub-chunks
 	packs []digest.Digest              // Loc.Pack numbers these
 	packN map[digest.Digest]uint32
+
+	loadMu sync.Mutex // LoadIndex runs once
+	loaded bool
 }
 
 // DefaultPackSize keeps object counts low on any backend (ADR-0001).
@@ -94,7 +97,22 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 	}
 	s := &Store{B: b, Config: cfg, index: map[digest.Digest]Loc{}, comps: map[digest.Digest][]ChunkRef{},
 		packN: map[digest.Digest]uint32{}}
-	return s, s.loadIndex(ctx)
+	return s, nil
+}
+
+// LoadIndex reads the store's index once. Push needs it; a pull with a locator does not, so
+// Open leaves it unread.
+func (s *Store) LoadIndex(ctx context.Context) error {
+	s.loadMu.Lock()
+	defer s.loadMu.Unlock()
+	if s.loaded {
+		return nil
+	}
+	if err := s.loadIndex(ctx); err != nil {
+		return err
+	}
+	s.loaded = true
+	return nil
 }
 
 func readConfig(ctx context.Context, b backend.Backend) (Config, error) {

@@ -65,6 +65,9 @@ type sealed struct {
 // store does not hold are uploaded.
 func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Digest, PushStats, error) {
 	start := time.Now()
+	if err := s.LoadIndex(ctx); err != nil {
+		return digest.Digest{}, PushStats{}, err
+	}
 	if o.Workers < 1 {
 		o.Workers = 4
 	}
@@ -256,6 +259,16 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 		m.Files = append(m.Files, File{Path: f.rel, Size: f.Size, Mode: uint32(f.Mode.Perm()), Kind: layout.Of(f.rel), List: d})
 		m.Bytes += f.Size
 	}
+	loc, err := s.buildLocator(lists)
+	if err != nil {
+		return digest.Digest{}, st, err
+	}
+	ldata := loc.encode()
+	ld := digest.Of(ldata)
+	if err := s.B.Put(ctx, backend.Key{Kind: backend.List, Name: ld.Hex()}, bytes.NewReader(ldata), int64(len(ldata))); err != nil {
+		return digest.Digest{}, st, fmt.Errorf("locator: %w", err)
+	}
+	m.Locator = &ld
 	data, err := json.MarshalIndent(m, "", " ")
 	if err != nil {
 		return digest.Digest{}, st, err

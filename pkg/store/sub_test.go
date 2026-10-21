@@ -210,6 +210,7 @@ func TestPullRejectsCompositeWithMissingSubChunk(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	md = withoutLocator(t, s, md) // the index path: a manifest from before locators
 	// drop the pack indexes: composites remain, their sub-chunks are gone
 	filepath.WalkDir(filepath.Join(storeDir, "index"), func(p string, d os.DirEntry, err error) error {
 		if err == nil && d.Type().IsRegular() {
