@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Onggi architecture: control plane on the Kubernetes API, a durable tier behind pluggable backends, a cache tier of node agents delivering artifacts to engine pods, and integration with ai-rm and llm-d">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b45309"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#047857"/></marker>
+    <style>
+      .t{fill:#111827;font-size:15px;font-weight:600}
+      .s{fill:#374151;font-size:12.5px}
+      .q{fill:#6b7280;font-size:11.5px}
+      .h{fill:#111827;font-size:13px;font-weight:700;letter-spacing:.06em}
+      .box{fill:#ffffff;stroke:#9ca3af;stroke-width:1.2}
+      .pill{fill:#f3f4f6;stroke:#d1d5db;stroke-width:1}
+      .ln{stroke:#4b5563;stroke-width:1.4;fill:none}
+      .w{stroke:#b45309;stroke-width:1.8;fill:none}
+      .r{stroke:#047857;stroke-width:1.8;fill:none}
+      .num{font-size:11.5px;font-weight:700}
+    </style>
+  </defs>
+  <rect width="1200" height="860" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="32" y="40" style="fill:#111827;font-size:22px;font-weight:700">Onggi</text>
+  <text x="112" y="40" class="s">content-addressed store for model weights and accelerator-compiled artifacts on Kubernetes + llm-d</text>
+
+  <!-- users -->
+  <rect x="32" y="62" width="820" height="54" rx="10" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="48" y="94" class="h">USERS</text>
+  <rect x="140" y="74" width="200" height="30" rx="15" class="pill"/><text x="240" y="94" text-anchor="middle" class="s">lmd-top (operator console)</text>
+  <rect x="356" y="74" width="140" height="30" rx="15" class="pill"/><text x="426" y="94" text-anchor="middle" class="s">onggi CLI</text>
+  <rect x="512" y="74" width="200" height="30" rx="15" class="pill"/><text x="612" y="94" text-anchor="middle" class="s">GitOps (Argo CD, Flux)</text>
+  <path d="M440 116V140" class="ln" marker-end="url(#a)"/>
+  <text x="450" y="133" class="q">Kubernetes API only</text>
+
+  <!-- control plane -->
+  <rect x="32" y="144" width="820" height="196" rx="12" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="48" y="170" class="h" style="fill:#3730a3">CONTROL PLANE</text>
+  <rect x="48" y="182" width="300" height="142" rx="10" class="box"/>
+  <text x="64" y="206" class="t">Kubernetes API (etcd)</text>
+  <text x="64" y="228" class="s">CRDs: ModelSource · ArtifactSet</text>
+  <text x="64" y="246" class="s">CompileRequest · StorePolicy</text>
+  <text x="64" y="264" class="s">NodeArtifactCache</text>
+  <text x="64" y="288" class="s"><tspan style="font-weight:700;fill:#b45309">②</tspan> <tspan style="font-weight:700">Ref</tspan> name → manifest digest</text>
+  <text x="64" y="308" class="q">the only mutable state; commit = CAS</text>
+
+  <rect x="372" y="182" width="464" height="142" rx="10" class="box"/>
+  <text x="388" y="206" class="t">onggi-controller</text>
+  <text x="530" y="206" class="q">level-triggered, crash-only</text>
+  <rect x="388" y="220" width="208" height="44" rx="8" class="pill"/>
+  <text x="400" y="238" class="s" style="font-weight:600">compile farm</text><text x="400" y="255" class="q">vendor adapters in CPU-node Jobs</text>
+  <rect x="612" y="220" width="208" height="44" rx="8" class="pill"/>
+  <text x="624" y="238" class="s" style="font-weight:600">prefetch planner</text><text x="624" y="255" class="q">placement · scale-up · pins</text>
+  <rect x="388" y="272" width="208" height="44" rx="8" class="pill"/>
+  <text x="400" y="290" class="s" style="font-weight:600">GC · compaction</text><text x="400" y="307" class="q">mark-and-sweep · repack · profiles</text>
+  <rect x="612" y="272" width="208" height="44" rx="8" class="pill"/>
+  <text x="624" y="290" class="s" style="font-weight:600">mutating webhook</text><text x="624" y="307" class="q">prefer nodes that hold the artifact</text>
+  <path d="M372 252H348" class="w" marker-end="url(#b)"/>
+
+  <!-- durable tier -->
+  <rect x="32" y="364" width="820" height="150" rx="12" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="48" y="390" class="h" style="fill:#92400e">DURABLE TIER</text>
+  <text x="172" y="390" class="q">SHA-256-addressed chunks, packs, manifests</text>
+  <rect x="48" y="402" width="300" height="96" rx="10" class="box"/>
+  <text x="64" y="426" class="t">Backend interface</text>
+  <text x="64" y="448" class="s">Put · Get(range) · Has · List · Delete · Caps</text>
+  <text x="64" y="468" class="q">one conformance suite for every driver</text>
+  <text x="64" y="486" class="q">declared durability: none · replicated · erasure</text>
+  <rect x="372" y="402" width="146" height="96" rx="10" class="box"/>
+  <text x="445" y="428" text-anchor="middle" class="t">fs</text>
+  <text x="445" y="450" text-anchor="middle" class="q">local disk · NFS · SMB</text>
+  <text x="445" y="467" text-anchor="middle" class="q">CephFS · JuiceFS</text>
+  <text x="445" y="484" text-anchor="middle" class="q">Lustre / GPFS</text>
+  <rect x="531" y="402" width="146" height="96" rx="10" class="box"/>
+  <text x="604" y="428" text-anchor="middle" class="t">s3</text>
+  <text x="604" y="450" text-anchor="middle" class="q">MinIO · Ceph RGW</text>
+  <text x="604" y="467" text-anchor="middle" class="q">cloud object storage</text>
+  <rect x="690" y="402" width="146" height="96" rx="10" class="box"/>
+  <text x="763" y="428" text-anchor="middle" class="t">oci</text>
+  <text x="763" y="450" text-anchor="middle" class="q">Harbor · registries</text>
+  <text x="763" y="467" text-anchor="middle" class="q">OCI artifact layout</text>
+  <path d="M348 450H372" class="ln" marker-end="url(#a)"/>
+
+  <!-- cache tier -->
+  <rect x="32" y="538" width="820" height="210" rx="12" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="48" y="564" class="h" style="fill:#065f46">CACHE TIER</text>
+  <text x="160" y="564" class="q">onggi-agent on every node (DaemonSet) — local NVMe, owners by rendezvous (HRW) hashing, peer-to-peer transfer</text>
+  <g>
+    <rect x="48" y="578" width="248" height="154" rx="10" class="box"/>
+    <text x="64" y="602" class="t">node · onggi-agent</text>
+    <text x="64" y="622" class="q">chunk cache · hash check on arrival</text>
+    <rect x="64" y="632" width="216" height="30" rx="8" class="pill"/><text x="172" y="652" text-anchor="middle" class="s">CSI NodePublishVolume</text>
+    <rect x="64" y="672" width="216" height="46" rx="8" fill="#ffffff" stroke="#047857" stroke-dasharray="4 3"/>
+    <text x="172" y="691" text-anchor="middle" class="s" style="font-weight:600">engine pod</text>
+    <text x="172" y="708" text-anchor="middle" class="q">reads plain files (read-only mount)</text>
+  </g>
+  <g>
+    <rect x="316" y="578" width="248" height="154" rx="10" class="box"/>
+    <text x="332" y="602" class="t">node · onggi-agent</text>
+    <text x="332" y="622" class="q">chunk cache · hash check on arrival</text>
+    <rect x="332" y="632" width="216" height="30" rx="8" class="pill"/><text x="440" y="652" text-anchor="middle" class="s">CSI NodePublishVolume</text>
+    <rect x="332" y="672" width="216" height="46" rx="8" fill="#ffffff" stroke="#047857" stroke-dasharray="4 3"/>
+    <text x="440" y="691" text-anchor="middle" class="s" style="font-weight:600">engine pod</text>
+    <text x="440" y="708" text-anchor="middle" class="q">vLLM · furiosa-llm · vllm-rbln</text>
+  </g>
+  <g>
+    <rect x="584" y="578" width="252" height="154" rx="10" class="box"/>
+    <text x="600" y="602" class="t">node · onggi-agent</text>
+    <text x="600" y="622" class="q">chunk cache · hash check on arrival</text>
+    <rect x="600" y="632" width="220" height="30" rx="8" class="pill"/><text x="710" y="652" text-anchor="middle" class="s">CSI NodePublishVolume</text>
+    <rect x="600" y="672" width="220" height="46" rx="8" fill="#ffffff" stroke="#047857" stroke-dasharray="4 3"/>
+    <text x="710" y="691" text-anchor="middle" class="s" style="font-weight:600">engine pod</text>
+    <text x="710" y="708" text-anchor="middle" class="q">rngd-pd · Optimus Prime</text>
+  </g>
+  <path d="M296 610H316" class="r" marker-start="url(#g)" marker-end="url(#g)"/>
+  <path d="M564 610H584" class="r" marker-start="url(#g)" marker-end="url(#g)"/>
+  <text x="306" y="634" text-anchor="middle" class="q" style="fill:#047857">P2P</text>
+
+  <!-- write path (amber) from compile farm down to durable tier, read path (green) from durable tier to agents -->
+  <path d="M492 324V402" class="w" marker-end="url(#b)"/>
+  <text x="500" y="356" class="num" style="fill:#b45309">① publish <tspan class="q" style="font-weight:400">chunk → upload missing → manifest, then ② commit</tspan></text>
+  <path d="M760 498V578" class="r" marker-end="url(#g)"/>
+  <text x="752" y="530" text-anchor="end" class="num" style="fill:#047857">③ fetch</text>
+  <text x="752" y="545" text-anchor="end" class="q" style="fill:#047857">missing chunks only</text>
+  <path d="M820 300H864V650H836" class="ln" style="stroke-dasharray:3 3" marker-end="url(#a)"/>
+  <text x="874" y="520" class="q" transform="rotate(-90 874 520)" text-anchor="middle">prefetch / placement hint</text>
+
+  <!-- integrations -->
+  <rect x="880" y="144" width="288" height="604" rx="12" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="896" y="170" class="h">AI-RM · LLM-D</text>
+  <rect x="896" y="184" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="206" class="t">rm-core</text>
+  <text x="910" y="226" class="s">ArtifactStore contract (v0.2)</text>
+  <text x="910" y="240" class="q">airm_artifact_* metrics</text>
+  <rect x="896" y="256" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="278" class="t">rm-accel  (L1)</text>
+  <text x="910" y="298" class="s">device · SDK versions → artifact key</text>
+  <text x="910" y="312" class="q">node holdings reported back</text>
+  <rect x="896" y="328" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="350" class="t">rm-controller  (L4)</text>
+  <text x="910" y="370" class="s">placement decision → prefetch</text>
+  <text x="910" y="384" class="q">readiness in the placement cost</text>
+  <rect x="896" y="400" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="422" class="t">llm-d · KEDA</text>
+  <text x="910" y="442" class="s">scale-up signal → pre-warm nodes</text>
+  <text x="910" y="456" class="q">LoRA adapters for the router</text>
+  <rect x="896" y="472" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="494" class="t">npu-train · npu-offload</text>
+  <text x="910" y="514" class="s">trained weights published</text>
+  <text x="910" y="528" class="q">MoE experts fetched per expert</text>
+  <rect x="896" y="544" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="566" class="t">lmd-top · rm-bench  (L5)</text>
+  <text x="910" y="586" class="s">holdings, dedup, cold start</text>
+  <text x="910" y="600" class="q">cold-start benchmark scenario</text>
+  <rect x="896" y="616" width="256" height="62" rx="10" class="box"/>
+  <text x="910" y="638" class="t">Optimus Prime (aicomp)</text>
+  <text x="910" y="658" class="s">reads files from the mount</text>
+  <text x="910" y="672" class="q">loader needs → feature requests only</text>
+  <text x="1024" y="704" text-anchor="middle" class="q">extension points only:</text>
+  <text x="1024" y="720" text-anchor="middle" class="q">CRDs · CSI · webhook · EPP plugins · metrics</text>
+
+  <!-- legend -->
+  <g transform="translate(32,784)">
+    <path d="M0 8H34" class="w" marker-end="url(#b)"/><text x="44" y="12" class="q">write path (compile farm or onggi push)</text>
+    <path d="M300 8H334" class="r" marker-end="url(#g)"/><text x="344" y="12" class="q">read path (pod mount, peer transfer)</text>
+    <path d="M590 8H624" class="ln" style="stroke-dasharray:3 3" marker-end="url(#a)"/><text x="634" y="12" class="q">control (prefetch, policy)</text>
+    <text x="0" y="44" class="q">Every byte reaching a node is hash-verified; data is immutable, so caches never go stale. Only Refs change, by compare-and-swap in the Kubernetes API.</text>
+  </g>
+</svg>

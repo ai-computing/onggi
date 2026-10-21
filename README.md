@@ -16,6 +16,13 @@ chunking finds 99.3 % shared bytes between ATOM variants that fixed-size blocks 
 Onggi (옹기, the Korean jar that stores and ferments food) keeps each distinct byte once, moves artifacts to the nodes
 that need them before a pod asks, and hands them to any engine as plain files.
 
+<p align="center"><img src="docs/assets/architecture.svg" width="100%" alt="Onggi architecture: users act through the Kubernetes API; onggi-controller runs the compile farm, prefetch, GC and a webhook; a durable tier behind pluggable fs, s3 and oci backends; a cache tier of node agents that fetch missing chunks, share them peer to peer and mount artifacts into engine pods; integration points with rm-core, rm-accel, rm-controller, llm-d, npu-train, lmd-top and Optimus Prime"></p>
+
+**How it fits together:** ① a compile Job (or `onggi push`) chunks an artifact and uploads only the chunks the durable
+tier does not have, then ② commits a Ref in the Kubernetes API. ③ When a pod mounts the artifact, the node's agent
+fetches the missing chunks from peers or the durable tier, verifies every hash and hands the engine plain files.
+Placement decisions and scale-up signals from ai-rm and llm-d start the fetch before the pod exists.
+
 ## What it does
 
 | | |
