@@ -4,25 +4,30 @@
 // it is stored. Codecs:
 //
 //   - None: raw bytes.
-//   - Zstd: Zstandard (RFC 8878).
-//   - Shuffle2Zstd: the bytes of each 2-byte word split into two planes (low bytes, high bytes),
-//     each plane a separate Zstandard frame: uint32 length of the first frame, the first frame, the
-//     second frame. Separate frames matter: within one frame the planes share a literal table and
-//     the near-random low plane hides the redundancy of the high plane. The split is the
-//     byte-shuffle filter of HDF5 and Blosc, also used per chunk by Hugging Face Xet (4-byte
-//     groups there); on bf16/fp16 weights the high plane (sign and exponent) compresses well and
-//     the low plane hardly at all (docs/related-work.md §2).
+//   - Zstd: Zstandard (RFC 8878). Suits graphs, configs and text, which have repeats.
+//   - Shuffle2Huffman: the bytes of each 2-byte word split into two planes (low bytes, high
+//     bytes), each plane Huffman-coded on its own. This is the byte-shuffle filter of HDF5 and
+//     Blosc followed by entropy coding, as in ZipNN and DFloat11 (docs/related-work.md §2). bf16
+//     and fp16 weights have few repeats, so an LZ stage finds nothing (Zstandard's fast levels then
+//     store such data raw); their high plane (sign and exponent) has 2–3 bits of entropy and the
+//     low plane a little under 8.
 //
-// Auto tries Zstd and Shuffle2Zstd and keeps the smaller; a chunk that does not shrink by at least
-// 3 % is stored raw.
+// Shuffle2Huffman layout: uint32 length of the first plane record, then two plane records (low,
+// high). A plane record is one mode byte and its data: 0 raw bytes, 1 a Huffman table and 4-stream
+// Huffman data, 2 a single byte repeated over the plane.
+//
+// Auto tries Zstd and Shuffle2Huffman and keeps the smaller; a chunk that does not shrink by at
+// least 3 % is stored raw.
 package codec
 
 import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"runtime"
 	"sync"
 
+	"github.com/klauspost/compress/huff0"
 	"github.com/klauspost/compress/zstd"
 )
 
@@ -30,9 +35,9 @@ import (
 type ID uint8
 
 const (
-	None         ID = 0
-	Zstd         ID = 1
-	Shuffle2Zstd ID = 2
+	None            ID = 0
+	Zstd            ID = 1
+	Shuffle2Huffman ID = 2
 )
 
 func (id ID) String() string {
@@ -41,8 +46,8 @@ func (id ID) String() string {
 		return "none"
 	case Zstd:
 		return "zstd"
-	case Shuffle2Zstd:
-		return "shuffle2+zstd"
+	case Shuffle2Huffman:
+		return "shuffle2+huffman"
 	}
 	return fmt.Sprintf("codec(%d)", uint8(id))
 }
@@ -53,7 +58,7 @@ type Mode string
 const (
 	ModeOff  Mode = "none" // store raw
 	ModeZstd Mode = "zstd" // Zstd only
-	ModeAuto Mode = "auto" // Zstd or Shuffle2Zstd, whichever is smaller
+	ModeAuto Mode = "auto" // Zstd or Shuffle2Huffman, whichever is smaller
 )
 
 // ParseMode accepts none, zstd or auto.
@@ -68,18 +73,29 @@ func ParseMode(s string) (Mode, error) {
 // minGain: keep a compressed form only if it is at most 97 % of the raw size.
 const minGainNum, minGainDen = 97, 100
 
+// maxPlane is the largest plane huff0 codes in one block; larger chunks skip Shuffle2Huffman.
+const maxPlane = huff0.BlockSizeMax
+
+const (
+	planeRaw  = 0
+	planeHuff = 1
+	planeRLE  = 2
+)
+
 var (
-	encOnce sync.Once
-	enc     *zstd.Encoder
-	dec     *zstd.Decoder
+	coderOnce sync.Once
+	enc       *zstd.Encoder
+	dec       *zstd.Decoder
 )
 
 func coders() (*zstd.Encoder, *zstd.Decoder) {
-	encOnce.Do(func() {
-		// EncodeAll/DecodeAll are safe for concurrent use; one coder pair serves all workers.
-		enc, _ = zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedDefault), zstd.WithEncoderConcurrency(1),
+	coderOnce.Do(func() {
+		// EncodeAll/DecodeAll are safe for concurrent use; the concurrency options bound how many
+		// run at once, so they follow GOMAXPROCS.
+		n := runtime.GOMAXPROCS(0)
+		enc, _ = zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedDefault), zstd.WithEncoderConcurrency(n),
 			zstd.WithZeroFrames(true))
-		dec, _ = zstd.NewReader(nil, zstd.WithDecoderConcurrency(0), zstd.WithDecoderMaxMemory(1<<30))
+		dec, _ = zstd.NewReader(nil, zstd.WithDecoderConcurrency(n), zstd.WithDecoderMaxMemory(1<<30))
 	})
 	return enc, dec
 }
@@ -91,10 +107,9 @@ func Encode(raw []byte, m Mode) ([]byte, ID) {
 	}
 	e, _ := coders()
 	best, id := e.EncodeAll(raw, make([]byte, 0, len(raw)/2)), Zstd
-	if m == ModeAuto && len(raw) >= 4 {
-		sh := encodePlanes(e, raw)
-		if len(sh) < len(best) {
-			best, id = sh, Shuffle2Zstd
+	if m == ModeAuto && (len(raw)+1)/2 <= maxPlane {
+		if sh := encodePlanes(raw); len(sh) < len(best) {
+			best, id = sh, Shuffle2Huffman
 		}
 	}
 	if len(best)*minGainDen > len(raw)*minGainNum {
@@ -121,15 +136,15 @@ func Decode(stored []byte, id ID, rawLen int) ([]byte, error) {
 			return nil, fmt.Errorf("%s chunk decodes to %d bytes, want %d", id, len(out), rawLen)
 		}
 		return out, nil
-	case Shuffle2Zstd:
+	case Shuffle2Huffman:
 		return decodePlanes(stored, rawLen)
 	}
 	return nil, errors.New("unknown codec " + id.String())
 }
 
 // encodePlanes stores the low plane (even-index bytes) and the high plane (odd-index bytes plus an
-// odd trailing byte) as two Zstandard frames.
-func encodePlanes(e *zstd.Encoder, raw []byte) []byte {
+// odd trailing byte) as two plane records.
+func encodePlanes(raw []byte) []byte {
 	n := len(raw) / 2
 	lo := make([]byte, n)
 	hi := make([]byte, len(raw)-n)
@@ -140,32 +155,79 @@ func encodePlanes(e *zstd.Encoder, raw []byte) []byte {
 	if len(raw)%2 == 1 {
 		hi[n] = raw[len(raw)-1]
 	}
-	out := make([]byte, 4, 4+len(raw)/2)
-	out = e.EncodeAll(lo, out)
+	out := make([]byte, 4, 8+len(raw))
+	out = appendPlane(out, lo)
 	binary.LittleEndian.PutUint32(out, uint32(len(out)-4))
-	return e.EncodeAll(hi, out)
+	return appendPlane(out, hi)
+}
+
+func appendPlane(dst, p []byte) []byte {
+	if len(p) == 0 {
+		return append(dst, planeRaw)
+	}
+	s := huff0.Scratch{Reuse: huff0.ReusePolicyNone}
+	c, _, err := huff0.Compress4X(p, &s)
+	switch {
+	case err == nil && len(c) < len(p):
+		return append(append(dst, planeHuff), c...)
+	case errors.Is(err, huff0.ErrUseRLE):
+		return append(dst, planeRLE, p[0])
+	}
+	return append(append(dst, planeRaw), p...)
+}
+
+func readPlane(rec []byte, n int) ([]byte, error) {
+	if len(rec) == 0 {
+		return nil, errors.New("empty plane record")
+	}
+	data := rec[1:]
+	switch rec[0] {
+	case planeRaw:
+		if len(data) != n {
+			return nil, fmt.Errorf("raw plane is %d bytes, want %d", len(data), n)
+		}
+		return data, nil
+	case planeRLE:
+		if len(data) != 1 {
+			return nil, errors.New("bad RLE plane")
+		}
+		out := make([]byte, n)
+		for i := range out {
+			out[i] = data[0]
+		}
+		return out, nil
+	case planeHuff:
+		if n > maxPlane {
+			return nil, fmt.Errorf("Huffman plane of %d bytes exceeds %d", n, maxPlane)
+		}
+		s, rem, err := huff0.ReadTable(data, nil)
+		if err != nil {
+			return nil, err
+		}
+		return s.Decompress4X(rem, n)
+	}
+	return nil, fmt.Errorf("unknown plane mode %d", rec[0])
 }
 
 func decodePlanes(stored []byte, rawLen int) ([]byte, error) {
 	if len(stored) < 4 {
-		return nil, errors.New("shuffle2+zstd chunk too short")
+		return nil, errors.New("shuffle2+huffman chunk too short")
 	}
 	a := binary.LittleEndian.Uint32(stored)
 	if uint64(a) > uint64(len(stored)-4) {
-		return nil, errors.New("shuffle2+zstd chunk: bad frame length")
+		return nil, errors.New("shuffle2+huffman chunk: bad record length")
 	}
-	_, d := coders()
 	n := rawLen / 2
-	lo, err := d.DecodeAll(stored[4:4+a], make([]byte, 0, n))
+	lo, err := readPlane(stored[4:4+a], n)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("low plane: %w", err)
 	}
-	hi, err := d.DecodeAll(stored[4+a:], make([]byte, 0, rawLen-n))
+	hi, err := readPlane(stored[4+a:], rawLen-n)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("high plane: %w", err)
 	}
 	if len(lo) != n || len(hi) != rawLen-n {
-		return nil, fmt.Errorf("shuffle2+zstd chunk decodes to %d+%d bytes, want %d", len(lo), len(hi), rawLen)
+		return nil, fmt.Errorf("shuffle2+huffman chunk decodes to %d+%d bytes, want %d", len(lo), len(hi), rawLen)
 	}
 	out := make([]byte, rawLen)
 	for i := 0; i < n; i++ {

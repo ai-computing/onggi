@@ -52,7 +52,7 @@ func TestCompressedRoundTrip(t *testing.T) {
 		t.Fatalf("auto stored %d bytes for %d new bytes", st.PackBytes, st.NewBytes)
 	}
 	used := codecsIn(s)
-	if used[codec.Shuffle2Zstd] == 0 || used[codec.Zstd] == 0 || used[codec.None] == 0 {
+	if used[codec.Shuffle2Huffman] == 0 || used[codec.Zstd] == 0 || used[codec.None] == 0 {
 		t.Fatalf("codecs used %v, want all three (weights, graph text, noise)", used)
 	}
 	t.Logf("new %d B stored as %d B (%.2fx); codecs %v", st.NewBytes, st.PackBytes, float64(st.NewBytes)/float64(st.PackBytes), used)
@@ -109,7 +109,7 @@ func TestIndexV1StillReads(t *testing.T) {
 		t.Fatalf("v1 index decoded as %+v", entries)
 	}
 
-	e := []indexEntry{{Chunk: chunk, Loc: Loc{Pack: pack, Offset: 7, Stored: 100, Length: 300, Codec: codec.Shuffle2Zstd}}}
+	e := []indexEntry{{Chunk: chunk, Loc: Loc{Pack: pack, Offset: 7, Stored: 100, Length: 300, Codec: codec.Shuffle2Huffman}}}
 	_, got, err := decodeIndex(encodeIndex(pack, e))
 	if err != nil || len(got) != 1 || got[0] != e[0] {
 		t.Fatalf("v2 round trip: %+v %v", got, err)

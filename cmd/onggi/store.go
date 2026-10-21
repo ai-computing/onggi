@@ -87,7 +87,7 @@ func push(args []string, stdout, stderr io.Writer) int {
 	ref := fs.String("ref", "", "set this ref to the new manifest")
 	workers := fs.Int("workers", runtime.NumCPU(), "files chunked at once")
 	uploads := fs.Int("uploads", 4, "packs uploaded at once")
-	compress := fs.String("compress", "auto", "how new chunks are stored: auto (zstd or byte planes + zstd, whichever is smaller), zstd, none")
+	compress := fs.String("compress", "auto", "how new chunks are stored: auto (zstd or byte planes + Huffman, whichever is smaller), zstd, none")
 	tmp := fs.String("tmp", "", "directory for packs being assembled (default: system temp)")
 	asJSON := fs.Bool("json", false, "print JSON")
 	quiet := fs.Bool("quiet", false, "no progress on stderr")

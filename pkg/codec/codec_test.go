@@ -51,8 +51,8 @@ func TestChoices(t *testing.T) {
 	}
 	w := bf16(4, 32768)
 	stored, id := Encode(w, ModeAuto)
-	if id != Shuffle2Zstd {
-		t.Errorf("bf16 stored as %s, want shuffle2+zstd", id)
+	if id != Shuffle2Huffman {
+		t.Errorf("bf16 stored as %s, want shuffle2+huffman", id)
 	}
 	z, _ := Encode(w, ModeZstd)
 	t.Logf("bf16 64 KiB: zstd %d B, auto %d B (%.2fx)", len(z), len(stored), float64(len(w))/float64(len(stored)))
