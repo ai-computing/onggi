@@ -65,6 +65,7 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 | [설계](docs/ko/design.md) | 문제, 목표, 품질 속성, 원칙, 구조, 흐름, 멀티 노드 저장, 로드맵 |
 | [결과물 형식](docs/ko/artifact-formats.md) | RNGD·ATOM 결과물의 구성과 공유 비율(실측) |
 | [연계](docs/ko/integration.md) | ai-rm 구성요소, lmd-top, llm-d와의 연결 |
+| [관련 연구](docs/ko/related-work.md) | 구성요소별 선행 연구, 주장하지 않는 것, 차별점 |
 | [ADR](docs/adr/README.md) | 구조 결정 기록 |
 
 ## ai-rm 구성요소
