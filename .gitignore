@@ -1,0 +1,9 @@
+/bin/
+/dist/
+*.test
+*.out
+__pycache__/
+.venv/
+.idea/
+.vscode/
+*.local.env

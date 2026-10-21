@@ -1,0 +1,43 @@
+# Onggi
+
+**Kubernetes + llm-d 환경을 위한 모델 가중치·가속기 컴파일 결과물 내용 주소 저장소**
+
+[English](README.md) · 한국어
+
+> 상태: **설계 단계.** 이 저장소에는 설계([docs/ko/design.md](docs/ko/design.md))가 있고, 코드는 P0부터 시작합니다.
+
+NPU는 모델을 미리 컴파일하며 모델 × SDK × 장치 × 길이 구간 × 배치 × 옵션 조합마다 결과물이 하나씩 생깁니다. 연구실
+RNGD + ATOM 노드에서 Rebellions ATOM용 Llama-3.1-8B 빌드 묶음 하나가 **246 GB**를 차지합니다. 그래프마다 가중치가 통째로
+들어 있기 때문입니다. FuriosaAI RNGD는 HF 체크포인트와 바이트가 같은 가중치를 세 벌 보관하고 있었습니다. 내용 기반
+분할은 고정 블록으로는 전혀 보이지 않던 ATOM 변형 간 99.3% 공유를 찾아냅니다([측정](docs/ko/artifact-formats.md)).
+
+Onggi(옹기)는 서로 다른 바이트를 한 번만 저장하고, pod가 요청하기 전에 필요한 노드로 옮겨 두며, 어떤 엔진에도 일반
+파일로 넘겨줍니다.
+
+## 하는 일
+
+| | |
+|---|---|
+| **한 번만 저장** | 내용 기반 청크, 결과물별 매니페스트, 가중치는 배열 방식별로 한 벌 |
+| **미리 배치** | 노드별 캐시 계층, HRW 배치와 peer 간 전송; 배치·확장 신호로 프리페치 |
+| **파일로 전달** | CSI 볼륨: kubelet이 준비된 결과물을 마운트; vLLM, vllm-rbln, furiosa-llm, rngd-pd, Optimus Prime 수정 불필요 |
+| **선언형 빌드** | `ArtifactSet` CRD가 컴파일 팜을 구동; 게시할 때 중복 제거 |
+| **멀티 노드** | 영속 계층은 기존 이레이저 코딩 오브젝트 스토어; 캐시는 노드 장애를 전제로 설계 |
+
+## 문서
+
+| | |
+|---|---|
+| [설계](docs/ko/design.md) | 문제, 목표, 품질 속성, 원칙, 구조, 흐름, 멀티 노드 저장, 로드맵 |
+| [결과물 형식](docs/ko/artifact-formats.md) | RNGD·ATOM 결과물의 구성과 공유 비율(실측) |
+| [연계](docs/ko/integration.md) | ai-rm 구성요소, lmd-top, llm-d와의 연결 |
+| [ADR](docs/adr/README.md) | 구조 결정 기록 |
+
+## ai-rm 구성요소
+
+Onggi는 이종 AI 자원관리 스택 [ai-rm](https://github.com/ai-computing/ai-rm)의 구성요소이며
+[rm-core](https://github.com/ai-computing/rm-core) 계약으로 연결됩니다. 운영 콘솔은 [lmd-top](https://github.com/ai-computing/lmd-top)입니다.
+
+## 기여
+
+[CONTRIBUTING.md](CONTRIBUTING.md)를 참고하세요. 라이선스: [Apache-2.0](LICENSE).
