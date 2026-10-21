@@ -65,6 +65,10 @@ byte-identical). Two steps get it there. Two-level chunking re-splits new ATOM c
 variants that hold the same weights in a different order dedup (24.9 GB new instead of 46.8 GB). Per-chunk compression
 then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
 
+Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
+default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
+holds the store's index for dedup: 2.9 GB by default, 1.9 GB with the same limit, at about twice the time.
+
 ## Documents
 
 | | |

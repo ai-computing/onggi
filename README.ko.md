@@ -61,6 +61,11 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 변형끼리 중복을 찾습니다(새 데이터 46.8 GB → 24.9 GB). 여기에 청크 단위 압축이 1.6배를 더합니다. `--compress none`,
 `--sub 0`으로 각각 끌 수 있습니다.
 
+메모리:
+- pull은 저장소 전체 색인이 아니라 결과물의 locator만 읽습니다. 이 묶음에서 기본 설정은 최대 3.6 GB RSS이고,
+  `GOMEMLIMIT=1800MiB`(Go의 소프트 메모리 한도)를 주면 1.9 GB 아래로 유지됩니다. 노드 agent에는 이 한도를 설정하기를 권장합니다.
+- push는 중복 제거를 위해 저장소 색인을 메모리에 들고 있습니다. 기본 설정은 2.9 GB이고, 같은 한도에서는 1.9 GB로 줄지만 시간이 약 2배 걸립니다.
+
 ## 문서
 
 | | |
