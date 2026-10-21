@@ -94,8 +94,9 @@ The full ATOM Llama-3.1-8B build set is **262 GB** (246 GiB; 18 files). By kind,
 
 **Correction:** the estimate made from the sample (28–30 GB, ≈ 8×) was too low. Decode variants behave as the sample
 said (each adds 0.05–0.2 GB), but **prefill builds with different chunk sizes use different weight layouts**: the
-four prefill files (C16, C128, C256, C512) share only 29–37 % of their bytes with each other, so each adds about
-10 GB. Prefill chunk size, not sequence length or batch, is the expensive dimension of an ATOM build set.
+four prefill files (C16, C128, C256, C512) share only 29–37 % of their bytes with each other at 64 KiB chunks, so
+each adds about 10 GB. Prefill chunk size, not sequence length or batch, is the expensive dimension of an ATOM build set
+at that chunk size. At 4 KiB most of the difference disappears (below).
 
 Whole node, by kind: HF safetensors 811.6 GB → 742.6 GB (copies of the same checkpoints in several directories);
 ATOM `.rbln` 761.2 GB → 175.1 GB new; RNGD params 48.4 GB → 0.1 GB new. 524 symlinks (hub snapshot links) were not
@@ -121,6 +122,18 @@ All four prefill variants (56.5 GB), compared with the HF source blobs:
 The variants hold the same bytes rearranged in runs of a few KiB, which finer chunks recover. Their bytes do not occur
 in the HF source at these sizes. The store sub-chunks new ATOM chunks at 4 KiB (two-level chunking).
 
+**What remains after 4 KiB sub-chunking** (#9). A decode build shares 87 % of its bytes with a prefill build at 4 KiB,
+so the "second weight layout" seen at 64 KiB is mostly the same bytes in a different order.
+
+| A → B | residual of B after 4 KiB dedup | residual chunks with a similar chunk in A | residual stored: per-chunk codec / with a delta against it |
+|---|---:|---:|---:|
+| prefill C16 → prefill C128 | 1.98 GB of 14.02 GB | 35.8 % | 1.32 GB / 0.91 GB |
+| prefill C16 → decode | 2.03 GB of 15.18 GB | 12.7 % | 1.33 GB / 1.18 GB |
+
+Similarity is detected with Odess-style super-features; the delta is a zstd encoding against the similar chunk. It
+would save about 1 GB (7 %) of the 15.9 GB ATOM store, at the cost of reference reads and a feature index, so the
+format does not add delta chunks for now.
+
 ## Consequences for the design
 
 1. Weights are the unit that matters. Store them once per **weight layout** (`hf`/`rngd`, `atom-decode`,
@@ -128,7 +141,9 @@ in the HF source at these sizes. The store sub-chunks new ATOM chunks at 4 KiB (
 2. Chunk boundaries must be content-defined (ADR-0001).
 3. Cross-vendor dedup is not possible where a compiler re-lays weights out; dedup within a vendor and layout is.
 4. The RNGD layout equals the HF source, so the RNGD path can reference the source checkpoint directly.
-5. Each ATOM prefill chunk size costs a full weight layout; semantic compaction should look there first.
+5. At 64 KiB, each ATOM prefill chunk size looked like a full weight layout. At 4 KiB, decode and prefill builds share
+   78–93 %, so two-level chunking removes most of that cost without decoding the format (#15). Similarity deltas
+   would add about 7 % more (#9).
 
 ## Method
 
