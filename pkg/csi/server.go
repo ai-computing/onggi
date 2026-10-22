@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	csipb "github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc"
@@ -195,10 +196,45 @@ func Listen(endpoint string) (net.Listener, error) {
 	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
 		return nil, err
 	}
+	// a socket that answers belongs to a live plugin: do not take its place (#61)
+	if c, err := net.DialTimeout("unix", p, time.Second); err == nil {
+		c.Close()
+		return nil, fmt.Errorf("endpoint %s: another plugin is listening there", p)
+	}
 	if err := os.Remove(p); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}
-	return net.Listen("unix", p)
+	l, err := net.Listen("unix", p)
+	if err != nil {
+		return nil, err
+	}
+	ul := l.(*net.UnixListener)
+	ul.SetUnlinkOnClose(false)
+	fi, err := os.Stat(p)
+	if err != nil {
+		l.Close()
+		return nil, err
+	}
+	return &socket{UnixListener: ul, path: p, fi: fi}, nil
+}
+
+// socket removes its path on Close only while the path is still this socket: a plugin that
+// exits late must not remove the socket of the plugin that replaced it (#61).
+type socket struct {
+	*net.UnixListener
+	path string
+	fi   os.FileInfo
+	once sync.Once
+}
+
+func (s *socket) Close() error {
+	err := s.UnixListener.Close()
+	s.once.Do(func() {
+		if fi, e := os.Stat(s.path); e == nil && os.SameFile(fi, s.fi) {
+			os.Remove(s.path)
+		}
+	})
+	return err
 }
 
 // NewServer returns a gRPC server with n's Identity and Node services. Every failed call is

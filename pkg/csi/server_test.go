@@ -3,6 +3,7 @@ package csi
 import (
 	"context"
 	"net"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -175,5 +176,48 @@ func TestServeOverUnixSocket(t *testing.T) {
 	ni, err := csipb.NewNodeClient(conn).NodeGetInfo(context.Background(), &csipb.NodeGetInfoRequest{})
 	if err != nil || ni.NodeId != "node-1" {
 		t.Fatalf("node info %v %v", ni, err)
+	}
+}
+
+// A plugin does not take the place of one that answers, and a plugin that exits late leaves its
+// successor's socket alone (#61).
+func TestListenKeepsTheLiveSocket(t *testing.T) {
+	dir, err := os.MkdirTemp("", "csi") // short path: unix socket paths are limited to ~100 bytes
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+	p := filepath.Join(dir, "csi.sock")
+	old, err := Listen("unix://" + p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	go func() {
+		for {
+			c, err := old.Accept()
+			if err != nil {
+				return
+			}
+			c.Close()
+		}
+	}()
+	if l, err := Listen("unix://" + p); err == nil {
+		l.Close()
+		t.Fatal("took the place of a live plugin")
+	}
+	// the old plugin hangs; its socket file goes and a new plugin starts
+	os.Remove(p)
+	cur, err := Listen("unix://" + p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cur.Close()
+	old.Close() // exits late
+	if _, err := os.Stat(p); err != nil {
+		t.Fatalf("the late exit removed the live socket: %v", err)
+	}
+	cur.Close()
+	if _, err := os.Stat(p); !os.IsNotExist(err) {
+		t.Fatalf("a plugin left its own socket behind: %v", err)
 	}
 }
