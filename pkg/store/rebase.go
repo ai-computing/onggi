@@ -1,10 +1,14 @@
 package store
 
 import (
+	"bytes"
+	"cmp"
 	"context"
 	"os"
 	"path/filepath"
 	"slices"
+	"sync"
+	"sync/atomic"
 
 	"github.com/ai-computing/onggi/pkg/digest"
 )
@@ -30,12 +34,44 @@ type rebasePlan struct {
 	ext   [][]Extent // the base's extents, per base file
 	pair  []int      // base file per file of the new artifact, -1: none
 	same  int64
+	moved int64     // bytes the base holds, but at another offset (#58)
+	held  []baseRef // the base's extents by chunk digest
+}
+
+// baseRef is one extent of a base: ext[file][i].
+type baseRef struct{ file, i int32 }
+
+// byDigest indexes a base's extents by chunk digest.
+func byDigest(ext [][]Extent) []baseRef {
+	var refs []baseRef
+	for f, es := range ext {
+		for i := range es {
+			refs = append(refs, baseRef{int32(f), int32(i)})
+		}
+	}
+	slices.SortFunc(refs, func(a, b baseRef) int {
+		return bytes.Compare(ext[a.file][a.i].Chunk[:], ext[b.file][b.i].Chunk[:])
+	})
+	return refs
+}
+
+// find returns where the base holds chunk d: the base file and the extent.
+func (p *rebasePlan) find(d digest.Digest) (int, Extent, bool) {
+	k, ok := slices.BinarySearchFunc(p.held, d, func(r baseRef, d digest.Digest) int {
+		return bytes.Compare(p.ext[r.file][r.i].Chunk[:], d[:])
+	})
+	if !ok {
+		return 0, Extent{}, false
+	}
+	r := p.held[k]
+	return int(r.file), p.ext[r.file][r.i], true
 }
 
 // chooseBase returns the base that keeps the most bytes in place, and whether that is at least
-// minSame of m's bytes.
-func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, bases []Base, minSame float64) (rebasePlan, bool) {
-	var best rebasePlan
+// minSame of m's bytes; and the base that holds the most of m's bytes anywhere, and whether that
+// is at least minSame (#58).
+func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, bases []Base, minSame float64) (rebasePlan, bool, rebasePlan, bool) {
+	var best, most rebasePlan
 	for _, b := range bases {
 		bm, err := s.ReadManifest(ctx, b.Manifest)
 		if err != nil {
@@ -46,25 +82,114 @@ func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, 
 			continue
 		}
 		p := rebasePlan{base: b, files: bm.Files, ext: extentsOf(bnodes, len(bm.Files), true), pair: pairFiles(bm, m)}
+		p.held = byDigest(p.ext)
 		for i, j := range p.pair {
-			if j < 0 {
-				continue
-			}
-			if !filepath.IsLocal(filepath.FromSlash(bm.Files[j].Path)) {
+			if j >= 0 && !filepath.IsLocal(filepath.FromSlash(bm.Files[j].Path)) {
 				p.pair[i] = -1
-				continue
 			}
+		}
+		for i := range m.Files {
+			j := p.pair[i]
 			for _, e := range newExt[i] {
-				if sameAt(p.ext[j], e) {
+				if j >= 0 && sameAt(p.ext[j], e) {
 					p.same += int64(e.Len)
+				} else if f, _, ok := p.find(e.Chunk); ok && filepath.IsLocal(filepath.FromSlash(bm.Files[f].Path)) {
+					p.moved += int64(e.Len)
 				}
 			}
 		}
 		if p.same > best.same {
 			best = p
 		}
+		if p.same+p.moved > most.same+most.moved {
+			most = p
+		}
 	}
-	return best, best.same > 0 && float64(best.same) >= minSame*float64(m.Bytes)
+	need := minSame * float64(m.Bytes)
+	return best, best.same > 0 && float64(best.same) >= need, most, most.same+most.moved > 0 && float64(most.same+most.moved) >= need
+}
+
+// fromBase reads, from the base's files where they are, the stored chunks a pull still needs
+// that the base holds anywhere (#58). The base is not consumed. Each chunk is hash-checked; one
+// that cannot be read or does not match is left for the other sources. It returns the bytes read.
+func fromBase(ctx context.Context, p rebasePlan, nodes []node, done []bool, handles []*os.File, workers int) (int64, error) {
+	type job struct {
+		node int32
+		file int
+		off  int64
+	}
+	var jobs []job
+	for i := range nodes {
+		if !nodes[i].stored || done[i] {
+			continue
+		}
+		if f, e, ok := p.find(nodes[i].chunk); ok && e.Len == nodes[i].loc.Length {
+			jobs = append(jobs, job{int32(i), f, e.Off})
+		}
+	}
+	if len(jobs) == 0 {
+		return 0, nil
+	}
+	slices.SortFunc(jobs, func(a, b job) int { // read each base file front to back
+		if a.file != b.file {
+			return a.file - b.file
+		}
+		return cmp.Compare(a.off, b.off)
+	})
+	files := make([]*os.File, len(p.files))
+	defer func() {
+		for _, f := range files {
+			if f != nil {
+				f.Close()
+			}
+		}
+	}()
+	for _, j := range jobs {
+		if files[j.file] == nil {
+			f, err := os.Open(filepath.Join(p.base.Dir, filepath.FromSlash(p.files[j.file].Path)))
+			if err != nil {
+				return 0, nil // the base is gone: the other sources serve everything
+			}
+			files[j.file] = f
+		}
+	}
+	var n atomic.Int64
+	var mu sync.Mutex
+	var firstErr error
+	var wg sync.WaitGroup
+	w := max(workers, 1)
+	per := (len(jobs) + w - 1) / w
+	for a := 0; a < len(jobs); a += per {
+		part := jobs[a:min(a+per, len(jobs))]
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf []byte
+			for _, j := range part {
+				if ctx.Err() != nil {
+					return
+				}
+				nd := &nodes[j.node]
+				if cap(buf) < int(nd.loc.Length) {
+					buf = make([]byte, nd.loc.Length)
+				}
+				b := buf[:nd.loc.Length]
+				if _, err := files[j.file].ReadAt(b, j.off); err != nil || digest.Of(b) != nd.chunk {
+					continue
+				}
+				if err := emit(nodes, j.node, b, 0, handles); err != nil {
+					mu.Lock()
+					firstErr = cmp.Or(firstErr, err)
+					mu.Unlock()
+					return
+				}
+				done[j.node] = true
+				n.Add(int64(len(b)))
+			}
+		}()
+	}
+	wg.Wait()
+	return n.Load(), firstErr
 }
 
 // sameAt says whether base holds e's chunk at e's offset.

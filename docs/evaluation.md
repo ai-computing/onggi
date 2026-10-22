@@ -74,7 +74,9 @@ A rebuild of the same configuration is not byte-identical (3,021 bytes differ in
 runs, all in the first 8 MB), and delta apply reads 1.2 MB and leaves 16.1 GB in place. A different max batch makes the
 plan in front of the weights 17,952 B longer, which shifts every weight by an amount that is not a multiple of 4 KiB:
 0 % stays at the same offset (99.96 % is elsewhere in the base), so delta apply does not take the base and a plain pull
-reads 10.8 GB. Copying such bytes from the base file instead of fetching them is tracked in #58.
+reads 10.8 GB. Since #58 a pull reads such bytes from the base's files where they are, without consuming the base: on
+the ATOM set, prefill C128 next to a decode B2 copy (0 % at the same offsets, 79 % elsewhere) read 1.93 GB from the
+store instead of 9.47 GB and 11.1 GB from the base, byte-identical.
 
 Unlike ATOM, sub-chunks are not used here (TensorRT engines are kind `other`); 64 KiB chunks already find the shifted
 weights.
