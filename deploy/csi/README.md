@@ -65,6 +65,9 @@ the chunks that differ. Between two decode variants that is about 1.4 % of 15 GB
 artifact is gone from the node; if a pod asks for it again, it comes back the same way. `--rebase-idle 0` turns this
 off.
 
+When the best idle artifact keeps too little at the same offsets but holds the bytes elsewhere (prefill after decode,
+or a TensorRT engine whose weights moved), the pull reads those bytes from it where it is and leaves it in place (#58).
+
 On the lab node (`onggi pull --base`, the same pull the plugin runs):
 
 | decode B8 (15.2 GB), node holds decode B2 | read | left in place | time | check |
