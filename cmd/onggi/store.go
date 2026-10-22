@@ -19,6 +19,7 @@ import (
 	bs3 "github.com/ai-computing/onggi/pkg/backend/s3"
 	"github.com/ai-computing/onggi/pkg/chunker"
 	"github.com/ai-computing/onggi/pkg/codec"
+	"github.com/ai-computing/onggi/pkg/digest"
 	"github.com/ai-computing/onggi/pkg/layout"
 	"github.com/ai-computing/onggi/pkg/store"
 )
@@ -335,5 +336,61 @@ func writeJSON(stdout, stderr io.Writer, v any) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
+	return 0
+}
+
+// diff reports what turning a node's copy of base into ref takes (#38).
+func diff(args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("diff", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	sf := addStoreFlags(fs)
+	asJSON := fs.Bool("json", false, "print the diff as JSON")
+	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
+		fmt.Fprintln(stderr, "usage: onggi diff --store S [--json] <base ref|sha256:...> <ref|sha256:...>")
+		return 2
+	}
+	ctx := context.Background()
+	s, refs, err := sf.open(ctx)
+	if err != nil {
+		fmt.Fprintln(stderr, "onggi:", err)
+		return 1
+	}
+	var ds [2]digest.Digest
+	for i := range ds {
+		if ds[i], err = store.Resolve(ctx, refs, fs.Arg(i)); err != nil {
+			fmt.Fprintln(stderr, "onggi:", err)
+			return 1
+		}
+	}
+	st, err := s.Diff(ctx, ds[0], ds[1])
+	if err != nil {
+		fmt.Fprintln(stderr, "onggi:", err)
+		return 1
+	}
+	if *asJSON {
+		return writeJSON(stdout, stderr, st)
+	}
+	pct := func(n int64) string {
+		if st.Size == 0 {
+			return "-"
+		}
+		return fmt.Sprintf("%.2f %%", 100*float64(n)/float64(st.Size))
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintf(tw, "size\t%s\t\n", human(st.Size))
+	fmt.Fprintf(tw, "same offset\t%s\t%s\n", human(st.Same), pct(st.Same))
+	fmt.Fprintf(tw, "  in whole %d B blocks\t%s\t%s\n", store.BlockSize, human(st.SameBlocks), pct(st.SameBlocks))
+	fmt.Fprintf(tw, "elsewhere in base\t%s\t%s\n", human(st.Moved), pct(st.Moved))
+	fmt.Fprintf(tw, "new\t%s\t%s\n", human(st.New), pct(st.New))
+	fmt.Fprintf(tw, "  to fetch (stored)\t%s\t\n", human(st.NewStored))
+	fmt.Fprintf(tw, "changed runs\t%d\tlargest %s\n", st.ChangedRuns, human(st.LargestRun))
+	tw.Flush()
+	fmt.Fprintln(stdout)
+	tw = tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, "PATH\tBASE\tSIZE\tSAME\tMOVED\tNEW\tRUNS")
+	for _, f := range st.Files {
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", f.Path, f.Base, human(f.Size), human(f.Same), human(f.Moved), human(f.New), f.ChangedRuns)
+	}
+	tw.Flush()
 	return 0
 }

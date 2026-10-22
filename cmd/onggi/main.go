@@ -25,6 +25,7 @@ usage:
   onggi pull    --store S <ref|sha256:...> <dir> restore an artifact, every chunk hash-checked
   onggi ls      --store S                        refs and store totals
   onggi inspect --store S <ref|sha256:...>       files of an artifact
+  onggi diff    --store S <base> <ref>           what turning base into ref keeps, copies and fetches
   onggi rm-ref  --store S NAME                   delete a ref (its artifact becomes garbage)
   onggi gc      --store S [--grace 24h] [--dry-run]
                                                  mark and sweep: a run records candidates, a run
@@ -58,6 +59,8 @@ func main() {
 		os.Exit(ls(os.Args[2:], os.Stdout, os.Stderr))
 	case "inspect":
 		os.Exit(inspect(os.Args[2:], os.Stdout, os.Stderr))
+	case "diff":
+		os.Exit(diff(os.Args[2:], os.Stdout, os.Stderr))
 	case "csi":
 		os.Exit(csiNode(os.Args[2:], os.Stderr))
 	case "rm-ref":
