@@ -4,6 +4,17 @@ Measured 2026-10-22 on the lab's RNGD + ATOM node with [`bench/baselines.sh`](..
 Rebellions ATOM Llama-3.1-8B build set: 18 files, 263.9 GB (decode and prefill graphs for several batch sizes and
 sequence buckets, each embedding the weights).
 
+## Summary
+
+What onggi does at each level, measured on the lab cluster (details below):
+
+| level | Rebellions ATOM | FuriosaAI RNGD | NVIDIA A100, TensorRT-LLM |
+|---|---|---|---|
+| store less | 263.9 GB → 16.7 GB (15.8×) | 32.4 GB → 10.8 GB (four variants) | 64.5 GB → 10.85 GB (four engines) |
+| node delta | B2 → B8: 3.6 MB sent; CSI pod Running in 12 s by delta apply | pfbatch → preset: 4.3 MB read; CSI pod Running in 4 s | same batch: 1.2 MB read; other batch: read from the base where it is (#58) |
+| NPU delta (`onggi diff --ranges`) | B2 → B8: 98.57 % at the same offset; the first 70 KB and the last 218 MB change | pfbatch → preset: 99.77 % at the same offset; 5 runs in the graph bundle | same batch: 99.96 %; other batch: weights shifted by 17,952 B |
+| real model from an onggi volume | Llama-3.1-8B, 48 greedy tokens identical to the original path (cold, warm, delta) | furiosa-llm, Llama-3.1-8B, tokens identical (cold, warm, delta) | TensorRT-LLM engine restored by pull, 32 tokens identical |
+
 ## Storing the set
 
 | method | stored | vs raw | time |
@@ -80,3 +91,55 @@ store instead of 9.47 GB and 11.1 GB from the base, byte-identical.
 
 Unlike ATOM, sub-chunks are not used here (TensorRT engines are kind `other`); 64 KiB chunks already find the shifted
 weights.
+
+## RNGD: furiosa-llm artifacts (#54)
+
+Four real furiosa-llm 2026.3 artifacts of Llama-3.1-8B with different bucket sets: two with params and graphs
+(`pfbatch`, `preset`), two with graphs only (`coarse`, `fine`).
+
+| variant | size | new in the store | push |
+|---|---|---|---|
+| pfbatch (params + graphs) | 16.18 GB | 10.73 GB packed | 30 s |
+| preset (params + graphs) | 16.18 GB | 4.3 MB | 5.4 s |
+| coarse (graphs) | 35.6 MB | 3.0 MB | 0.45 s |
+| fine (graphs) | 39.4 MB | 3.5 MB | 0.49 s |
+
+Raw 32.44 GB, store 10.79 GB.
+
+| `onggi diff --ranges` | same offset | elsewhere | new | changed runs |
+|---|---|---|---|---|
+| pfbatch → preset | 99.77 % | 16.9 MB | 20.1 MB (4.3 MB stored) | `artifact.json`; 5 runs in `binary_bundle.zip`, largest 28.0 MB |
+| coarse → fine | 43.7 % | 4.4 MB | 17.8 MB | `artifact.json` and `binary_bundle.zip`; tokenizer and config unchanged |
+
+CSI on the lab cluster: pfbatch cold, Running after 59 s (10.73 GB read in 55 s); preset by delta apply, Running after
+**4 s** (pfbatch taken over, 16.15 GB left in place, 4.3 MB read, 0.25 s). Every file identical.
+
+## Serving real models from onggi volumes (#55)
+
+Each run is a Job holding one card, run and exit, generating greedy tokens from a fixed prompt with the model on an
+onggi CSI volume (read-only) and, for reference, from its original directory. Neither engine writes next to the model.
+
+**ATOM** (Llama-3.1-8B decode graphs with lm_head and their tables, loaded with `rebel.RBLNCompiledModel`; 48 tokens):
+
+| run | pod created → first token | model load | tokens |
+|---|---|---|---|
+| original directory, B1 / B2 / B8 | 26.1 / 20.5 / 22.5 s | 12.4 / 10.8 / 13.5 s | reference |
+| onggi B1, cold (11.58 GB from the store) | 191.2 s | 43.5 s | identical |
+| onggi B1, warm | 52.5 s | 36.2 s | identical |
+| onggi B8 by delta apply (B2 taken over: 17.11 GB in place, 28.3 MB read, 7.3 s) | **28.4 s** | 11.6 s | identical |
+| onggi B8, warm | 24.5 s | 12.3 s | identical |
+
+**RNGD** (furiosa-llm 2026.3.0, Llama-3.1-8B):
+
+| run | pod created → first token | model load | tokens |
+|---|---|---|---|
+| original directory, pfbatch | 18.9 / 20.3 s | 10.3 / 10.6 s | reference |
+| onggi pfbatch, cold (10.73 GB from the store) | 64.2 s (plus 248.8 s waiting for a card another host job held) | 9.3 s | identical |
+| onggi preset, after delta apply | 27.1 s | 14.8 s | identical |
+| onggi pfbatch by delta apply (preset taken over, 0 B from the store, 3.9 s) | **21.8 s** | 10.0 s | identical |
+| onggi pfbatch, warm | 18.2 s | 10.1 s | identical |
+
+With delta apply, switching a node to another variant brings the first token within a few seconds of loading from the
+original directory. The run found two plugin issues, both fixed: a late-exiting plugin removed its successor's socket
+(#61), and files stored with mode 0600 were unreadable for non-root engines (#62).
+
