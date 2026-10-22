@@ -23,7 +23,17 @@ type Puller func(ctx context.Context, m digest.Digest, dest string) (store.PullS
 
 // StorePuller pulls from s through the node cache (nil: no cache), assembling cache packs in tmp.
 func StorePuller(s *store.Store, cache *store.Store, tmp string, workers int) Puller {
+	return StorePullerOpen(s, func(context.Context) (*store.Store, error) { return cache, nil }, tmp, workers)
+}
+
+// StorePullerOpen is StorePuller with the node cache opened afresh for each pull (nil: no
+// cache), so a pull sees the cache as the plugin's GC loop left it (#33).
+func StorePullerOpen(s *store.Store, openCache func(context.Context) (*store.Store, error), tmp string, workers int) Puller {
 	return func(ctx context.Context, m digest.Digest, dest string) (store.PullStats, error) {
+		cache, err := openCache(ctx)
+		if err != nil {
+			return store.PullStats{}, err
+		}
 		return s.Pull(ctx, m, dest, store.PullOptions{Workers: workers, Cache: cache, CacheTmp: tmp})
 	}
 }
@@ -36,8 +46,8 @@ func StorePuller(s *store.Store, cache *store.Store, tmp string, workers int) Pu
 //	leases/<manifest hex>/<vol> one file per volume that uses the artifact
 //
 // The directory of an artifact is named by its manifest digest, so pods with the same ref share
-// it, and a ref moved to a new manifest gets a new directory. Nothing is deleted from artifacts/
-// yet: the leases are what eviction (P3) will consult.
+// it, and a ref moved to a new manifest gets a new directory. artifacts/<hex>.used records the
+// last use; Evict removes directories no lease holds and nothing used recently (#33).
 type Materializer struct {
 	Root string
 	Pull Puller
@@ -99,6 +109,7 @@ func (m *Materializer) Ensure(ctx context.Context, d digest.Digest) (string, err
 	dir := m.Dir(d)
 	m.mu.Lock()
 	if isDir(dir) {
+		m.touch(d)
 		m.mu.Unlock()
 		return dir, nil
 	}
@@ -123,6 +134,9 @@ func (m *Materializer) Ensure(ctx context.Context, d digest.Digest) (string, err
 		if f.err != nil {
 			return "", f.err
 		}
+		m.mu.Lock()
+		m.touch(d)
+		m.mu.Unlock()
 		return dir, nil
 	case <-ctx.Done():
 		return "", ctx.Err()
@@ -220,6 +234,7 @@ func (m *Materializer) Release(id string) (d digest.Digest, users int, ok bool, 
 	if err := os.Remove(vf); err != nil {
 		return d, 0, false, err
 	}
+	m.touch(d)
 	users, err = m.users(d)
 	return d, users, true, err
 }
