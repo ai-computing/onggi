@@ -109,6 +109,32 @@ func (fb *frameBuilder) flush(ctx context.Context, out chan<- pending) error {
 		return err
 	}
 	data, id := codec.Encode(fb.raw, fb.mode)
+	// weights compress about as well chunk by chunk (byte planes, Huffman) and a frame mixing them
+	// with other bytes can do worse: keep the frame only if it beats its chunks stored alone
+	type one struct {
+		data []byte
+		id   codec.ID
+	}
+	alone := make([]one, len(fb.members))
+	var sum int
+	for i, m := range fb.members {
+		d, cid := codec.Encode(fb.raw[m.inner:m.inner+m.length], fb.mode)
+		alone[i], sum = one{d, cid}, sum+len(d)
+	}
+	if sum <= len(data) {
+		for i, m := range fb.members {
+			d := alone[i].data
+			if alone[i].id == codec.None {
+				d = append([]byte(nil), d...)
+			}
+			select {
+			case out <- pending{data: d, raw: m.length, codec: alone[i].id, chunk: m.chunk}:
+			case <-ctx.Done():
+				return context.Cause(ctx)
+			}
+		}
+		return nil
+	}
 	if id == codec.None {
 		data = fb.raw // owned: the builder starts a new buffer
 	}
