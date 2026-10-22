@@ -5,10 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
 	"github.com/ai-computing/onggi/pkg/codec"
+	"github.com/ai-computing/onggi/pkg/digest"
 )
 
 func openCache(t *testing.T, dir string, like *Store) *Store {
@@ -106,5 +108,91 @@ func TestNodeCacheCorruptionIsDetected(t *testing.T) {
 	}
 	if _, serr := os.Stat(filepath.Join(out, "w.rbln")); serr == nil {
 		t.Fatal("a corrupt file was published")
+	}
+}
+
+// A cache keeps what recently used artifacts need and evicts the rest (#31).
+func TestNodeCacheEviction(t *testing.T) {
+	ctx := context.Background()
+	w := weights(61, 2<<20)
+	a, b := t.TempDir(), t.TempDir()
+	write(t, filepath.Join(a, "decode_B1.rbln"), w)
+	write(t, filepath.Join(b, "decode_B8.rbln"), append(shuffled(w, 62), random(63, 2<<20)...))
+	storeDir, cacheDir := t.TempDir(), t.TempDir()
+	s := openTwoLevel(t, storeDir)
+	ma, _, err := s.Push(ctx, a, PushOptions{Compress: codec.ModeAuto})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mb, stb, err := s.Push(ctx, b, PushOptions{Compress: codec.ModeAuto})
+	if err != nil {
+		t.Fatal(err)
+	}
+	remote := openTwoLevel(t, storeDir)
+	for _, m := range []digest.Digest{ma, mb} {
+		if _, err := remote.Pull(ctx, m, t.TempDir(), PullOptions{Cache: openCache(t, cacheDir, remote)}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	full := dirBytes(t, cacheDir, "packs")
+	t0 := time.Now()
+	// b was last used two days ago; a is current
+	if err := openCache(t, cacheDir, remote).recordUse(ctx, mb, t0.Add(-48*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	gc := func(after time.Duration) GCStats {
+		c := openCache(t, cacheDir, remote)
+		st, err := c.GC(ctx, nil, GCOptions{RootStore: openTwoLevel(t, storeDir), KeepUsed: 24 * time.Hour,
+			Grace: time.Hour, LeaseTTL: 1000 * time.Hour, RepackDead: 0.25, Now: clock(t0, after)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return st
+	}
+	st1 := gc(0)
+	if st1.Roots != 1 || st1.LiveManifests != 1 {
+		t.Fatalf("cache GC roots: %+v", st1)
+	}
+	gc(2 * time.Hour)
+	gc(4 * time.Hour)
+	after := dirBytes(t, cacheDir, "packs")
+	t.Logf("cache packs %d B -> %d B (b added %d B stored)", full, after, stb.PackBytes)
+	if after >= full {
+		t.Fatalf("cache did not shrink: %d -> %d", full, after)
+	}
+	// a is still fully cached; b reads back only what it adds over a
+	pa, err := remote.Pull(ctx, ma, t.TempDir(), PullOptions{Cache: openCache(t, cacheDir, remote)})
+	if err != nil || pa.ReadBytes != 0 {
+		t.Fatalf("pull of a after eviction: %d B from the store, %v", pa.ReadBytes, err)
+	}
+	out := t.TempDir()
+	pb, err := remote.Pull(ctx, mb, out, PullOptions{Cache: openCache(t, cacheDir, remote)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, b, out)
+	if pb.ReadBytes == 0 || pb.ReadBytes > stb.PackBytes {
+		t.Fatalf("pull of b after eviction read %d B from the store; b adds %d B", pb.ReadBytes, stb.PackBytes)
+	}
+}
+
+// A root without a locator stops the cache GC before it deletes anything.
+func TestNodeCacheGCNeedsLocators(t *testing.T) {
+	ctx := context.Background()
+	a := t.TempDir()
+	write(t, filepath.Join(a, "w.bin"), random(64, 1<<20))
+	storeDir, cacheDir := t.TempDir(), t.TempDir()
+	s := openTwoLevel(t, storeDir)
+	ma, _, err := s.Push(ctx, a, PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := withoutLocator(t, s, ma)
+	c := openCache(t, cacheDir, s)
+	if _, err := s.Pull(ctx, old, t.TempDir(), PullOptions{Cache: c}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := openCache(t, cacheDir, s).GC(ctx, nil, GCOptions{RootStore: s, KeepUsed: time.Hour}); err == nil {
+		t.Fatal("cache GC ran with a root it cannot mark")
 	}
 }

@@ -54,9 +54,12 @@ func gc(args []string, stdout, stderr io.Writer) int {
 	dry := fs.Bool("dry-run", false, "report only")
 	repack := fs.Float64("repack", 0.25, "repack live packs whose dead share of bytes is at least this (0: never)")
 	tmp := fs.String("tmp", "", "directory for repacked packs being assembled (default: system temp)")
+	rootStore := fs.String("roots-store", "", "node-cache GC: the store the cache was filled from; roots are the manifests used within --keep-used")
+	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "node-cache GC: keep what manifests used within this period need")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
 		fmt.Fprintln(stderr, "usage: onggi gc --store S [--grace 24h] [--keep sha256:...,...] [--dry-run]")
+		fmt.Fprintln(stderr, "       onggi gc --store CACHE --roots-store S [--keep-used 168h] ...")
 		return 2
 	}
 	ctx := context.Background()
@@ -65,7 +68,17 @@ func gc(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
-	o := store.GCOptions{Grace: *grace, LeaseTTL: *leaseTTL, DryRun: *dry, RepackDead: *repack, TempDir: *tmp}
+	o := store.GCOptions{Grace: *grace, LeaseTTL: *leaseTTL, DryRun: *dry, RepackDead: *repack, TempDir: *tmp, KeepUsed: *keepUsed}
+	if *rootStore != "" {
+		rf := sf
+		rf.url = rootStore
+		o.RootStore, _, err = rf.open(ctx)
+		if err != nil {
+			fmt.Fprintln(stderr, "onggi: --roots-store:", err)
+			return 1
+		}
+		refs = nil // a cache has no refs
+	}
 	for _, k := range strings.Split(*keep, ",") {
 		if k = strings.TrimSpace(k); k == "" {
 			continue

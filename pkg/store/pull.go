@@ -142,6 +142,12 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	srcs := []source{{s, packs}}
 	var fill *packWriter
 	if c := o.Cache; c != nil {
+		// the lease keeps the cache's GC from evicting chunks this pull reads or adds (#31)
+		release, err := c.Lease(ctx, "pull "+manifest.String())
+		if err != nil {
+			return st, fmt.Errorf("node cache: %w", err)
+		}
+		defer release()
 		if err := c.LoadIndex(ctx); err != nil {
 			return st, fmt.Errorf("node cache: %w", err)
 		}
@@ -260,6 +266,9 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 			return st, fmt.Errorf("node cache: %w", err)
 		}
 		st.Cached = fill.bytes
+		if err := o.Cache.recordUse(ctx, manifest, time.Now()); err != nil {
+			return st, fmt.Errorf("node cache: %w", err)
+		}
 	}
 	st.ReadBytes, st.CacheBytes = readBytes.Load(), cacheBytes.Load()
 	st.Duration = time.Since(start)
