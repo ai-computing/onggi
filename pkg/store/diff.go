@@ -89,6 +89,15 @@ type FileDiff struct {
 	SameBlocks  int64  `json:"same_blocks"`  // bytes in whole BlockSize blocks that are all Same
 	ChangedRuns int    `json:"changed_runs"` // maximal runs of bytes that are not Same
 	LargestRun  int64  `json:"largest_run"`
+	// Changed lists the changed runs as [offset, length] when DiffOptions.Ranges is set (#46):
+	// every other byte is at the same offset in Base. A runtime that holds Base can update only
+	// these ranges.
+	Changed [][2]int64 `json:"changed,omitempty"`
+}
+
+// DiffOptions controls a diff.
+type DiffOptions struct {
+	Ranges bool // list the changed runs of each file
 }
 
 // DiffStats sums a diff over the files.
@@ -150,7 +159,7 @@ func abs(x int64) int64 {
 }
 
 // Diff compares artifact m against base, both in s.
-func (s *Store) Diff(ctx context.Context, base, m digest.Digest) (DiffStats, error) {
+func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) (DiffStats, error) {
 	var st DiffStats
 	bm, err := s.ReadManifest(ctx, base)
 	if err != nil {
@@ -214,6 +223,9 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest) (DiffStats, err
 				return
 			}
 			fd.ChangedRuns++
+			if o.Ranges {
+				fd.Changed = append(fd.Changed, [2]int64{changedFrom, end - changedFrom})
+			}
 			fd.LargestRun = max(fd.LargestRun, end-changedFrom)
 			changedFrom = -1
 		}
