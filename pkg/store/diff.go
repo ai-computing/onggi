@@ -266,7 +266,7 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 	}
 	for i := range nodes {
 		if nodes[i].stored && !inBase(nodes[i].chunk) {
-			st.NewStored += int64(nodes[i].loc.Stored)
+			st.NewStored += nodes[i].loc.share()
 		}
 	}
 	return st, nil

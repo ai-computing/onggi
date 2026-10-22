@@ -60,14 +60,18 @@ func (s *Store) ReadStored(ctx context.Context, ds []digest.Digest, fn func(d di
 		if items[i].l.Pack != items[j].l.Pack {
 			return items[i].l.Pack < items[j].l.Pack
 		}
-		return items[i].l.Offset < items[j].l.Offset
+		if items[i].l.Offset != items[j].l.Offset {
+			return items[i].l.Offset < items[j].l.Offset
+		}
+		return items[i].l.Inner < items[j].l.Inner
 	})
 	const maxRange = 16 << 20
 	var buf []byte
 	for i := 0; i < len(items); {
 		j := i + 1
 		for j < len(items) && items[j].l.Pack == items[i].l.Pack &&
-			items[j].l.Offset+items[j].l.Stored-items[i].l.Offset <= maxRange && items[j].l.Offset >= items[j-1].l.Offset+items[j-1].l.Stored {
+			items[j].l.Offset+items[j].l.Stored-items[i].l.Offset <= maxRange &&
+			(items[j].l.Offset >= items[j-1].l.Offset+items[j-1].l.Stored || items[j].l.Frame != 0 && items[j].l.Offset == items[j-1].l.Offset) {
 			j++
 		}
 		first, last := items[i].l, items[j-1].l
@@ -85,9 +89,22 @@ func (s *Store) ReadStored(ctx context.Context, ds []digest.Digest, fn func(d di
 		if err != nil {
 			return err
 		}
+		var fr frameReader
 		for _, it := range items[i:j] {
 			off := it.l.Offset - first.Offset
-			if err := fn(it.d, b[off:off+it.l.Stored], it.l.Codec, it.l.Length); err != nil {
+			stored := b[off : off+it.l.Stored]
+			if it.l.Frame != 0 { // sent on its own: readers decode chunk by chunk (#52)
+				raw, err := fr.chunk(stored, it.l)
+				if err != nil {
+					return err
+				}
+				data, id := alone(raw, stored, it.l)
+				if err := fn(it.d, data, id, it.l.Length); err != nil {
+					return err
+				}
+				continue
+			}
+			if err := fn(it.d, stored, it.l.Codec, it.l.Length); err != nil {
 				return err
 			}
 		}

@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
-	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 )
 
@@ -163,7 +162,7 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 		}
 		live[id] = true
 		if e.state == stateStored {
-			livePack[e.loc.Pack] += int64(e.loc.Stored)
+			livePack[e.loc.Pack] += e.loc.share()
 			return nil
 		}
 		for _, sc := range s.subRefs(e) {
@@ -489,7 +488,13 @@ func (s *Store) repack(ctx context.Context, o GCOptions, live []bool, livePack m
 	defer w.abort()
 	for _, j := range jobs {
 		ids := byPack[j.id]
-		sort.Slice(ids, func(a, b int) bool { return s.idx.ent[ids[a]].loc.Offset < s.idx.ent[ids[b]].loc.Offset })
+		sort.Slice(ids, func(a, b int) bool {
+			x, y := s.idx.ent[ids[a]].loc, s.idx.ent[ids[b]].loc
+			if x.Offset != y.Offset {
+				return x.Offset < y.Offset
+			}
+			return x.Inner < y.Inner
+		})
 		rc, err := s.B.Get(ctx, backend.Key{Kind: backend.Pack, Name: j.name}, 0, -1)
 		if err != nil {
 			return err
@@ -502,19 +507,22 @@ func (s *Store) repack(ctx context.Context, o GCOptions, live []bool, livePack m
 		if digest.Of(data).Hex() != j.name {
 			return fmt.Errorf("pack %s: content does not match its name (repack stopped)", j.name)
 		}
+		var fr frameReader
 		for _, id := range ids {
 			s.mu.RLock()
 			e, d := s.idx.ent[id], s.idx.dig[id]
 			s.mu.RUnlock()
 			stored := data[e.loc.Offset : e.loc.Offset+e.loc.Stored]
-			raw, err := codec.Decode(stored, e.loc.Codec, int(e.loc.Length))
+			raw, err := fr.chunk(stored, e.loc)
 			if err != nil || digest.Of(raw) != d {
 				return fmt.Errorf("pack %s: chunk %s fails its check (repack stopped)", j.name, d)
 			}
-			if err := w.add(ctx, d, stored, e.loc.Codec, e.loc.Length); err != nil {
+			// a live chunk of a frame is copied on its own: the rest of the frame is dead (#52)
+			out, id := alone(raw, stored, e.loc)
+			if err := w.add(ctx, d, out, id, e.loc.Length); err != nil {
 				return err
 			}
-			st.RepackedBytes += int64(e.loc.Stored)
+			st.RepackedBytes += int64(len(out))
 		}
 	}
 	if err := w.close(ctx); err != nil {
@@ -616,7 +624,7 @@ func (s *Store) markFromLocator(ctx context.Context, root *Store, md digest.Dige
 			continue
 		}
 		live[id] = true
-		livePack[e.loc.Pack] += int64(e.loc.Stored)
+		livePack[e.loc.Pack] += e.loc.share()
 	}
 	return nil
 }

@@ -25,6 +25,8 @@ import (
 //	nodes  uint32, then per node: chunk digest [32], raw length uint32, kind uint8, then
 //	       kind 0 (stored):    pack number uint32, offset uint32, stored length uint32, codec uint8
 //	       kind 1 (composite): sub-chunk count uint32, then that many earlier node numbers uint32
+//	       kind 2 (in a compression frame, #52): as kind 0 for the frame, then offset in the frame
+//	                           uint32, frame raw length uint32
 //	packs  uint32, then that many pack digests [32]
 //	files  uint32, then per file: chunk count uint32, then that many node numbers uint32
 
@@ -81,11 +83,19 @@ func (s *Store) writeLocator(lists [][]ChunkRef, f *os.File) (int64, error) {
 			}
 			raw(c.Digest[:])
 			w(c.Length)
-			one(0)
+			if loc.Frame != 0 {
+				one(2)
+			} else {
+				one(0)
+			}
 			w(p)
 			w(loc.Offset)
 			w(loc.Stored)
 			one(byte(loc.Codec))
+			if loc.Frame != 0 {
+				w(loc.Inner)
+				w(loc.Frame)
+			}
 		case comp:
 			kids := make([]uint32, len(subs))
 			for i, sc := range subs {
@@ -199,11 +209,17 @@ func readLocator(data []byte, m *Manifest) ([]node, []digest.Digest, error) {
 		copy(nd.chunk[:], r.take(32))
 		length := r.u32()
 		lengths[i] = length
-		switch r.u8() {
-		case 0:
+		switch kind := r.u8(); kind {
+		case 0, 2:
 			nd.stored = true
 			nd.loc = Loc{Pack: r.u32(), Offset: r.u32(), Stored: r.u32(), Length: length}
 			nd.loc.Codec = codec.ID(r.u8())
+			if kind == 2 {
+				nd.loc.Inner, nd.loc.Frame = r.u32(), r.u32()
+				if r.err == nil && (nd.loc.Frame == 0 || uint64(nd.loc.Inner)+uint64(length) > uint64(nd.loc.Frame)) {
+					return nil, nil, fmt.Errorf("locator: chunk %s lies outside its frame", nd.chunk)
+				}
+			}
 		case 1:
 			var off int64
 			for j, n := 0, r.count(4); j < n; j++ {

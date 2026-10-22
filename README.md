@@ -67,7 +67,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in **15.9 GB** (push 3 min, pull 5 min,
 byte-identical). Two steps get it there. Two-level chunking re-splits new ATOM chunks into ~4 KiB sub-chunks, so prefill
 variants that hold the same weights in a different order dedup (24.9 GB new instead of 46.8 GB). Per-chunk compression
-then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
+then takes 1.6× off. `--compress none` and `--sub 0` turn the two off. New chunks of sub-chunked files are compressed together in frames
+of up to 255 KiB where that is smaller (#52; `--frame 0` turns it off).
 
 With `--cache DIR` a pull reads chunks the node already holds from a local cache store and adds what it fetches. On
 the lab node, after one ATOM decode variant (10.2 GB read), a second one read 28 MB from the store (0.3 %), a prefill

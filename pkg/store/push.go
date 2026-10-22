@@ -48,10 +48,11 @@ type PushStats struct {
 }
 
 type pending struct {
-	data  []byte // stored form
-	raw   uint32
-	codec codec.ID
-	chunk digest.Digest
+	data    []byte // stored form
+	raw     uint32
+	codec   codec.ID
+	chunk   digest.Digest
+	members []member // a frame's chunks (#52); empty: data is the one chunk above
 }
 
 type sealed struct {
@@ -207,7 +208,13 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				continue
 			}
 			h.Write(p.data)
-			entries = append(entries, indexEntry{Chunk: p.chunk, Loc: Loc{Offset: uint32(size), Stored: uint32(len(p.data)), Length: p.raw, Codec: p.codec}})
+			if len(p.members) == 0 {
+				entries = append(entries, indexEntry{Chunk: p.chunk, Loc: Loc{Offset: uint32(size), Stored: uint32(len(p.data)), Length: p.raw, Codec: p.codec}})
+			}
+			for _, m := range p.members {
+				entries = append(entries, indexEntry{Chunk: m.chunk, Loc: Loc{Offset: uint32(size), Stored: uint32(len(p.data)),
+					Length: m.length, Codec: p.codec, Inner: m.inner, Frame: p.raw}})
+			}
 			size += int64(len(p.data))
 			if size >= s.Config.PackSize {
 				seal()
@@ -400,9 +407,18 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 	c := chunker.New(f, s.Config.Chunker)
 	var list []ChunkRef
 	var nb int64
+	var fb *frameBuilder // new chunks of a sub-chunked file go out in compression frames (#52)
+	if twoLevel && s.Config.Frame > 0 {
+		fb = &frameBuilder{limit: int(s.Config.Frame), mode: mode}
+	}
 	for {
 		ch, err := c.Next()
 		if errors.Is(err, io.EOF) {
+			if fb != nil {
+				if err := fb.flush(ctx, out); err != nil {
+					return nil, 0, err
+				}
+			}
 			return list, nb, nil
 		}
 		if err != nil {
@@ -427,6 +443,11 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 			sd := digest.Of(sub)
 			subs = append(subs, ChunkRef{Digest: sd, Length: uint32(len(sub))})
 			if sd == d || claim(sd) { // sd == d: the whole chunk is one sub-chunk; this push owns d already
+				if fb != nil {
+					n, err := fb.add(ctx, sub, sd, out)
+					nb += n
+					return err
+				}
 				n, err := send(ctx, sub, sd, mode, out)
 				if err != nil {
 					return err
