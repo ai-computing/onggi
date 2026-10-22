@@ -180,6 +180,7 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	sf := addStoreFlags(fs)
 	workers := fs.Int("workers", 8, "ranges read at once")
 	cacheDir := fs.String("cache", "", "node chunk cache: a local directory; chunks it holds are not read from the store, chunks read from the store are added")
+	peers := fs.String("peers", "", "comma-separated peer URLs (onggi peer serve) asked for chunks before the store")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
 		fmt.Fprintln(stderr, "usage: onggi pull --store S [--cache DIR] <ref|sha256:...> <dir>")
@@ -196,7 +197,7 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
-	o := store.PullOptions{Workers: *workers}
+	o := store.PullOptions{Workers: *workers, Peers: peerClients(*peers)}
 	if *cacheDir != "" {
 		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
 		if err == nil {
@@ -225,6 +226,9 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		float64(st.Bytes)/1e6/max(st.Duration.Seconds(), 1e-9))
 	if o.Cache != nil {
 		fmt.Fprintln(stdout, "cache    read", human(st.CacheBytes), "from the node cache, added", human(st.Cached), "to it")
+	}
+	if len(o.Peers) > 0 {
+		fmt.Fprintln(stdout, "peers    received", human(st.PeerBytes), "in", st.PeerChunks, "chunks")
 	}
 	return 0
 }

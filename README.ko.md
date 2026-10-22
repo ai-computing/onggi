@@ -66,6 +66,10 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 연구실 노드에서 ATOM decode 변형 하나(저장소에서 10.2 GB 읽음)를 받은 뒤, 두 번째 변형은 저장소에서 28 MB(0.3%)만,
 prefill 빌드는 1.9 GB를 읽었고, 같은 변형을 다시 받을 때는 0 B를 읽었습니다. 모두 원본과 바이트 단위로 같았습니다.
 CSI 플러그인은 쓰이지 않는 결과물을 지우고 노드 캐시를 스스로 정리합니다(#33).
+`--peers`를 주면 pull이 노드에 없는 청크를 저장소보다 먼저 다른 노드의 캐시(`onggi peer serve`)에 묻습니다. 청크마다
+rendezvous 해시로 고른 한 노드에서 받고 해시를 검증하며, peer가 주지 못한 청크는 저장소에서 읽습니다. 연구실 클러스터에서
+CPU 노드가 NPU 노드의 캐시를 peer로 두고 S3 저장소에서 decode 변형(저장 10.2 GB)을 받았을 때 저장소에서 0 B, peer에서
+10.2 GB를 읽었고 원본과 같았습니다(#34).
 Kubernetes에서는 CSI 드라이버([deploy/csi](deploy/csi/README.md))가 ref를 읽기 전용 볼륨으로 마운트합니다. 노드는 결과물을
 노드 캐시를 거쳐 한 번만 풀어 두고, 같은 ref를 쓰는 pod는 그 사본을 함께 씁니다. 연구실 클러스터에서 두 번째 decode 변형은
 저장소에서 28 MB만 읽었습니다. init container로 pod의 emptyDir에 푸는 방법도 있습니다([deploy/k8s](deploy/k8s/README.md)).

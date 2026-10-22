@@ -52,7 +52,7 @@ Every `--gc-every` (default 1 h) the plugin:
 - The files are a second copy next to the node cache, which holds packed and compressed chunks. Reflinks or
   hardlinks from the cache need a cache of plain files.
 - One plugin per node and data directory. Linux only.
-- No peer fetch; no metrics yet.
+- The plugin neither serves its cache to peers nor asks them yet (`onggi peer serve`, `pull --peers`, #34); no metrics yet.
 - The plugin runs privileged, with `Bidirectional` mount propagation on the kubelet's pods directory. This is what
   any CSI node plugin needs; run it in a namespace for system components.
 - No onggi image is published yet; the manifests use `<image with the onggi binary>`.

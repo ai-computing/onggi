@@ -59,6 +59,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ./onggi pull llama-3.1-8b@atom/pd <restore dir>
 ./onggi ls; ./onggi inspect llama-3.1-8b@atom/pd
 ./onggi pull --cache /var/lib/onggi/cache llama-3.1-8b@atom/pd-b8 <dir>   # node cache: read only what the node lacks
+./onggi peer serve --cache /var/lib/onggi/cache --listen :7070            # share this node's cache with others
+./onggi pull --cache /var/lib/onggi/cache --peers http://node-a:7070 <ref> <dir>   # ask peers before the store
 ```
 
 On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in **15.9 GB** (push 3 min, pull 5 min,
@@ -69,6 +71,10 @@ then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
 With `--cache DIR` a pull reads chunks the node already holds from a local cache store and adds what it fetches. On
 the lab node, after one ATOM decode variant (10.2 GB read), a second one read 28 MB from the store (0.3 %), a prefill
 build 1.9 GB, and a repeat 0 B; every restore was byte-identical. The CSI plugin evicts idle artifacts and collects the node cache on its own (#33).
+With `--peers` a pull asks other nodes' caches (`onggi peer serve`) for the chunks it lacks before the store. Each
+chunk goes to one holder, chosen by rendezvous hashing, and is hash-checked; whatever a peer does not deliver comes
+from the store. In the lab cluster a CPU node pulled the decode variant (10.2 GB stored) from an S3 store with the
+NPU node's warm cache as its peer: 0 B from the store, 10.2 GB from the peer, byte-identical (#34).
 On Kubernetes, the CSI driver ([deploy/csi](deploy/csi/README.md)) mounts a ref as a read-only volume: the node
 materializes each artifact once, through the node cache, and pods with the same ref share that copy. On the lab
 cluster a second decode variant read 28 MB from the store. An init container into the pod's emptyDir also works
