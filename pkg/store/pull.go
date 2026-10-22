@@ -51,6 +51,7 @@ type PullStats struct {
 	Cached     int64         `json:"cached"`         // stored bytes added to the node cache
 	Base       string        `json:"base,omitempty"` // the artifact this pull turned into the new one
 	Reused     int64         `json:"reused"`         // bytes left in place in the base's files
+	BaseBest   int64         `json:"base_best"`      // bytes the best offered base keeps at the same offsets, taken or not (#49)
 	Ranges     int           `json:"ranges"`
 	Duration   time.Duration `json:"duration_ns"`
 }
@@ -146,7 +147,9 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if minSame <= 0 {
 			minSame = DefaultMinSame
 		}
-		if p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame); ok {
+		p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame)
+		st.BaseBest = p.same
+		if ok {
 			if dir, ok := o.Claim(p.base); ok {
 				st.Base = p.base.Manifest.String()
 				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {

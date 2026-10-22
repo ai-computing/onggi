@@ -190,8 +190,12 @@ func (m *Materializer) materialize(d digest.Digest) error {
 	for _, c := range *claimed {
 		os.RemoveAll(c) // what the pull did not move of a consumed base
 	}
-	if st.Base != "" {
+	switch {
+	case st.Base != "":
 		m.logf("pull of %s took over %s: %d B left in place", d, st.Base, st.Reused)
+	case err == nil && offer != nil:
+		m.logf("pull of %s took over nothing: of %d idle artifacts the best keeps %d of %d B at the same offsets (%.1f %%, %.0f %% needed)",
+			d, len(offer.Bases), st.BaseBest, st.Bytes, 100*float64(st.BaseBest)/float64(max(st.Bytes, 1)), 100*store.DefaultMinSame)
 	}
 	if err != nil {
 		m.logf("materializing %s failed after %s: %v", d, time.Since(start).Round(time.Millisecond), err)
@@ -326,13 +330,23 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 	m.mu.Lock()
 	ds, _ := m.materialized()
 	var bases []store.Base
+	inUse, recent := 0, 0
 	for _, b := range ds {
-		if m.idle(b, time.Now()) && b != d {
+		switch {
+		case b == d:
+		case m.idle(b, time.Now()):
 			bases = append(bases, store.Base{Manifest: b, Dir: m.Dir(b)})
+		case m.busy(b):
+			inUse++
+		default:
+			recent++
 		}
 	}
 	m.mu.Unlock()
 	if len(bases) == 0 {
+		if len(ds) > 0 {
+			m.logf("pull of %s: no artifact to take over (%d in use, %d used within %s)", d, inUse, recent, m.RebaseIdle)
+		}
 		return nil, claimed
 	}
 	sort.Slice(bases, func(i, j int) bool { return m.lastUsed(bases[i].Manifest).After(m.lastUsed(bases[j].Manifest)) })
@@ -373,11 +387,17 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 // idle says whether artifact d may be consumed: materialized, no volume, no pull, unused for
 // RebaseIdle. The caller holds m.mu.
 func (m *Materializer) idle(d digest.Digest, now time.Time) bool {
-	if _, busy := m.inflight[d]; busy || !isDir(m.Dir(d)) {
-		return false
-	}
-	if n, err := m.users(d); err != nil || n > 0 {
+	if m.busy(d) || !isDir(m.Dir(d)) {
 		return false
 	}
 	return now.Sub(m.lastUsed(d)) >= m.RebaseIdle
+}
+
+// busy says whether a volume or a pull uses artifact d. The caller holds m.mu.
+func (m *Materializer) busy(d digest.Digest) bool {
+	if _, ok := m.inflight[d]; ok {
+		return true
+	}
+	n, err := m.users(d)
+	return err != nil || n > 0
 }

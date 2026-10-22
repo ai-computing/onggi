@@ -32,8 +32,8 @@ type rebasePlan struct {
 	same  int64
 }
 
-// chooseBase returns the base that keeps the most bytes in place, if that is at least minSame
-// of m's bytes.
+// chooseBase returns the base that keeps the most bytes in place, and whether that is at least
+// minSame of m's bytes.
 func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, bases []Base, minSame float64) (rebasePlan, bool) {
 	var best rebasePlan
 	for _, b := range bases {
@@ -64,10 +64,7 @@ func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, 
 			best = p
 		}
 	}
-	if best.same == 0 || float64(best.same) < minSame*float64(m.Bytes) {
-		return rebasePlan{}, false
-	}
-	return best, true
+	return best, best.same > 0 && float64(best.same) >= minSame*float64(m.Bytes)
 }
 
 // sameAt says whether base holds e's chunk at e's offset.
