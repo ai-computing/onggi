@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io/fs"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -290,4 +291,43 @@ func TestLeases(t *testing.T) {
 		t.Fatal("artifact directory removed")
 	}
 	sameTree(t, f.srcA, dir)
+}
+
+// Files stored with mode 0600 become readable by everyone once materialized (#62).
+func TestMaterializedFilesAreReadableByAll(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	src := t.TempDir()
+	if err := os.WriteFile(filepath.Join(src, "model-00001.safetensors"), random(5, 1<<20), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(src, "private"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "private", "params.bin"), random(6, 4096), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	d, _, err := f.s.Push(ctx, src, store.PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, _ := newMaterializer(t, f)
+	dir, err := m.Ensure(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, dir)
+	for _, p := range []string{"model-00001.safetensors", "private", "private/params.bin"} {
+		fi, err := os.Stat(filepath.Join(dir, p))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := fs.FileMode(0o444)
+		if fi.IsDir() {
+			want = 0o555
+		}
+		if fi.Mode().Perm()&want != want {
+			t.Errorf("%s: mode %v, want at least %v", p, fi.Mode().Perm(), want)
+		}
+	}
 }

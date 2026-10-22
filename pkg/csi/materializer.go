@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -200,6 +201,9 @@ func (m *Materializer) materialize(d digest.Digest) error {
 	if err != nil {
 		m.logf("materializing %s failed after %s: %v", d, time.Since(start).Round(time.Millisecond), err)
 		return fmt.Errorf("pull %s: %w", d, err)
+	}
+	if err := readableByAll(tmp); err != nil {
+		return err
 	}
 	if err := os.Rename(tmp, dir); err != nil {
 		if isDir(dir) { // published by someone else meanwhile; same content
@@ -400,4 +404,31 @@ func (m *Materializer) busy(d digest.Digest) bool {
 	}
 	n, err := m.users(d)
 	return err != nil || n > 0
+}
+
+// readableByAll lets every user read the files of an artifact and list its directories (#62).
+// The plugin runs as root and keeps each file's mode from the manifest, so a 0600 file would be
+// unreadable for an engine that runs as another user; the volume is a read-only bind, so reading
+// is all a pod gets.
+func readableByAll(root string) error {
+	return filepath.WalkDir(root, func(p string, e fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if e.Type()&fs.ModeSymlink != 0 {
+			return nil
+		}
+		fi, err := e.Info()
+		if err != nil {
+			return err
+		}
+		want := fi.Mode().Perm() | 0o444
+		if e.IsDir() {
+			want |= 0o111
+		}
+		if want == fi.Mode().Perm() {
+			return nil
+		}
+		return os.Chmod(p, want)
+	})
 }
