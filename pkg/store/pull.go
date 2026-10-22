@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
-	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 )
 
