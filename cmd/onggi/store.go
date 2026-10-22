@@ -256,8 +256,10 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	}
 	if st.Base != "" {
 		fmt.Fprintln(stdout, "base     took over", st.Base, "and left", human(st.Reused), "in place")
+	} else if st.LocalBase != "" {
+		fmt.Fprintln(stdout, "base     read", human(st.LocalBytes), "from", st.LocalBase, "where it is (its bytes sit at other offsets)")
 	} else if len(o.Bases) > 0 {
-		fmt.Fprintln(stdout, "base     not used: too little of it sits at the same offsets")
+		fmt.Fprintln(stdout, "base     not used: it holds too little of this artifact")
 	}
 	return 0
 }

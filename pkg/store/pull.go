@@ -51,6 +51,8 @@ type PullStats struct {
 	Base       string        `json:"base,omitempty"` // the artifact this pull turned into the new one
 	Reused     int64         `json:"reused"`         // bytes left in place in the base's files
 	BaseBest   int64         `json:"base_best"`      // bytes the best offered base keeps at the same offsets, taken or not (#49)
+	LocalBase  string        `json:"local_base,omitempty"` // a base read where it is, not consumed (#58)
+	LocalBytes int64         `json:"local_bytes"`          // bytes read from that base's files
 	Ranges     int           `json:"ranges"`
 	Duration   time.Duration `json:"duration_ns"`
 }
@@ -146,14 +148,23 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if minSame <= 0 {
 			minSame = DefaultMinSame
 		}
-		p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame)
+		p, ok, most, okMost := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame)
 		st.BaseBest = p.same
+		claimed := false
 		if ok {
 			if dir, ok := o.Claim(p.base); ok {
+				claimed = true
 				st.Base = p.base.Manifest.String()
 				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
 					return st, err
 				}
+			}
+		}
+		// too little in place, but the base holds the bytes elsewhere: read them from it (#58)
+		if !claimed && okMost {
+			st.LocalBase = most.base.Manifest.String()
+			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers); err != nil {
+				return st, err
 			}
 		}
 	}

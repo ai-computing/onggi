@@ -152,3 +152,30 @@ func TestRebaseThroughCacheReadsTheRestFromIt(t *testing.T) {
 		t.Fatal("the cache's whole index was loaded for a few chunks")
 	}
 }
+
+// Shifted content, as when a TensorRT engine's plan grows by 17,952 bytes in front of the
+// weights: nothing stays at the same offset, so the base is not consumed, but its files serve
+// the chunks where they are (#58).
+func TestBaseServesShiftedContent(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(91, 8<<20)
+	v := append(random(92, 17952), w...)
+	b, nm, src := rebaseFixture(t, s, map[string][]byte{"rank0.engine": w}, map[string][]byte{"rank0.engine": v})
+	out := t.TempDir()
+	st, err := s.Pull(ctx, nm, out, PullOptions{Bases: []Base{b}, Claim: func(Base) (string, bool) {
+		t.Fatal("consumed a base that keeps nothing in place")
+		return "", false
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+	t.Logf("%+v", st)
+	if st.LocalBase != b.Manifest.String() || st.LocalBytes < int64(len(w))*9/10 || st.ReadBytes > int64(len(v))/10 {
+		t.Fatalf("shifted content not read from the base: %+v", st)
+	}
+	if _, err := os.Stat(filepath.Join(b.Dir, "rank0.engine")); err != nil {
+		t.Fatalf("the base was touched: %v", err)
+	}
+}
