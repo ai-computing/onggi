@@ -70,11 +70,12 @@ On the lab node (`onggi pull --base`, the same pull the plugin runs):
 | decode B8 (15.2 GB), node holds decode B2 | read | left in place | time | check |
 |---|---|---|---|---|
 | plain pull through the node cache | 28.3 MB store + 10.18 GB cache | 0 | 73.8 s | identical |
-| from the B2 copy, through the node cache | 28.3 MB cache | 15.01 GB | **26.8 s** | identical |
+| from the B2 copy, through the node cache | 28.3 MB cache | 15.01 GB | **8.9 s** (26.8 s before #42) | identical |
 | from the B2 copy, no node cache | 28.3 MB store | 15.01 GB | **5.7 s** | identical |
-| back to B2 from the B8 copy, through the node cache | 23.2 MB cache | 15.01 GB | 23.5 s | identical |
+| back to B2 from the B8 copy, through the node cache | 23.2 MB cache | 15.01 GB | 8.1 s (23.5 s before #42) | identical |
 
-Through the node cache, about 10 s of the 27 s is loading the cache's index (3.3 M chunks); #42 tracks that.
+Through the node cache, a pull that needs only a few chunks finds them by scanning the cache's pack indexes instead of
+loading its whole index (3.3 M chunks), and index lookups search a contiguous array of digest prefixes (#42).
 
 ## Limits of v0
 
