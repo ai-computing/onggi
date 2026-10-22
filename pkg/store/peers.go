@@ -35,7 +35,7 @@ func (s *Store) fromPeers(ctx context.Context, peers []ChunkSource, workers int,
 	handles []*os.File, fill *packWriter) (int64, int64) {
 	var need []int32
 	for i := range nodes {
-		if nodes[i].stored && !nodes[i].fromCache {
+		if nodes[i].stored && !nodes[i].fromCache && !done[i] {
 			need = append(need, int32(i))
 		}
 	}

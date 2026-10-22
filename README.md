@@ -98,8 +98,11 @@ chunks and without parsing any format (#38): bytes at the same offset (can stay)
 | decode B2 → decode B8 (15.2 GB) | 98.6 %, all in whole 4 KiB blocks | 0 | 1.4 % | 28.3 MB | 3, largest 218 MB |
 | decode B2 → prefill C128 (14.0 GB) | 0 | 79.4 % | 20.6 % | 1.9 GB | 1 |
 
-Decode variants differ in one contiguous region, so a node could update a copy in place instead of rewriting
-15 GB. Prefill and decode hold the same weights in a different order.
+Decode variants differ in one contiguous region, so a node updates a copy in place instead of rewriting 15 GB:
+`onggi pull --base REF --base-dir DIR` turns an artifact restored in DIR into the new one and writes only what differs
+(#41), and the CSI plugin does this with artifacts no pod uses. On the lab node decode B8 came from a B2 copy in 5.7 s
+(26.8 s through the node cache) instead of 73.8 s, byte-identical. Prefill and decode hold the same weights in a
+different order.
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push

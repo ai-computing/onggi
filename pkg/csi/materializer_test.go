@@ -82,11 +82,11 @@ type counting struct {
 	gate  chan struct{} // when set, pulls wait for it to close
 }
 
-func (c *counting) pull(ctx context.Context, m digest.Digest, dest string) (store.PullStats, error) {
+func (c *counting) pull(ctx context.Context, m digest.Digest, dest string, o *Offer) (store.PullStats, error) {
 	if c.gate != nil {
 		<-c.gate
 	}
-	st, err := c.Puller(ctx, m, dest)
+	st, err := c.Puller(ctx, m, dest, o)
 	c.mu.Lock()
 	c.pulls = append(c.pulls, st)
 	c.mu.Unlock()
@@ -182,7 +182,7 @@ func TestEnsureFailedPullPublishesNothing(t *testing.T) {
 	f := newFixture(t)
 	m, c := newMaterializer(t, f)
 	good := c.Puller
-	c.Puller = func(ctx context.Context, d digest.Digest, dest string) (store.PullStats, error) {
+	c.Puller = func(ctx context.Context, d digest.Digest, dest string, o *Offer) (store.PullStats, error) {
 		os.WriteFile(filepath.Join(dest, "half"), []byte("x"), 0o644)
 		return store.PullStats{}, errors.New("store went away")
 	}
@@ -226,15 +226,15 @@ func TestEnsureRenameRace(t *testing.T) {
 	f := newFixture(t)
 	m, c := newMaterializer(t, f)
 	good := c.Puller
-	c.Puller = func(ctx context.Context, d digest.Digest, dest string) (store.PullStats, error) {
+	c.Puller = func(ctx context.Context, d digest.Digest, dest string, o *Offer) (store.PullStats, error) {
 		other := filepath.Join(m.Root, "other")
-		if _, err := good(ctx, d, other); err != nil {
+		if _, err := good(ctx, d, other, o); err != nil {
 			return store.PullStats{}, err
 		}
 		if err := os.Rename(other, m.Dir(d)); err != nil {
 			return store.PullStats{}, err
 		}
-		return good(ctx, d, dest)
+		return good(ctx, d, dest, o)
 	}
 	dir, err := m.Ensure(context.Background(), f.a)
 	if err != nil {
