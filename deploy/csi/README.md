@@ -47,3 +47,19 @@ already run keep the old one.
 - The plugin runs privileged, with `Bidirectional` mount propagation on the kubelet's pods directory. This is what
   any CSI node plugin needs; run it in a namespace for system components.
 - No onggi image is published yet; the manifests use `<image with the onggi binary>`.
+
+## Tested (#27)
+
+Lab cluster, one node (`npu-node-1`), a test namespace deleted afterwards. The store was the ATOM Llama-3.1-8B
+two-level store on a read-only hostPath; the node cache started empty.
+
+| step | result |
+|---|---|
+| two pods, decode B2 (15.2 GB), at once | one pull: 10.20 GB read from the store in 2 min 48 s. kubelet timed out the first calls after 2 min; the retries joined the running pull. Both pods saw the same inode; `cmp` with the source: identical in both |
+| writes | `touch` fails with `Read-only file system`, also in a pod that mounts the volume without `readOnly` |
+| pod with decode B8 (15.2 GB) | 28.3 MB from the store (0.28 % of 10.2 GB stored), 10.18 GB from the node cache, 1 min 22 s; identical to the source |
+| delete the pods | every unpublish succeeded; no mount of the volumes or of the data directory left in the node's mountinfo; leases 0 |
+
+The first build remounted only the target read-only. Inside the pods the volume was read-only, but the host's
+mountinfo showed `rw`: a remount does not propagate to the host. The plugin now binds from a read-only self-bind of
+the artifact, and the host shows `ro,nosuid,nodev`.

@@ -13,5 +13,8 @@ read-only; the pod stays Pending until it is ready. Fallbacks: Kubernetes image 
 them, and an init container. Lazy FUSE reads are an option for cold start only.
 
 ## Consequences
+v0 (#27, [deploy/csi](../../deploy/csi/README.md)) materializes plain files decoded from the node cache, since the
+cache holds packed, compressed chunks; reflinks or hardlinks would need a cache of plain files.
+
 No engine changes; kubelet owns the mount lifecycle. Materializing whole files costs local disk equal to the
 artifact's distinct bytes, shared through hardlinks across pods on the node.

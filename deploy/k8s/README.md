@@ -1,6 +1,7 @@
 # Kubernetes delivery, v0 (#25)
 
-Until the CSI driver (ADR-0004) exists, artifacts reach pods through an init container.
+The CSI driver ([deploy/csi](../csi/README.md), #27) is the main path. This init-container variant works without
+installing anything on the nodes.
 [`pull-initcontainer.yaml`](pull-initcontainer.yaml) is a template; replace every `<...>`.
 
 - The init container runs `onggi pull --cache /var/lib/onggi/cache <ref> /models/<ref>`.
