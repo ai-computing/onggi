@@ -20,6 +20,7 @@ type Discovery struct {
 	TTL    time.Duration
 	HTTP   *http.Client
 	Lookup func(ctx context.Context, host string) ([]string, error) // nil: net.DefaultResolver.LookupHost
+	Logf   func(format string, args ...any)                            // nil: no log; called when the peers change
 
 	mu    sync.Mutex
 	cur   []store.ChunkSource
@@ -71,5 +72,8 @@ func (d *Discovery) Peers(ctx context.Context) []store.ChunkSource {
 		cur = append(cur, &Client{URL: "http://" + net.JoinHostPort(a, port), HTTP: hc})
 	}
 	d.cur, d.addrs = cur, addrs
+	if d.Logf != nil {
+		d.Logf("peers from %s: %d %v", d.Name, len(addrs), addrs)
+	}
 	return cur
 }

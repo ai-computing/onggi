@@ -93,3 +93,15 @@ Same node and store, with `--gc-every 1m --evict-after 2m --keep-used 3m --gc-gr
 | node-cache GC | after `--keep-used` ran out: 2 objects (29.7 MB) deleted two rounds later; the cache is back to what B2 needs (10.20 GB) |
 | new B8 pod | 28.3 MB from the store, 10.18 GB from the cache, 59 s; identical to the source; read-only |
 | delete the pods | every unpublish succeeded; no leases, volume mounts or files left |
+
+## Tested (#37)
+
+Two nodes, `npu-node-1` and `cpu-1`, in a test namespace deleted afterwards. The store was the same ATOM store, served over S3 (VersityGW) from `npu-node-1`. Both plugins used `--peer-listen=:7070` and `--peers-dns` on the headless Service.
+
+| step | store | node cache | peers | time | check |
+|---|---|---|---|---|---|
+| `npu-node-1`, decode B2 | 10.20 GB | 0 | 0 | 4 min 58 s | identical to the source |
+| `cpu-1`, decode B2 | **0 B** | 0 | 10.20 GB (3,272,372 chunks) | 2 min 24 s | identical; read-only |
+| `cpu-1`, decode B8 | 28.3 MB (0.28 %) | 10.18 GB | 0 | 1 min 26 s | identical |
+
+`npu-node-1` never had B8, so the chunks that only B8 uses came from the store. The cold pull over S3 took longer than from a local directory store (about 2.5 min); kubelet's calls timed out twice, and the retries joined the running pull.

@@ -85,7 +85,7 @@ func csiNode(args []string, stderr io.Writer) int {
 	}
 	var peerList func(context.Context) []store.ChunkSource
 	if static := peerClients(*peers); len(static) > 0 || *peersDNS != "" {
-		d := &peer.Discovery{Name: *peersDNS, Self: []string{*selfIP}}
+		d := &peer.Discovery{Name: *peersDNS, Self: []string{*selfIP}, Logf: logger.Printf}
 		peerList = func(ctx context.Context) []store.ChunkSource {
 			if *peersDNS == "" {
 				return static
