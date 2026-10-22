@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	"path/filepath"
 	"testing"
@@ -28,7 +29,7 @@ func TestDiff(t *testing.T) {
 	base := pushDir(t, s, map[string][]byte{"decode_B2.rbln": w, "config.json": []byte(`{"batch": 2}`)})
 
 	// identical content under another name: all Same, paired by kind
-	st, err := s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B8.rbln": w, "config.json": []byte(`{"batch": 2}`)}))
+	st, err := s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B8.rbln": w, "config.json": []byte(`{"batch": 2}`)}), DiffOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +43,7 @@ func TestDiff(t *testing.T) {
 	// one region overwritten in place
 	v := append([]byte(nil), w...)
 	copy(v[3<<20:], random(22, 200<<10))
-	st, err = s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B2.rbln": v}))
+	st, err = s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B2.rbln": v}), DiffOptions{Ranges: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,15 +58,30 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("no new stored bytes: %+v", st)
 	}
 
+	// the ranges cover exactly the bytes that are not at the same offset, in order (#46)
+	var covered, end int64
+	for _, r := range f.Changed {
+		if r[0] < end || r[1] <= 0 || r[0]+r[1] > f.Size {
+			t.Fatalf("ranges out of order or out of the file: %v", f.Changed)
+		}
+		covered, end = covered+r[1], r[0]+r[1]
+	}
+	if len(f.Changed) != f.ChangedRuns || covered != f.Size-f.Same || int64(len(v)) != f.Size {
+		t.Fatalf("ranges %v cover %d B, want %d", f.Changed, covered, f.Size-f.Same)
+	}
+	if !bytes.Equal(v[:f.Changed[0][0]], w[:f.Changed[0][0]]) {
+		t.Fatal("bytes before the first changed range differ from the base")
+	}
+
 	// the same bytes rearranged in 32 KiB blocks: most found elsewhere in the base, little at the
 	// same offset; sub-chunks that straddle block boundaries are new
-	st, err = s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B2.rbln": shuffled(w, 23)}))
+	st, err = s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B2.rbln": shuffled(w, 23)}), DiffOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	f = st.Files[0]
 	t.Logf("rearranged: %+v", f)
-	if f.Same+f.Moved+f.New != f.Size || f.Moved < f.Size/2 || f.Same > f.Size/10 {
+	if f.Same+f.Moved+f.New != f.Size || f.Moved < f.Size/2 || f.Same > f.Size/10 || f.Changed != nil {
 		t.Fatalf("rearranged: %+v", f)
 	}
 }

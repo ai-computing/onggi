@@ -365,8 +365,9 @@ func diff(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	sf := addStoreFlags(fs)
 	asJSON := fs.Bool("json", false, "print the diff as JSON")
+	ranges := fs.Bool("ranges", false, "list the changed byte ranges of each file (with --json: [offset, length] pairs)")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
-		fmt.Fprintln(stderr, "usage: onggi diff --store S [--json] <base ref|sha256:...> <ref|sha256:...>")
+		fmt.Fprintln(stderr, "usage: onggi diff --store S [--json] [--ranges] <base ref|sha256:...> <ref|sha256:...>")
 		return 2
 	}
 	ctx := context.Background()
@@ -382,7 +383,7 @@ func diff(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 	}
-	st, err := s.Diff(ctx, ds[0], ds[1])
+	st, err := s.Diff(ctx, ds[0], ds[1], store.DiffOptions{Ranges: *ranges})
 	if err != nil {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
@@ -412,5 +413,10 @@ func diff(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", f.Path, f.Base, human(f.Size), human(f.Same), human(f.Moved), human(f.New), f.ChangedRuns)
 	}
 	tw.Flush()
+	for _, f := range st.Files {
+		for _, r := range f.Changed {
+			fmt.Fprintf(stdout, "changed %s offset %d length %d (%s)\n", f.Path, r[0], r[1], human(r[1]))
+		}
+	}
 	return 0
 }
