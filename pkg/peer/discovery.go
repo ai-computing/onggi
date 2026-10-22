@@ -20,7 +20,7 @@ type Discovery struct {
 	TTL    time.Duration
 	HTTP   *http.Client
 	Lookup func(ctx context.Context, host string) ([]string, error) // nil: net.DefaultResolver.LookupHost
-	Logf   func(format string, args ...any)                            // nil: no log; called when the peers change
+	Logf   func(format string, args ...any)                         // nil: no log; called when the peers change
 
 	mu    sync.Mutex
 	cur   []store.ChunkSource
