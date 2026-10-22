@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
@@ -18,8 +19,16 @@ import (
 	"github.com/ai-computing/onggi/pkg/store"
 )
 
-// Puller writes the artifact with manifest m into the empty directory dest.
-type Puller func(ctx context.Context, m digest.Digest, dest string) (store.PullStats, error)
+// Puller writes the artifact with manifest m into the empty directory dest. offer, if not nil,
+// names artifacts on the node the pull may turn into m (delta apply, #41).
+type Puller func(ctx context.Context, m digest.Digest, dest string, offer *Offer) (store.PullStats, error)
+
+// Offer is what a materializer offers a pull for delta apply: idle artifacts, and Claim, which
+// takes one away from the materializer and returns the directory its files are in now.
+type Offer struct {
+	Bases []store.Base
+	Claim func(store.Base) (dir string, ok bool)
+}
 
 // StorePuller pulls from s through the node cache (nil: no cache), assembling cache packs in tmp.
 func StorePuller(s *store.Store, cache *store.Store, tmp string, workers int) Puller {
@@ -36,7 +45,7 @@ func StorePullerOpen(s *store.Store, openCache func(context.Context) (*store.Sto
 // for chunks the node cache lacks, before the store (#37).
 func StorePullerPeers(s *store.Store, openCache func(context.Context) (*store.Store, error),
 	peers func(context.Context) []store.ChunkSource, tmp string, workers int) Puller {
-	return func(ctx context.Context, m digest.Digest, dest string) (store.PullStats, error) {
+	return func(ctx context.Context, m digest.Digest, dest string, offer *Offer) (store.PullStats, error) {
 		cache, err := openCache(ctx)
 		if err != nil {
 			return store.PullStats{}, err
@@ -44,6 +53,9 @@ func StorePullerPeers(s *store.Store, openCache func(context.Context) (*store.St
 		o := store.PullOptions{Workers: workers, Cache: cache, CacheTmp: tmp}
 		if peers != nil {
 			o.Peers = peers(ctx)
+		}
+		if offer != nil {
+			o.Bases, o.Claim = offer.Bases, offer.Claim
 		}
 		return s.Pull(ctx, m, dest, o)
 	}
@@ -63,6 +75,11 @@ type Materializer struct {
 	Root string
 	Pull Puller
 	Logf func(format string, args ...any) // nil: no log
+	// RebaseIdle enables delta apply (#41): a pull may consume an artifact no volume uses and
+	// nothing used for this long, writing only what differs from it. 0: off.
+	RebaseIdle time.Duration
+	// Unmount removes the read-only self-bind publishing put on an artifact directory (nil: none).
+	Unmount func(dir string) error
 
 	mu       sync.Mutex
 	inflight map[digest.Digest]*flight
@@ -168,7 +185,14 @@ func (m *Materializer) materialize(d digest.Digest) error {
 	}
 	m.logf("materializing %s", d)
 	start := time.Now()
-	st, err := m.Pull(context.Background(), d, tmp)
+	offer, claimed := m.offer(d)
+	st, err := m.Pull(context.Background(), d, tmp, offer)
+	for _, c := range *claimed {
+		os.RemoveAll(c) // what the pull did not move of a consumed base
+	}
+	if st.Base != "" {
+		m.logf("pull of %s took over %s: %d B left in place", d, st.Base, st.Reused)
+	}
 	if err != nil {
 		m.logf("materializing %s failed after %s: %v", d, time.Since(start).Round(time.Millisecond), err)
 		return fmt.Errorf("pull %s: %w", d, err)
@@ -289,4 +313,71 @@ func syncDir(p string) {
 		f.Sync()
 		f.Close()
 	}
+}
+
+// offer lists the artifacts a pull of d may consume (#41): no volume, no pull, and unused for
+// RebaseIdle, most recently used first, at most three. Claim takes one out of artifacts/ under the
+// lock, so Ensure and Evict no longer see it; the directories it hands out are listed in claimed.
+func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
+	claimed := new([]string)
+	if m.RebaseIdle <= 0 {
+		return nil, claimed
+	}
+	m.mu.Lock()
+	ds, _ := m.materialized()
+	var bases []store.Base
+	for _, b := range ds {
+		if m.idle(b, time.Now()) && b != d {
+			bases = append(bases, store.Base{Manifest: b, Dir: m.Dir(b)})
+		}
+	}
+	m.mu.Unlock()
+	if len(bases) == 0 {
+		return nil, claimed
+	}
+	sort.Slice(bases, func(i, j int) bool { return m.lastUsed(bases[i].Manifest).After(m.lastUsed(bases[j].Manifest)) })
+	if len(bases) > 3 {
+		bases = bases[:3]
+	}
+	claim := func(b store.Base) (string, bool) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		if !m.idle(b.Manifest, time.Now()) {
+			return "", false
+		}
+		dir := m.Dir(b.Manifest)
+		if m.Unmount != nil {
+			if err := m.Unmount(dir); err != nil {
+				m.logf("rebase from %s: %v", b.Manifest, err)
+				return "", false
+			}
+		}
+		t, err := os.MkdirTemp(filepath.Join(m.Root, "tmp"), "rebase-")
+		if err != nil {
+			return "", false
+		}
+		dst := filepath.Join(t, b.Manifest.Hex())
+		if err := os.Rename(dir, dst); err != nil {
+			os.Remove(t)
+			m.logf("rebase from %s: %v", b.Manifest, err)
+			return "", false
+		}
+		os.Remove(m.usedFile(b.Manifest))
+		os.Remove(filepath.Join(m.Root, "leases", b.Manifest.Hex()))
+		*claimed = append(*claimed, t)
+		return dst, true
+	}
+	return &Offer{Bases: bases, Claim: claim}, claimed
+}
+
+// idle says whether artifact d may be consumed: materialized, no volume, no pull, unused for
+// RebaseIdle. The caller holds m.mu.
+func (m *Materializer) idle(d digest.Digest, now time.Time) bool {
+	if _, busy := m.inflight[d]; busy || !isDir(m.Dir(d)) {
+		return false
+	}
+	if n, err := m.users(d); err != nil || n > 0 {
+		return false
+	}
+	return now.Sub(m.lastUsed(d)) >= m.RebaseIdle
 }

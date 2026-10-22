@@ -48,7 +48,7 @@ type PullStats struct {
 	CacheBytes int64         `json:"cache_bytes"` // bytes read from the node cache
 	PeerBytes  int64         `json:"peer_bytes"`  // bytes received from peers
 	PeerChunks int64         `json:"peer_chunks"`
-	Cached     int64         `json:"cached"` // stored bytes added to the node cache
+	Cached     int64         `json:"cached"`         // stored bytes added to the node cache
 	Base       string        `json:"base,omitempty"` // the artifact this pull turned into the new one
 	Reused     int64         `json:"reused"`         // bytes left in place in the base's files
 	Ranges     int           `json:"ranges"`

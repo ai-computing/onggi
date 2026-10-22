@@ -36,6 +36,7 @@ func csiNode(args []string, stderr io.Writer) int {
 	gcEvery := fs.Duration("gc-every", time.Hour, "how often to evict and collect the node cache (0: never)")
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
 	gcGrace := fs.Duration("gc-grace", time.Hour, "grace period of the node cache's GC")
+	rebaseIdle := fs.Duration("rebase-idle", 5*time.Minute, "a pull may turn an artifact no volume used for this long into the new one, writing only what differs (0: never)")
 	peerListen := fs.String("peer-listen", "", "serve the node cache to other nodes' pulls on this address, e.g. :7070 (#37)")
 	peers := fs.String("peers", "", "comma-separated peer URLs asked for chunks before the store")
 	peersDNS := fs.String("peers-dns", "", "host:port whose name resolves to the peers, e.g. a headless Service; re-resolved every 30 s")
@@ -99,6 +100,7 @@ func csiNode(args []string, stderr io.Writer) int {
 		return 1
 	}
 	mounter := csi.NewMounter()
+	m.RebaseIdle, m.Unmount = *rebaseIdle, mounter.Unmount
 	n := &csi.Node{
 		Version: version,
 		NodeID:  *nodeID,
