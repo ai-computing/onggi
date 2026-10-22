@@ -182,9 +182,11 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	workers := fs.Int("workers", 8, "ranges read at once")
 	cacheDir := fs.String("cache", "", "node chunk cache: a local directory; chunks it holds are not read from the store, chunks read from the store are added")
 	peers := fs.String("peers", "", "comma-separated peer URLs (onggi peer serve) asked for chunks before the store")
+	baseRef := fs.String("base", "", "an artifact already restored in --base-dir that the pull may turn into this one, writing only what differs; its files are moved away (#41)")
+	baseDir := fs.String("base-dir", "", "the directory holding --base")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
-		fmt.Fprintln(stderr, "usage: onggi pull --store S [--cache DIR] <ref|sha256:...> <dir>")
+		fmt.Fprintln(stderr, "usage: onggi pull --store S [--cache DIR] [--peers URLS] [--base REF --base-dir DIR] <ref|sha256:...> <dir>")
 		return 2
 	}
 	ctx := context.Background()
@@ -199,6 +201,19 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	o := store.PullOptions{Workers: *workers, Peers: peerClients(*peers)}
+	if (*baseRef == "") != (*baseDir == "") {
+		fmt.Fprintln(stderr, "onggi: --base and --base-dir go together")
+		return 2
+	}
+	if *baseRef != "" {
+		bd, err := store.Resolve(ctx, refs, *baseRef)
+		if err != nil {
+			fmt.Fprintln(stderr, "onggi: base:", err)
+			return 1
+		}
+		o.Bases = []store.Base{{Manifest: bd, Dir: *baseDir}}
+		o.Claim = func(b store.Base) (string, bool) { return b.Dir, true }
+	}
 	if *cacheDir != "" {
 		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
 		if err == nil {
@@ -230,6 +245,11 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	}
 	if len(o.Peers) > 0 {
 		fmt.Fprintln(stdout, "peers    received", human(st.PeerBytes), "in", st.PeerChunks, "chunks")
+	}
+	if st.Base != "" {
+		fmt.Fprintln(stdout, "base     took over", st.Base, "and left", human(st.Reused), "in place")
+	} else if len(o.Bases) > 0 {
+		fmt.Fprintln(stdout, "base     not used: too little of it sits at the same offsets")
 	}
 	return 0
 }
