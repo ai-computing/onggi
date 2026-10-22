@@ -57,14 +57,15 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("no new stored bytes: %+v", st)
 	}
 
-	// the same bytes rearranged: nothing new, little at the same offset
+	// the same bytes rearranged in 32 KiB blocks: most found elsewhere in the base, little at the
+	// same offset; sub-chunks that straddle block boundaries are new
 	st, err = s.Diff(ctx, base, pushDir(t, s, map[string][]byte{"decode_B2.rbln": shuffled(w, 23)}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	f = st.Files[0]
 	t.Logf("rearranged: %+v", f)
-	if f.Same+f.Moved+f.New != f.Size || f.Moved < f.Size/2 || f.New > f.Size/10 {
+	if f.Same+f.Moved+f.New != f.Size || f.Moved < f.Size/2 || f.Same > f.Size/10 {
 		t.Fatalf("rearranged: %+v", f)
 	}
 }
