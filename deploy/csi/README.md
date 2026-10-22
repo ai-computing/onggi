@@ -74,7 +74,7 @@ On the lab node (`onggi pull --base`, the same pull the plugin runs):
 | from the B2 copy, no node cache | 28.3 MB store | 15.01 GB | **5.7 s** | identical |
 | back to B2 from the B8 copy, through the node cache | 23.2 MB cache | 15.01 GB | 23.5 s | identical |
 
-Through the node cache, about 10 s of the 27 s is loading the cache's index (3.3 M chunks); #43 tracks that.
+Through the node cache, about 10 s of the 27 s is loading the cache's index (3.3 M chunks); #42 tracks that.
 
 ## Limits of v0
 
