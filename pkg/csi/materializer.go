@@ -29,12 +29,23 @@ func StorePuller(s *store.Store, cache *store.Store, tmp string, workers int) Pu
 // StorePullerOpen is StorePuller with the node cache opened afresh for each pull (nil: no
 // cache), so a pull sees the cache as the plugin's GC loop left it (#33).
 func StorePullerOpen(s *store.Store, openCache func(context.Context) (*store.Store, error), tmp string, workers int) Puller {
+	return StorePullerPeers(s, openCache, nil, tmp, workers)
+}
+
+// StorePullerPeers is StorePullerOpen that also asks the peers returned by peers (nil: none)
+// for chunks the node cache lacks, before the store (#37).
+func StorePullerPeers(s *store.Store, openCache func(context.Context) (*store.Store, error),
+	peers func(context.Context) []store.ChunkSource, tmp string, workers int) Puller {
 	return func(ctx context.Context, m digest.Digest, dest string) (store.PullStats, error) {
 		cache, err := openCache(ctx)
 		if err != nil {
 			return store.PullStats{}, err
 		}
-		return s.Pull(ctx, m, dest, store.PullOptions{Workers: workers, Cache: cache, CacheTmp: tmp})
+		o := store.PullOptions{Workers: workers, Cache: cache, CacheTmp: tmp}
+		if peers != nil {
+			o.Peers = peers(ctx)
+		}
+		return s.Pull(ctx, m, dest, o)
 	}
 }
 
