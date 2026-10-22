@@ -146,7 +146,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if minSame <= 0 {
 			minSame = DefaultMinSame
 		}
-		if p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files)), o.Bases, minSame); ok {
+		if p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame); ok {
 			if dir, ok := o.Claim(p.base); ok {
 				st.Base = p.base.Manifest.String()
 				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
@@ -164,21 +164,17 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 			return st, fmt.Errorf("node cache: %w", err)
 		}
 		defer release()
-		if err := c.LoadIndex(ctx); err != nil {
+		var need []int32
+		for i := range nodes {
+			if nodes[i].stored && !done[i] {
+				need = append(need, int32(i))
+			}
+		}
+		cpacks, err := c.locate(ctx, nodes, need)
+		if err != nil {
 			return st, fmt.Errorf("node cache: %w", err)
 		}
-		for i := range nodes {
-			nd := &nodes[i]
-			if !nd.stored {
-				continue
-			}
-			if _, e, ok := c.lookup(nd.chunk); ok && e.state == stateStored && e.loc.Length == nd.loc.Length {
-				nd.fromCache, nd.loc = true, e.loc
-			}
-		}
-		c.mu.RLock()
-		srcs = append(srcs, source{c, append([]digest.Digest(nil), c.packs...)})
-		c.mu.RUnlock()
+		srcs = append(srcs, source{c, cpacks})
 		fill = c.newPackWriter(o.CacheTmp)
 		defer fill.abort()
 	}
