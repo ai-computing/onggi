@@ -47,12 +47,21 @@ Every `--gc-every` (default 1 h) the plugin:
 
 `--gc-every 0` turns both off.
 
+## Peers (#37)
+
+With `--peer-listen :7070` the plugin serves its node cache to other nodes (`onggi peer serve`, #34). With
+`--peers-dns onggi-csi-peers.<namespace>.svc.cluster.local:7070` it finds the other plugins through the headless
+Service in `node-plugin.yaml`, re-resolving every 30 s and leaving out its own `POD_IP`. A pull then asks the peers
+for the chunks the node cache lacks before the store; every chunk is hash-checked, and the store serves what peers do
+not. `--peers URL,...` adds a static list. The peer port serves read-only chunks without authentication; keep it
+inside the cluster.
+
 ## Limits of v0
 
 - The files are a second copy next to the node cache, which holds packed and compressed chunks. Reflinks or
   hardlinks from the cache need a cache of plain files.
 - One plugin per node and data directory. Linux only.
-- The plugin neither serves its cache to peers nor asks them yet (`onggi peer serve`, `pull --peers`, #34); no metrics yet.
+- No metrics yet. Peers are every plugin behind the Service; there is no placement or replication policy yet.
 - The plugin runs privileged, with `Bidirectional` mount propagation on the kubelet's pods directory. This is what
   any CSI node plugin needs; run it in a namespace for system components.
 - No onggi image is published yet; the manifests use `<image with the onggi binary>`.
