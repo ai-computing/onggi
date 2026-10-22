@@ -66,6 +66,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 연구실 노드에서 ATOM decode 변형 하나(저장소에서 10.2 GB 읽음)를 받은 뒤, 두 번째 변형은 저장소에서 28 MB(0.3%)만,
 prefill 빌드는 1.9 GB를 읽었고, 같은 변형을 다시 받을 때는 0 B를 읽었습니다. 모두 원본과 바이트 단위로 같았습니다.
 캐시 정리(eviction)는 노드 agent에서 다룹니다.
+Kubernetes에서는 init container가 이 pull을 실행해 pod의 emptyDir에 결과물을 풀고, 노드 캐시는 hostPath에 둡니다.
+자세한 내용은 [deploy/k8s](deploy/k8s/README.md)를 보세요.
 
 메모리:
 - pull은 저장소 전체 색인이 아니라 결과물의 locator만 읽습니다. 이 묶음에서 기본 설정은 최대 3.6 GB RSS이고,

@@ -1,0 +1,38 @@
+# Delivery v0 (#25): an init container restores an artifact into the pod's emptyDir, reading
+# chunks the node already holds from a node cache shared by every pod on the node (hostPath),
+# and only the rest from the store. Replace every <...> before use.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <engine-pod>
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: <node>
+  initContainers:
+    - name: onggi-pull
+      image: <image with the onggi binary>
+      command: ["onggi", "pull", "--json", "--cache", "/var/lib/onggi/cache", "<ref>", "/models/<ref>"]
+      env:
+        - name: ONGGI_STORE # a directory, file:// or s3://bucket/prefix?endpoint=host:port
+          value: <store url>
+        - name: GOMEMLIMIT # keeps the pull under about 2 GB (README, Memory)
+          value: 1800MiB
+        # for s3:// stores
+        # - name: AWS_ACCESS_KEY_ID
+        #   valueFrom: {secretKeyRef: {name: <secret>, key: access-key}}
+        # - name: AWS_SECRET_ACCESS_KEY
+        #   valueFrom: {secretKeyRef: {name: <secret>, key: secret-key}}
+      volumeMounts:
+        - {name: cache, mountPath: /var/lib/onggi/cache}
+        - {name: models, mountPath: /models}
+  containers:
+    - name: engine
+      image: <engine image>
+      args: ["--model", "/models/<ref>"]
+      volumeMounts:
+        - {name: models, mountPath: /models, readOnly: true}
+  volumes:
+    - name: cache
+      hostPath: {path: /var/lib/onggi/cache, type: DirectoryOrCreate}
+    - name: models
+      emptyDir: {}
