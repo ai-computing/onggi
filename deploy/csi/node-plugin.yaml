@@ -1,0 +1,65 @@
+# onggi CSI node plugin (#27): one pod per node. Replace every <...> before use.
+#
+# The plugin materializes each artifact once per node under <data dir>/artifacts/<manifest>,
+# filling the node cache under <data dir>/cache, and bind-mounts the artifact read-only into
+# pods. It mounts, so it runs privileged with Bidirectional propagation on the kubelet's pods
+# directory. The store URL and credentials are the plugin's; pods only name a ref.
+# The plugin does not call the Kubernetes API, so it needs no RBAC.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: onggi-csi-node
+  namespace: <namespace>
+spec:
+  selector:
+    matchLabels: {app: onggi-csi-node}
+  template:
+    metadata:
+      labels: {app: onggi-csi-node}
+    spec:
+      # nodeSelector: {<label>: <value>} # nodes that serve onggi volumes
+      containers:
+        - name: plugin
+          image: <image with the onggi binary>
+          args:
+            - csi
+            - --endpoint=unix:///csi/csi.sock
+            - --data-dir=/var/lib/onggi
+          env:
+            - name: NODE_NAME
+              valueFrom: {fieldRef: {fieldPath: spec.nodeName}}
+            - name: ONGGI_STORE # a directory, file:// or s3://bucket/prefix?endpoint=host:port
+              value: <store url>
+            - name: GOMEMLIMIT # keeps pulls under about 2 GB (README, Memory)
+              value: 1800MiB
+            # for s3:// stores
+            # - name: AWS_ACCESS_KEY_ID
+            #   valueFrom: {secretKeyRef: {name: <secret>, key: access-key}}
+            # - name: AWS_SECRET_ACCESS_KEY
+            #   valueFrom: {secretKeyRef: {name: <secret>, key: secret-key}}
+          securityContext:
+            privileged: true # bind mounts into pod volumes
+          volumeMounts:
+            - {name: socket-dir, mountPath: /csi}
+            - {name: pods-dir, mountPath: /var/lib/kubelet/pods, mountPropagation: Bidirectional}
+            - {name: data, mountPath: /var/lib/onggi}
+            # - {name: store, mountPath: <store dir>, readOnly: true} # for a directory store
+        - name: registrar
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.13.0
+          args:
+            - --csi-address=/csi/csi.sock
+            - --kubelet-registration-path=/var/lib/kubelet/plugins/onggi.ai-computing.github.io/csi.sock
+          volumeMounts:
+            - {name: socket-dir, mountPath: /csi}
+            - {name: registration-dir, mountPath: /registration}
+      volumes:
+        - name: socket-dir
+          hostPath: {path: /var/lib/kubelet/plugins/onggi.ai-computing.github.io, type: DirectoryOrCreate}
+        - name: registration-dir
+          hostPath: {path: /var/lib/kubelet/plugins_registry, type: Directory}
+        - name: pods-dir
+          hostPath: {path: /var/lib/kubelet/pods, type: Directory}
+        - name: data # local disk: materialized artifacts and the node cache
+          hostPath: {path: /var/lib/onggi, type: DirectoryOrCreate}
+        # - name: store
+        #   hostPath: {path: <store dir>, type: Directory}

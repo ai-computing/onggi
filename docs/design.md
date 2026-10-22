@@ -211,7 +211,7 @@ Failure handling
 Only extension points are used; neither Kubernetes nor llm-d is forked or patched.
 
 - **CRDs** for every state, so lmd-top, the CLI and GitOps (Argo CD, Flux) all act the same way.
-- **CSI** volume `onggi.ai-computing.io` (ephemeral inline) as the delivery path; Kubernetes image volumes and an
+- **CSI** volume `onggi.ai-computing.github.io` (ephemeral inline) as the delivery path; Kubernetes image volumes and an
   init container are fallbacks (ADR-0004).
 - **Scheduling** through a mutating webhook that adds preferred node affinity to pods with an onggi volume (prefer
   nodes that hold the artifact), in the spirit of the scheduler's ImageLocality plugin.
@@ -243,7 +243,7 @@ status:
 volumes:
   - name: model
     csi:
-      driver: onggi.ai-computing.io
+      driver: onggi.ai-computing.github.io
       readOnly: true
       volumeAttributes: {ref: llama-3.1-8b@atom/decode-s512-b8}
 ```

@@ -201,7 +201,7 @@ NPU는 모델을 미리 컴파일합니다. 모델 × 컴파일러/SDK 버전 ×
 확장 지점만 사용하며 Kubernetes나 llm-d를 포크하거나 패치하지 않습니다.
 
 - 모든 상태를 **CRD**로 두어 lmd-top, CLI, GitOps(Argo CD, Flux)가 같은 방식으로 동작
-- 전달은 **CSI** 볼륨 `onggi.ai-computing.io`(ephemeral inline); Kubernetes image volume과 init container는 대안(ADR-0004)
+- 전달은 **CSI** 볼륨 `onggi.ai-computing.github.io`(ephemeral inline); Kubernetes image volume과 init container는 대안(ADR-0004)
 - **스케줄링**: onggi 볼륨을 쓰는 pod에 mutating 웹훅이 선호 노드 친화도를 추가(결과물을 가진 노드 선호).
   스케줄러의 ImageLocality와 같은 발상
 - **llm-d**: 배포 매니페스트가 onggi 볼륨을 참조; llm-d autoscaling·KEDA 확장 신호로 미리 데우기; npu-train의 LoRA
@@ -229,7 +229,7 @@ spec:
 volumes:
   - name: model
     csi:
-      driver: onggi.ai-computing.io
+      driver: onggi.ai-computing.github.io
       readOnly: true
       volumeAttributes: {ref: llama-3.1-8b@atom/decode-s512-b8}
 ```

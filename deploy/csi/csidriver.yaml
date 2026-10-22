@@ -1,0 +1,10 @@
+# The onggi CSI driver (#27): ephemeral inline volumes only, no controller, no attach.
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: onggi.ai-computing.github.io
+spec:
+  attachRequired: false
+  podInfoOnMount: true
+  volumeLifecycleModes: [Ephemeral]
+  fsGroupPolicy: None # the volume is read-only; kubelet must not chown it

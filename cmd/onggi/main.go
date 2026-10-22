@@ -26,6 +26,7 @@ usage:
   onggi ls      --store S                        refs and store totals
   onggi inspect --store S <ref|sha256:...>       files of an artifact
   onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
+  onggi csi     --store S [flags]                CSI node plugin: serve artifacts as read-only volumes (Linux)
   onggi version
 
 A store S is a directory or file:// URL on any POSIX mount (local disk, NFS, SMB, CephFS, ...).
@@ -49,6 +50,8 @@ func main() {
 		os.Exit(ls(os.Args[2:], os.Stdout, os.Stderr))
 	case "inspect":
 		os.Exit(inspect(os.Args[2:], os.Stdout, os.Stderr))
+	case "csi":
+		os.Exit(csiNode(os.Args[2:], os.Stderr))
 	case "version":
 		fmt.Println(version)
 	case "-h", "--help", "help":

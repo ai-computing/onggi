@@ -7,11 +7,14 @@ Engines (vLLM, vllm-rbln, furiosa-llm, rngd-pd, Optimus Prime) read files from a
 Kubernetes offers CSI drivers, image volumes (OCI artifacts) and init containers.
 
 ## Decision
-Primary path: a CSI node plugin in onggi-agent (`onggi.ai-computing.io`, ephemeral inline volumes). `NodePublishVolume`
+Primary path: a CSI node plugin in onggi-agent (`onggi.ai-computing.github.io`, ephemeral inline volumes). `NodePublishVolume`
 materializes the artifact as regular files on local disk (reflink/hardlink from the cache) and bind-mounts it
 read-only; the pod stays Pending until it is ready. Fallbacks: Kubernetes image volumes where the cluster supports
 them, and an init container. Lazy FUSE reads are an option for cold start only.
 
 ## Consequences
+v0 (#27, [deploy/csi](../../deploy/csi/README.md)) materializes plain files decoded from the node cache, since the
+cache holds packed, compressed chunks; reflinks or hardlinks would need a cache of plain files.
+
 No engine changes; kubelet owns the mount lifecycle. Materializing whole files costs local disk equal to the
 artifact's distinct bytes, shared through hardlinks across pods on the node.

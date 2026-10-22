@@ -69,8 +69,10 @@ then takes 1.6× off. `--compress none` and `--sub 0` turn the two off.
 With `--cache DIR` a pull reads chunks the node already holds from a local cache store and adds what it fetches. On
 the lab node, after one ATOM decode variant (10.2 GB read), a second one read 28 MB from the store (0.3 %), a prefill
 build 1.9 GB, and a repeat 0 B; every restore was byte-identical. Eviction comes with the node agent.
-On Kubernetes, an init container runs this pull into the pod's emptyDir with the node cache on hostPath; see
-[deploy/k8s](deploy/k8s/README.md).
+On Kubernetes, the CSI driver ([deploy/csi](deploy/csi/README.md)) mounts a ref as a read-only volume: the node
+materializes each artifact once, through the node cache, and pods with the same ref share that copy. On the lab
+cluster a second decode variant read 28 MB from the store. An init container into the pod's emptyDir also works
+([deploy/k8s](deploy/k8s/README.md)).
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
