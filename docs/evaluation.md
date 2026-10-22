@@ -139,6 +139,19 @@ onggi CSI volume (read-only) and, for reference, from its original directory. Ne
 | onggi pfbatch by delta apply (preset taken over, 0 B from the store, 3.9 s) | **21.8 s** | 10.0 s | identical |
 | onggi pfbatch, warm | 18.2 s | 10.1 s | identical |
 
+**vLLM with vllm-rbln on ATOM** (vLLM 0.22.0, vllm-rbln 0.11.0, an optimum-rbln 0.11 build of Llama-3.1-8B, batch 1,
+max length 1024, compiled in 4 min 43 s without a card; offline `LLM` API, temperature 0, 48 tokens):
+
+| run | pod created → first token | engine load | tokens |
+|---|---|---|---|
+| original directory | 54.6 s | 44.0 s | reference |
+| onggi, cold (17.2 GB model, 10.6 GB from the store, 2 min 6 s) | 194.0 s | 45.9 s | identical |
+| onggi, warm | 55.2 s | 44.9 s | identical |
+
+**rngd-pd's own engine on RNGD** (its compiled graph cache, 68.4 MB, pointed at the volume with `RNGD_ARTIFACT_CACHE`;
+no change to rngd-pd): the volume was ready in 0.36 s (10.2 MB from the store), first token 118.7 s cold and 101.8 s
+warm against 118.6 s from the original directory, tokens identical. Its start-up is spent loading the HF weights.
+
 With delta apply, switching a node to another variant brings the first token within a few seconds of loading from the
 original directory. The run found two plugin issues, both fixed: a late-exiting plugin removed its successor's socket
 (#61), and files stored with mode 0600 were unreadable for non-root engines (#62).
