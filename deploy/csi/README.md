@@ -56,6 +56,26 @@ for the chunks the node cache lacks before the store; every chunk is hash-checke
 not. `--peers URL,...` adds a static list. The peer port serves read-only chunks without authentication; keep it
 inside the cluster.
 
+## Delta apply (#41)
+
+When a pod needs an artifact the node does not have, the plugin offers the pull the artifacts that no volume has used
+for `--rebase-idle` (default 5 min). The pull picks the one that keeps the most bytes at the same offsets (at least half),
+takes its directory out of `artifacts/` (after unmounting its self-bind), moves its files into place and writes only
+the chunks that differ. Between two decode variants that is about 1.4 % of 15 GB (`onggi diff`, #38). The consumed
+artifact is gone from the node; if a pod asks for it again, it comes back the same way. `--rebase-idle 0` turns this
+off.
+
+On the lab node (`onggi pull --base`, the same pull the plugin runs):
+
+| decode B8 (15.2 GB), node holds decode B2 | read | left in place | time | check |
+|---|---|---|---|---|
+| plain pull through the node cache | 28.3 MB store + 10.18 GB cache | 0 | 73.8 s | identical |
+| from the B2 copy, through the node cache | 28.3 MB cache | 15.01 GB | **26.8 s** | identical |
+| from the B2 copy, no node cache | 28.3 MB store | 15.01 GB | **5.7 s** | identical |
+| back to B2 from the B8 copy, through the node cache | 23.2 MB cache | 15.01 GB | 23.5 s | identical |
+
+Through the node cache, about 10 s of the 27 s is loading the cache's index (3.3 M chunks); #43 tracks that.
+
 ## Limits of v0
 
 - The files are a second copy next to the node cache, which holds packed and compressed chunks. Reflinks or
