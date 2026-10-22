@@ -27,6 +27,9 @@ type PullOptions struct {
 	// artifact reads only what the node lacks. Its index is loaded by Pull.
 	Cache    *Store
 	CacheTmp string // where cache packs are assembled (default: system temp)
+	// Peers are other nodes' caches (pkg/peer, #34), asked for what the node cache lacks before
+	// the store.
+	Peers []ChunkSource
 }
 
 // PullStats reports a pull.
@@ -35,7 +38,9 @@ type PullStats struct {
 	Bytes      int64         `json:"bytes"`       // logical bytes written
 	ReadBytes  int64         `json:"read_bytes"`  // bytes read from the store (stored form)
 	CacheBytes int64         `json:"cache_bytes"` // bytes read from the node cache
-	Cached     int64         `json:"cached"`      // stored bytes added to the node cache
+	PeerBytes  int64         `json:"peer_bytes"`  // bytes received from peers
+	PeerChunks int64         `json:"peer_chunks"`
+	Cached     int64         `json:"cached"` // stored bytes added to the node cache
 	Ranges     int           `json:"ranges"`
 	Duration   time.Duration `json:"duration_ns"`
 }
@@ -167,10 +172,15 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		defer fill.abort()
 	}
 
+	done := make([]bool, len(nodes)) // written from peers
+	if len(o.Peers) > 0 {
+		st.PeerBytes, st.PeerChunks = s.fromPeers(ctx, o.Peers, o.Workers, nodes, done, handles, fill)
+	}
+
 	// stored chunks by source and pack order, coalesced into ranges of that order
 	var order []int32
 	for i := range nodes {
-		if nodes[i].stored {
+		if nodes[i].stored && !done[i] {
 			order = append(order, int32(i))
 		}
 	}

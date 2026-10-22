@@ -34,6 +34,7 @@ usage:
                                                  artifacts do not need
   onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
   onggi csi     --store S [flags]                CSI node plugin: serve artifacts as read-only volumes (Linux)
+  onggi peer serve --cache DIR [--listen :7070]   serve a node cache to other nodes' pulls (--peers)
   onggi version
 
 A store S is a directory or file:// URL on any POSIX mount (local disk, NFS, SMB, CephFS, ...).
@@ -63,6 +64,12 @@ func main() {
 		os.Exit(rmRef(os.Args[2:], os.Stdout, os.Stderr))
 	case "gc":
 		os.Exit(gc(os.Args[2:], os.Stdout, os.Stderr))
+	case "peer":
+		if len(os.Args) < 3 || os.Args[2] != "serve" {
+			fmt.Fprint(os.Stderr, usage)
+			os.Exit(2)
+		}
+		os.Exit(peerServe(os.Args[3:], os.Stderr))
 	case "version":
 		fmt.Println(version)
 	case "-h", "--help", "help":
