@@ -30,6 +30,14 @@ type PullOptions struct {
 	// Peers are other nodes' caches (pkg/peer, #34), asked for what the node cache lacks before
 	// the store.
 	Peers []ChunkSource
+	// Bases are artifacts on the node the pull may turn into this one (delta apply, #41). The pull
+	// picks the one that keeps the most bytes in place, if that is at least MinSame (default
+	// DefaultMinSame) of the artifact, and calls Claim, which hands the base's files over and
+	// returns the directory they are in now (ok false: not available). The caller removes that
+	// directory after the pull; the files the pull used are gone from it.
+	Bases   []Base
+	Claim   func(Base) (dir string, ok bool)
+	MinSame float64
 }
 
 // PullStats reports a pull.
@@ -41,6 +49,8 @@ type PullStats struct {
 	PeerBytes  int64         `json:"peer_bytes"`  // bytes received from peers
 	PeerChunks int64         `json:"peer_chunks"`
 	Cached     int64         `json:"cached"` // stored bytes added to the node cache
+	Base       string        `json:"base,omitempty"` // the artifact this pull turned into the new one
+	Reused     int64         `json:"reused"`         // bytes left in place in the base's files
 	Ranges     int           `json:"ranges"`
 	Duration   time.Duration `json:"duration_ns"`
 }
@@ -130,6 +140,21 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	if err != nil {
 		return st, err
 	}
+	done := make([]bool, len(nodes)) // in place from a base, or written from peers
+	if len(o.Bases) > 0 && o.Claim != nil {
+		minSame := o.MinSame
+		if minSame <= 0 {
+			minSame = DefaultMinSame
+		}
+		if p, ok := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files)), o.Bases, minSame); ok {
+			if dir, ok := o.Claim(p.base); ok {
+				st.Base = p.base.Manifest.String()
+				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
+					return st, err
+				}
+			}
+		}
+	}
 	srcs := []source{{s, packs}}
 	var fill *packWriter
 	if c := o.Cache; c != nil {
@@ -158,7 +183,6 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		defer fill.abort()
 	}
 
-	done := make([]bool, len(nodes)) // written from peers
 	if len(o.Peers) > 0 {
 		st.PeerBytes, st.PeerChunks = s.fromPeers(ctx, o.Peers, o.Workers, nodes, done, handles, fill)
 	}

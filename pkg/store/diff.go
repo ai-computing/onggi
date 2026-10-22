@@ -34,7 +34,11 @@ func (s *Store) Extents(ctx context.Context, m *Manifest) ([][]Extent, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := make([][]Extent, len(m.Files))
+	return extentsOf(nodes, len(m.Files)), nil
+}
+
+func extentsOf(nodes []node, files int) [][]Extent {
+	out := make([][]Extent, files)
 	var place func(id int32, base int64, d digest.Digest, n uint32)
 	place = func(id int32, base int64, d digest.Digest, n uint32) {
 		nd := &nodes[id]
@@ -67,7 +71,7 @@ func (s *Store) Extents(ctx context.Context, m *Manifest) ([][]Extent, error) {
 			return 0
 		})
 	}
-	return out, nil
+	return out
 }
 
 // FileDiff is the diff of one file of the new artifact.
