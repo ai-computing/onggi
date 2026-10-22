@@ -46,9 +46,11 @@ func TestDiff(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("in place: %+v", st.Files[0])
 	f := st.Files[0]
-	if f.Same+f.Moved+f.New != f.Size || f.New < 200<<10 || f.New > 600<<10 || f.ChangedRuns != 1 || f.SameBlocks > f.Same {
+	t.Logf("in place: %+v", f)
+	// sub-chunks next to the region may resynchronize and split it into a few runs
+	if f.Same+f.Moved+f.New != f.Size || f.New < 200<<10 || f.New > 600<<10 || f.ChangedRuns < 1 || f.ChangedRuns > 3 ||
+		f.LargestRun < 200<<10 || f.SameBlocks > f.Same {
 		t.Fatalf("in place: %+v", f)
 	}
 	if st.NewStored == 0 {
