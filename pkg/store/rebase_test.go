@@ -51,7 +51,8 @@ func TestRebaseWritesOnlyWhatChanged(t *testing.T) {
 	}
 	sameTree(t, src, out)
 	t.Logf("%+v", st)
-	if claimed != 1 || st.Base != b.Manifest.String() || st.Reused < int64(len(v))*9/10 || st.ReadBytes > int64(len(v))/10 {
+	if claimed != 1 || st.Base != b.Manifest.String() || st.Reused < int64(len(v))*9/10 || st.ReadBytes > int64(len(v))/10 ||
+		st.BaseBest < st.Reused {
 		t.Fatalf("rebase: claimed %d, %+v", claimed, st)
 	}
 	if _, err := os.Stat(filepath.Join(b.Dir, "decode_B2.rbln")); !os.IsNotExist(err) {
@@ -74,7 +75,7 @@ func TestRebaseNeedsEnoughInPlace(t *testing.T) {
 		t.Fatal(err)
 	}
 	sameTree(t, src, out)
-	if st.Base != "" || st.Reused != 0 {
+	if st.Base != "" || st.Reused != 0 || st.BaseBest >= 2<<20 { // the best keeps less than half
 		t.Fatalf("%+v", st)
 	}
 }

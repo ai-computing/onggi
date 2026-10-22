@@ -2,11 +2,39 @@ package csi
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/ai-computing/onggi/pkg/store"
 )
+
+// logs collects a materializer's log lines.
+type logs struct {
+	mu    sync.Mutex
+	lines []string
+}
+
+func (l *logs) logf(format string, args ...any) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.lines = append(l.lines, fmt.Sprintf(format, args...))
+}
+
+func (l *logs) has(s string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, x := range l.lines {
+		if strings.Contains(x, s) {
+			return true
+		}
+	}
+	return false
+}
 
 // An idle artifact is turned into the next one; then back again (#41).
 func TestEnsureRebasesFromIdleArtifact(t *testing.T) {
@@ -54,6 +82,8 @@ func TestEnsureKeepsBusyArtifacts(t *testing.T) {
 	f := newFixture(t)
 	m, c := newMaterializer(t, f)
 	m.RebaseIdle = time.Hour
+	var l logs
+	m.Logf = l.logf
 	if _, err := m.Ensure(ctx, f.a); err != nil {
 		t.Fatal(err)
 	}
@@ -62,6 +92,9 @@ func TestEnsureKeepsBusyArtifacts(t *testing.T) {
 	}
 	if c.pulls[1].Base != "" || !isDir(m.Dir(f.a)) {
 		t.Fatalf("took a recently used artifact: %+v", c.pulls[1])
+	}
+	if !l.has("no artifact to take over (0 in use, 1 used within 1h0m0s)") {
+		t.Fatalf("no reason logged: %q", l.lines)
 	}
 
 	m2, c2 := newMaterializer(t, f)
@@ -77,5 +110,24 @@ func TestEnsureKeepsBusyArtifacts(t *testing.T) {
 	}
 	if c2.pulls[1].Base != "" || !isDir(m2.Dir(f.a)) {
 		t.Fatalf("took an artifact in use: %+v", c2.pulls[1])
+	}
+	// in use, then released: idle at once with RebaseIdle 1 ns, but too different from a third
+	// artifact to be worth taking over
+	if _, _, _, err := m2.Release("csi-vol1"); err != nil {
+		t.Fatal(err)
+	}
+	var l2 logs
+	m2.Logf = l2.logf
+	src := t.TempDir()
+	os.WriteFile(filepath.Join(src, "model.bin"), random(9, 1<<20), 0o644)
+	other, _, err := f.s.Push(ctx, src, store.PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m2.Ensure(ctx, other); err != nil {
+		t.Fatal(err)
+	}
+	if !l2.has("took over nothing: of 2 idle artifacts the best keeps 0 of") {
+		t.Fatalf("no reason logged: %q", l2.lines)
 	}
 }

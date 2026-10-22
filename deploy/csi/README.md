@@ -77,6 +77,11 @@ On the lab node (`onggi pull --base`, the same pull the plugin runs):
 Through the node cache, a pull that needs only a few chunks finds them by scanning the cache's pack indexes instead of
 loading its whole index (3.3 M chunks), and index lookups search a contiguous array of digest prefixes (#42).
 
+In the lab cluster (#41; `npu-node-1`, `--rebase-idle 1m`): a pod with decode B8 was Running 12 s after creation,
+taking over the idle B2 artifact (15.0 GB left in place, 28.3 MB read, 7.5 s pull; byte-identical, read-only), against
+about a minute before. A B2 pod started while the B8 pod ran did not touch the B8 artifact. A prefill pod took over
+nothing: the plugin logs why (`took over nothing: ... keeps x %` or `no artifact to take over`, #49).
+
 ## Limits of v0
 
 - The files are a second copy next to the node cache, which holds packed and compressed chunks. Reflinks or
