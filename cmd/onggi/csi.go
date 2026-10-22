@@ -143,7 +143,7 @@ func csiNode(args []string, stderr io.Writer) int {
 		logger.Print(err)
 		return 1
 	}
-	os.Remove(l.Addr().String())
+	l.Close() // removes the socket if it is still ours (#61)
 	return 0
 }
 
