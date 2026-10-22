@@ -4,9 +4,10 @@
 
 [English](README.md) · 한국어
 
-> 상태: **P1.** 설계는 [docs/ko/design.md](docs/ko/design.md)에 있습니다. `onggi dedup-report`로 저장소가 얼마나
-> 줄어드는지 측정하고, `onggi push` / `pull`로 POSIX 마운트나 S3 서버에 결과물을 저장·복원합니다. 클러스터
-> 구성요소(노드 agent, CSI 드라이버, 컨트롤러)는 P2–P3에서 이어집니다.
+> 상태: **P2.** 설계는 [docs/ko/design.md](docs/ko/design.md)에 있습니다. `onggi push` / `pull`로 POSIX 마운트나 S3
+> 서버에 결과물을 저장·복원하며 GC, 노드 캐시, peer, 델타 적용을 지원합니다. CSI 드라이버([deploy/csi](deploy/csi/README.md))는
+> Kubernetes에서 결과물을 읽기 전용 볼륨으로 제공합니다. 컨트롤러(컴파일 팜, 프리페치)는 P3에서 이어집니다. 기존 방법과의
+> 비교는 [docs/evaluation.md](docs/evaluation.md)에 있습니다.
 
 NPU는 모델을 미리 컴파일하며 모델 × SDK × 장치 × 길이 구간 × 배치 × 옵션 조합마다 결과물이 하나씩 생깁니다. 연구실
 RNGD + ATOM 노드에서 Rebellions ATOM용 Llama-3.1-8B 빌드 묶음 하나가 **262 GB**를 차지합니다. 그래프마다 가중치가 통째로

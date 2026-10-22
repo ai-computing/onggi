@@ -4,9 +4,10 @@
 
 English · [한국어](README.ko.md)
 
-> Status: **P1.** The design is in [docs/design.md](docs/design.md). `onggi dedup-report` measures what a store would
-> deduplicate; `onggi push` / `pull` store and restore artifacts on a POSIX mount or an S3 server. The cluster
-> components (node agent, CSI driver, controller) follow in P2–P3.
+> Status: **P2.** The design is in [docs/design.md](docs/design.md). `onggi push` / `pull` store and restore artifacts
+> on a POSIX mount or an S3 server, with GC, a node cache, peers and delta apply; the CSI driver
+> ([deploy/csi](deploy/csi/README.md)) serves them as read-only volumes on Kubernetes. The controller (compile farm,
+> prefetch) follows in P3. Measurements against common methods: [docs/evaluation.md](docs/evaluation.md).
 
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
 RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
