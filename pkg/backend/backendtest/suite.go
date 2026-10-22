@@ -241,6 +241,24 @@ func RunRefs(t *testing.T, newRefs func(t *testing.T) backend.Refs) {
 		if seen[name] != "sha256:b" || len(seen) != 1 {
 			t.Fatalf("ListRefs = %v", seen)
 		}
+		// an empty value deletes, under compare-and-swap
+		if err := r.SetRef(ctx, name, "sha256:a", ""); !errors.Is(err, backend.ErrConflict) {
+			t.Fatalf("delete with a stale value: %v, want ErrConflict", err)
+		}
+		if err := r.SetRef(ctx, name, "sha256:b", ""); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := r.GetRef(ctx, name); !errors.Is(err, backend.ErrNotFound) {
+			t.Fatalf("deleted ref: %v", err)
+		}
+		n := 0
+		r.ListRefs(ctx, func(string, string) error { n++; return nil })
+		if n != 0 {
+			t.Fatalf("ListRefs after delete: %d refs", n)
+		}
+		if err := r.SetRef(ctx, name, "", "sha256:c"); err != nil {
+			t.Fatalf("re-create after delete: %v", err)
+		}
 	})
 	t.Run("ConcurrentSwapsOneWins", func(t *testing.T) {
 		r := newRefs(t)

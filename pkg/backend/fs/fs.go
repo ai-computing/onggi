@@ -247,6 +247,12 @@ func (s *Store) SetRef(ctx context.Context, name, old, value string) error {
 	if cur != old {
 		return fmt.Errorf("ref %s is %q, expected %q: %w", name, cur, old, backend.ErrConflict)
 	}
+	if value == "" {
+		if err := os.Remove(p); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+		return nil
+	}
 	f, err := s.tmp()
 	if err != nil {
 		return err

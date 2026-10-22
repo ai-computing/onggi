@@ -246,6 +246,14 @@ func (s *Store) SetRef(ctx context.Context, name, old, value string) error {
 	if cur != old {
 		return fmt.Errorf("ref %s is %q, expected %q: %w", name, cur, old, backend.ErrConflict)
 	}
+	if value == "" {
+		// Deletion checks the value first; S3 has no portable conditional delete, so a concurrent
+		// update in between is lost. Ref deletion is rare (GC preparation, operators).
+		if etag == "" {
+			return nil
+		}
+		return s.c.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
+	}
 	opts := minio.PutObjectOptions{ContentType: "text/plain"}
 	if etag == "" {
 		opts.SetMatchETagExcept("*")

@@ -25,6 +25,10 @@ usage:
   onggi pull    --store S <ref|sha256:...> <dir> restore an artifact, every chunk hash-checked
   onggi ls      --store S                        refs and store totals
   onggi inspect --store S <ref|sha256:...>       files of an artifact
+  onggi rm-ref  --store S NAME                   delete a ref (its artifact becomes garbage)
+  onggi gc      --store S [--grace 24h] [--dry-run]
+                                                 mark and sweep: a run records candidates, a run
+                                                 after the grace period deletes them
   onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
   onggi csi     --store S [flags]                CSI node plugin: serve artifacts as read-only volumes (Linux)
   onggi version
@@ -52,6 +56,10 @@ func main() {
 		os.Exit(inspect(os.Args[2:], os.Stdout, os.Stderr))
 	case "csi":
 		os.Exit(csiNode(os.Args[2:], os.Stderr))
+	case "rm-ref":
+		os.Exit(rmRef(os.Args[2:], os.Stdout, os.Stderr))
+	case "gc":
+		os.Exit(gc(os.Args[2:], os.Stdout, os.Stderr))
 	case "version":
 		fmt.Println(version)
 	case "-h", "--help", "help":

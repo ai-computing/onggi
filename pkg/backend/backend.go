@@ -71,7 +71,8 @@ type Backend interface {
 type Refs interface {
 	// GetRef returns the value of name, or ErrNotFound.
 	GetRef(ctx context.Context, name string) (string, error)
-	// SetRef sets name to value if its current value is old ("" = must not exist).
+	// SetRef sets name to value if its current value is old ("" = must not exist). An empty
+	// value deletes the ref, under the same compare-and-swap.
 	SetRef(ctx context.Context, name, old, value string) error
 	// ListRefs lists all refs.
 	ListRefs(ctx context.Context, fn func(name, value string) error) error

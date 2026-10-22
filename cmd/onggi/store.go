@@ -131,6 +131,13 @@ func push(args []string, stdout, stderr io.Writer) int {
 				human(st.BytesTotal), human(st.NewBytes), float64(st.Bytes)/1e6/max(el, 1e-9))
 		}
 	}
+	// the lease covers the push and the ref update: GC must not sweep between the two
+	release, err := s.Lease(ctx, "push "+*ref)
+	if err != nil {
+		fmt.Fprintln(stderr, "onggi:", err)
+		return 1
+	}
+	defer release()
 	stopMem := startMemProfile()
 	md, st, err := s.Push(ctx, fs.Arg(0), o)
 	if peak := stopMem(); peak > 0 {
