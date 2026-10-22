@@ -58,8 +58,8 @@ func gc(args []string, stdout, stderr io.Writer) int {
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "node-cache GC: keep what manifests used within this period need")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
-		fmt.Fprintln(stderr, "usage: onggi gc --store S [--grace 24h] [--keep sha256:...,...] [--dry-run]
-       onggi gc --store CACHE --roots-store S [--keep-used 168h] ...")
+		fmt.Fprintln(stderr, "usage: onggi gc --store S [--grace 24h] [--keep sha256:...,...] [--dry-run]")
+		fmt.Fprintln(stderr, "       onggi gc --store CACHE --roots-store S [--keep-used 168h] ...")
 		return 2
 	}
 	ctx := context.Background()
