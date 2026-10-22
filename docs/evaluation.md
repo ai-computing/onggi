@@ -45,3 +45,36 @@ own.
 Applying the switch on the node (README, deploy/csi): a plain pull through the node cache takes 73.8 s; delta apply
 (#41) takes 5.7 s without and 8.9 s with the node cache (4.8 s, 3.6 MB read, with frames), and a CSI pod is Running
 12 s after creation.
+
+## GPU: TensorRT-LLM engines (#56)
+
+The same problem exists on GPUs when engines are compiled ahead of time. On the lab A100 (80 GB PCIe, TensorRT-LLM
+1.0.0, Llama-3.1-8B-Instruct bf16, TP 1), every `trtllm-build` engine embeds the weights: each is 16.14 GB, and 99.8 %
+of its bytes are in the checkpoint.
+
+| variant (max batch, max seq / input) | build | engine |
+|---|---|---|
+| b2-s2k (2, 2048 / 1024) | 61 s | 16,135,764,052 B |
+| b8-s2k (8, 2048 / 1024) | 65 s | 16,135,782,004 B |
+| b2-s4k (2, 4096 / 2048) | 103 s | 16,135,764,228 B |
+| b8-s4k (8, 4096 / 2048) | 99 s | 16,135,782,004 B |
+
+| storing the four engines | size |
+|---|---|
+| raw | 64.5 GB |
+| fixed 1 MiB blocks (dedup) | 48.4 GB (with a rebuild: 1.67×) |
+| FastCDC dedup | 16.15 GB (4.00×) |
+| **onggi** | **10.85 GB** (5.95×); each engine after the first adds 5.8 MB new, 1.2–1.3 MB packed |
+
+A rebuild of the same configuration is not byte-identical (3,021 bytes differ in the first 8 MB), which also costs
+5.8 MB. An engine restored by `onggi pull` is byte-identical and gives the same greedy tokens as the built one (32 of
+32).
+
+`onggi diff`: between engines of the same max batch (b8-s2k → b8-s4k), 99.96 % sits at the same offset (33 changed
+runs, all in the first 8 MB), and delta apply reads 1.2 MB and leaves 16.1 GB in place. A different max batch makes the
+plan in front of the weights 17,952 B longer, which shifts every weight by an amount that is not a multiple of 4 KiB:
+0 % stays at the same offset (99.96 % is elsewhere in the base), so delta apply does not take the base and a plain pull
+reads 10.8 GB. Copying such bytes from the base file instead of fetching them is tracked in #58.
+
+Unlike ATOM, sub-chunks are not used here (TensorRT engines are kind `other`); 64 KiB chunks already find the shifted
+weights.
