@@ -19,7 +19,10 @@ import (
 //	                       (chunk digest [32], offset uint32, stored length uint32,
 //	                        raw length uint32, codec uint8, 3 zero bytes)
 //	                       Version 1 ("ONGGIIX1", entries of digest, offset, length; every chunk
-//	                       raw) is still read.
+//	                       raw) is still read. A pack with chunks in compression frames (#52) has
+//	                       version 3 ("ONGGIIX3"): each entry then adds offset in the frame
+//	                       uint32 and the frame's raw length uint32 (0: not in a frame), and
+//	                       offset / stored length / codec are the frame's.
 //	list   (one per file): magic "ONGGICL1", count uint32, then count × (chunk digest [32], length uint32)
 //	composites (index kind, one per push that made any): magic "ONGGICX1", count uint32, then count ×
 //	                       (chunk digest [32], sub-chunk count uint32, then that many
@@ -32,6 +35,7 @@ import (
 var (
 	indexMagic   = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '2'}
 	indexMagicV1 = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '1'}
+	indexMagicV3 = [8]byte{'O', 'N', 'G', 'G', 'I', 'I', 'X', '3'}
 	listMagic    = [8]byte{'O', 'N', 'G', 'G', 'I', 'C', 'L', '1'}
 	compMagic    = [8]byte{'O', 'N', 'G', 'G', 'I', 'C', 'X', '1'}
 )
@@ -44,6 +48,10 @@ type Loc struct {
 	Stored uint32 // bytes in the pack
 	Length uint32 // raw bytes
 	Codec  codec.ID
+	// Frame, when not 0, is the raw length of the compression frame the chunk lies in (#52):
+	// Offset, Stored and Codec are then the frame's, and Inner is the chunk's offset in it.
+	Inner uint32
+	Frame uint32
 }
 
 type indexEntry struct {
@@ -52,8 +60,16 @@ type indexEntry struct {
 }
 
 func encodeIndex(pack digest.Digest, entries []indexEntry) []byte {
+	v3 := false
+	for _, e := range entries {
+		v3 = v3 || e.Loc.Frame != 0
+	}
 	var b bytes.Buffer
-	b.Write(indexMagic[:])
+	if v3 {
+		b.Write(indexMagicV3[:])
+	} else {
+		b.Write(indexMagic[:])
+	}
 	b.Write(pack[:])
 	binary.Write(&b, binary.LittleEndian, uint32(len(entries)))
 	for _, e := range entries {
@@ -62,6 +78,10 @@ func encodeIndex(pack digest.Digest, entries []indexEntry) []byte {
 		binary.Write(&b, binary.LittleEndian, e.Loc.Stored)
 		binary.Write(&b, binary.LittleEndian, e.Loc.Length)
 		b.Write([]byte{byte(e.Loc.Codec), 0, 0, 0})
+		if v3 {
+			binary.Write(&b, binary.LittleEndian, e.Loc.Inner)
+			binary.Write(&b, binary.LittleEndian, e.Loc.Frame)
+		}
 	}
 	return b.Bytes()
 }
@@ -72,12 +92,16 @@ func decodeIndex(data []byte) (digest.Digest, []indexEntry, error) {
 		return pack, nil, errors.New("not an onggi index")
 	}
 	v1 := bytes.Equal(data[:8], indexMagicV1[:])
-	if !v1 && !bytes.Equal(data[:8], indexMagic[:]) {
+	v3 := bytes.Equal(data[:8], indexMagicV3[:])
+	if !v1 && !v3 && !bytes.Equal(data[:8], indexMagic[:]) {
 		return pack, nil, errors.New("not an onggi index")
 	}
 	size := uint64(48)
-	if v1 {
+	switch {
+	case v1:
 		size = 40
+	case v3:
+		size = 56
 	}
 	copy(pack[:], data[8:40])
 	n := binary.LittleEndian.Uint32(data[40:44])
@@ -94,6 +118,12 @@ func decodeIndex(data []byte) (digest.Digest, []indexEntry, error) {
 		} else {
 			l.Length = binary.LittleEndian.Uint32(p[40:44])
 			l.Codec = codec.ID(p[44])
+		}
+		if v3 {
+			l.Inner, l.Frame = binary.LittleEndian.Uint32(p[48:52]), binary.LittleEndian.Uint32(p[52:56])
+			if l.Frame != 0 && uint64(l.Inner)+uint64(l.Length) > uint64(l.Frame) {
+				return pack, nil, fmt.Errorf("index: chunk %d lies outside its frame", i)
+			}
 		}
 		out[i].Loc = l
 		p = p[size:]
@@ -203,7 +233,10 @@ type Config struct {
 	// SubKinds limits sub-chunking to these file kinds (by name, pkg/layout); empty means all.
 	// Weights that equal their HF source dedup whole at 64 KiB, and finer chunks only add metadata.
 	SubKinds []layout.Kind `json:"sub_kinds,omitempty"`
-	Created  time.Time     `json:"created"`
+	// Frame, when set, makes push compress consecutive new chunks of a sub-chunked file
+	// together, up to this many raw bytes (#52). Stores created before it have none.
+	Frame   int64     `json:"frame,omitempty"`
+	Created time.Time `json:"created"`
 }
 
 // File is one file of an artifact.

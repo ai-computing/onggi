@@ -202,7 +202,10 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if a.Pack != b.Pack {
 			return a.Pack < b.Pack
 		}
-		return a.Offset < b.Offset
+		if a.Offset != b.Offset {
+			return a.Offset < b.Offset
+		}
+		return a.Inner < b.Inner
 	})
 	type span struct{ a, b int } // order[a:b]
 	var ranges []span
@@ -211,7 +214,8 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		if n := len(ranges); n > 0 {
 			r := &ranges[n-1]
 			first, prev := nodes[order[r.a]].loc, nodes[order[r.b-1]].loc
-			if nodes[order[r.b-1]].fromCache == nodes[i].fromCache && prev.Pack == l.Pack && prev.Offset+prev.Stored == l.Offset &&
+			// the next chunk follows, or shares the frame of the previous one (#52)
+			if nodes[order[r.b-1]].fromCache == nodes[i].fromCache && prev.Pack == l.Pack && (prev.Offset+prev.Stored == l.Offset || prev.Frame != 0 && prev.Offset == l.Offset) &&
 				int64(l.Offset+l.Stored-first.Offset) <= o.MaxRange {
 				r.b = k + 1
 				continue
@@ -498,9 +502,11 @@ func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Dige
 	if err != nil {
 		return 0, fmt.Errorf("pack %s: %w", pack, err)
 	}
+	var fr frameReader
 	for _, i := range ids {
 		nd := &nodes[i]
-		raw, err := codec.Decode(b[int64(nd.loc.Offset)-int64(first.Offset):][:nd.loc.Stored], nd.loc.Codec, int(nd.loc.Length))
+		stored := b[int64(nd.loc.Offset)-int64(first.Offset):][:nd.loc.Stored]
+		raw, err := fr.chunk(stored, nd.loc)
 		if err != nil {
 			return 0, fmt.Errorf("pack %s offset %d: chunk %s: %w", pack, nd.loc.Offset, nd.chunk, err)
 		}
@@ -511,8 +517,8 @@ func (s *Store) readRange(ctx context.Context, nodes []node, packs []digest.Dige
 			return 0, err
 		}
 		if fill != nil {
-			stored := b[int64(nd.loc.Offset)-int64(first.Offset):][:nd.loc.Stored]
-			if err := fill.add(ctx, nd.chunk, stored, nd.loc.Codec, nd.loc.Length); err != nil {
+			data, id := alone(raw, stored, nd.loc)
+			if err := fill.add(ctx, nd.chunk, data, id, nd.loc.Length); err != nil {
 				return 0, fmt.Errorf("node cache: %w", err)
 			}
 		}

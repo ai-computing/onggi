@@ -25,7 +25,7 @@ import (
 )
 
 type storeFlags struct {
-	url, durability, min, avg, max, sub, subKinds, packSize *string
+	url, durability, min, avg, max, sub, subKinds, packSize, frame *string
 }
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
@@ -38,6 +38,7 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 		sub:        fs.String("sub", "4KiB", "average sub-chunk size for two-level chunking, 0 for one level (only when creating a store)"),
 		subKinds:   fs.String("sub-kinds", "atom-prefill,atom-decode,atom-other", "file kinds that get sub-chunks, or all (only when creating a store)"),
 		packSize:   fs.String("pack-size", "64MiB", "pack object size (only when creating a store)"),
+		frame:      fs.String("frame", "256KiB", "compress new chunks of sub-chunked files together up to this size, 0 for one by one (only when creating a store)"),
 	}
 }
 
@@ -87,6 +88,13 @@ func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error
 			return nil, nil, err
 		}
 		c.Sub = &chunker.Params{Min: avg / 4, Avg: avg, Max: avg * 4}
+		if *f.frame != "0" {
+			fr, err := size(*f.frame)
+			if err != nil {
+				return nil, nil, err
+			}
+			c.Frame = int64(fr)
+		}
 		if *f.subKinds != "all" {
 			for _, k := range strings.Split(*f.subKinds, ",") {
 				c.SubKinds = append(c.SubKinds, layout.Kind(strings.TrimSpace(k)))
