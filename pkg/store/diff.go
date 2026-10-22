@@ -97,7 +97,8 @@ type DiffStats struct {
 }
 
 // pairFiles pairs each file of m with a file of base: the same path, else an unpaired base file of
-// the same kind, the closest in size. Variants of a model often name their files by their shape.
+// the same kind, the closest in size, else of any kind. Variants of a model often name their files
+// by their shape.
 func pairFiles(base, m *Manifest) []int {
 	pair := make([]int, len(m.Files))
 	used := make([]bool, len(base.Files))
@@ -111,21 +112,23 @@ func pairFiles(base, m *Manifest) []int {
 			pair[i], used[j] = j, true
 		}
 	}
-	for i, f := range m.Files {
-		if pair[i] >= 0 {
-			continue
-		}
-		best := -1
-		for j, g := range base.Files {
-			if used[j] || g.Kind != f.Kind {
+	for _, sameKind := range []bool{true, false} {
+		for i, f := range m.Files {
+			if pair[i] >= 0 {
 				continue
 			}
-			if best < 0 || abs(g.Size-f.Size) < abs(base.Files[best].Size-f.Size) {
-				best = j
+			best := -1
+			for j, g := range base.Files {
+				if used[j] || (sameKind && g.Kind != f.Kind) {
+					continue
+				}
+				if best < 0 || abs(g.Size-f.Size) < abs(base.Files[best].Size-f.Size) {
+					best = j
+				}
 			}
-		}
-		if best >= 0 {
-			pair[i], used[best] = best, true
+			if best >= 0 {
+				pair[i], used[best] = best, true
+			}
 		}
 	}
 	return pair
