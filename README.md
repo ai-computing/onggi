@@ -74,6 +74,12 @@ materializes each artifact once, through the node cache, and pods with the same 
 cluster a second decode variant read 28 MB from the store. An init container into the pod's emptyDir also works
 ([deploy/k8s](deploy/k8s/README.md)).
 
+Garbage: `onggi rm-ref` drops a ref, and `onggi gc` reclaims what no ref reaches (ADR-0005). A run records the
+unreferenced objects; a run at least `--grace` (default 24 h) later deletes the ones that are still unreferenced, unless
+a push holds a lease. Packs that are mostly dead are repacked first (`--repack 0.25`). On the lab node, dropping the full
+ATOM set and one decode variant and keeping two variants took the packs from 15.9 GB to 12.2 GB (live: 12.1 GB) in
+four runs, and both remaining artifacts pulled byte-identical.
+
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
 holds the store's index (compact arrays) for dedup and peaks at 1.9 GiB by default (push 2 min 24 s).

@@ -70,6 +70,14 @@ Kubernetes에서는 CSI 드라이버([deploy/csi](deploy/csi/README.md))가 ref�
 노드 캐시를 거쳐 한 번만 풀어 두고, 같은 ref를 쓰는 pod는 그 사본을 함께 씁니다. 연구실 클러스터에서 두 번째 decode 변형은
 저장소에서 28 MB만 읽었습니다. init container로 pod의 emptyDir에 푸는 방법도 있습니다([deploy/k8s](deploy/k8s/README.md)).
 
+정리(GC): `onggi rm-ref`로 ref를 지우면, `onggi gc`가 어떤 ref에서도 닿지 않는 데이터를 회수합니다(ADR-0005).
+- 한 번 실행하면 참조되지 않는 객체를 후보로 기록합니다.
+- `--grace`(기본 24시간)가 지난 뒤 다시 실행하면, 그때까지도 참조되지 않는 후보를 지웁니다. 단, push가 lease를 잡고 있으면 지우지 않습니다.
+- 대부분 죽은 pack은 먼저 재압축(repack)합니다(`--repack 0.25`).
+
+연구실 노드에서 ATOM 전체 묶음과 decode 변형 하나를 지우고 두 변형만 남겼더니, 네 번 실행해 pack이
+15.9 GB에서 12.2 GB가 됐습니다(살아 있는 데이터 12.1 GB). 남은 두 결과물은 모두 원본과 바이트 단위로 같았습니다.
+
 메모리:
 - pull은 저장소 전체 색인이 아니라 결과물의 locator만 읽습니다. 이 묶음에서 기본 설정은 최대 3.6 GB RSS이고,
   `GOMEMLIMIT=1800MiB`(Go의 소프트 메모리 한도)를 주면 1.9 GB 아래로 유지됩니다. 노드 agent에는 이 한도를 설정하기를 권장합니다.

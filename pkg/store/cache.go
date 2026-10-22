@@ -26,6 +26,7 @@ type packWriter struct {
 	entries []indexEntry
 	seen    map[digest.Digest]bool
 	bytes   int64 // stored bytes added
+	force   bool  // add chunks the store already holds (GC repack copies them out of a pack)
 }
 
 func (s *Store) newPackWriter(dir string) *packWriter {
@@ -37,7 +38,7 @@ func (s *Store) newPackWriter(dir string) *packWriter {
 
 // add packs one chunk unless the store or this writer already has it.
 func (w *packWriter) add(ctx context.Context, d digest.Digest, stored []byte, id codec.ID, rawLen uint32) error {
-	if w.s.has(d) {
+	if !w.force && w.s.has(d) {
 		return nil
 	}
 	w.mu.Lock()

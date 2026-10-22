@@ -65,6 +65,12 @@ type sealed struct {
 // store does not hold are uploaded.
 func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Digest, PushStats, error) {
 	start := time.Now()
+	// a lease keeps GC from sweeping chunks this push deduplicates against (ADR-0005)
+	release, err := s.Lease(ctx, "push")
+	if err != nil {
+		return digest.Digest{}, PushStats{}, err
+	}
+	defer release()
 	if err := s.LoadIndex(ctx); err != nil {
 		return digest.Digest{}, PushStats{}, err
 	}
