@@ -8,11 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
+	"github.com/ai-computing/onggi/pkg/codec"
 	"github.com/ai-computing/onggi/pkg/digest"
 )
 
@@ -65,7 +67,12 @@ type GCOptions struct {
 	Grace    time.Duration   // time between the run that records a candidate and the run that deletes it
 	LeaseTTL time.Duration   // leases older than this are ignored (default DefaultLeaseTTL)
 	DryRun   bool            // report only: no state, no rewrites, no deletions
-	Now      func() time.Time
+	// RepackDead repacks a live pack whose dead share of bytes is at least this (0 disables):
+	// its live chunks are copied into new packs and its index is removed, so the old pack becomes
+	// a candidate like any other unreferenced object.
+	RepackDead float64
+	TempDir    string // where repacked packs are assembled
+	Now        func() time.Time
 }
 
 // GCStats reports a GC run.
@@ -83,6 +90,8 @@ type GCStats struct {
 	DeadInLive     int64  `json:"dead_bytes_in_live_packs"`
 	Leases         int    `json:"live_leases"`
 	MarkedAt       string `json:"marked_at,omitempty"`
+	Repacked       int    `json:"repacked_packs"`
+	RepackedBytes  int64  `json:"repacked_live_bytes"`
 }
 
 type gcState struct {
@@ -239,6 +248,7 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 	var tables []table
 	cleanHolds := map[digest.Digest]bool{} // live composites held by a fully live table
 	var names []object
+	packIndex := map[string][]string{} // live pack -> its index objects
 	if err := s.B.List(ctx, backend.Index, func(name string, size int64) error {
 		names = append(names, object{backend.Key{Kind: backend.Index, Name: name}, size})
 		return nil
@@ -277,6 +287,8 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 		}
 		if !livePackName[pack.Hex()] {
 			add(ob.key, ob.size)
+		} else {
+			packIndex[pack.Hex()] = append(packIndex[pack.Hex()], ob.key.Name)
 		}
 	}
 	for _, t := range tables {
@@ -312,6 +324,11 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 			return st, err
 		}
 		st.Rewritten++
+	}
+	if o.RepackDead > 0 {
+		if err := s.repack(ctx, o, live, livePack, packSize, packIndex, &st); err != nil {
+			return st, err
+		}
 	}
 
 	prev, err := s.readGCState(ctx)
@@ -411,4 +428,87 @@ func (s *Store) liveLeases(ctx context.Context, now time.Time, ttl time.Duration
 		}
 	}
 	return n, nil
+}
+
+// repack copies the live chunks of mostly dead packs into new packs, then removes the old packs'
+// index objects. The old packs are then unindexed; the next runs treat them as candidates and
+// delete them after the grace period, so readers that planned with them have time to finish.
+// Pulls whose locator names a removed pack fall back to the index.
+func (s *Store) repack(ctx context.Context, o GCOptions, live []bool, livePack map[uint32]int64,
+	packSize map[string]int64, packIndex map[string][]string, st *GCStats) error {
+	s.mu.RLock()
+	type job struct {
+		id   uint32
+		name string
+	}
+	var jobs []job
+	for id, lb := range livePack {
+		name := s.packs[id].Hex()
+		size := packSize[name]
+		if size > 0 && float64(size-lb) >= o.RepackDead*float64(size) {
+			jobs = append(jobs, job{id, name})
+		}
+	}
+	// the live entries of each pack, in pack order
+	byPack := map[uint32][]uint32{}
+	for i, e := range s.idx.ent {
+		if live[i] && e.state == stateStored {
+			for _, j := range jobs {
+				if e.loc.Pack == j.id {
+					byPack[j.id] = append(byPack[j.id], uint32(i))
+					break
+				}
+			}
+		}
+	}
+	s.mu.RUnlock()
+	if len(jobs) == 0 {
+		return nil
+	}
+	w := s.newPackWriter(o.TempDir)
+	w.force = true
+	defer w.abort()
+	for _, j := range jobs {
+		ids := byPack[j.id]
+		sort.Slice(ids, func(a, b int) bool { return s.idx.ent[ids[a]].loc.Offset < s.idx.ent[ids[b]].loc.Offset })
+		rc, err := s.B.Get(ctx, backend.Key{Kind: backend.Pack, Name: j.name}, 0, -1)
+		if err != nil {
+			return err
+		}
+		data, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			return err
+		}
+		if digest.Of(data).Hex() != j.name {
+			return fmt.Errorf("pack %s: content does not match its name (repack stopped)", j.name)
+		}
+		for _, id := range ids {
+			s.mu.RLock()
+			e, d := s.idx.ent[id], s.idx.dig[id]
+			s.mu.RUnlock()
+			stored := data[e.loc.Offset : e.loc.Offset+e.loc.Stored]
+			raw, err := codec.Decode(stored, e.loc.Codec, int(e.loc.Length))
+			if err != nil || digest.Of(raw) != d {
+				return fmt.Errorf("pack %s: chunk %s fails its check (repack stopped)", j.name, d)
+			}
+			if err := w.add(ctx, d, stored, e.loc.Codec, e.loc.Length); err != nil {
+				return err
+			}
+			st.RepackedBytes += int64(e.loc.Stored)
+		}
+	}
+	if err := w.close(ctx); err != nil {
+		return err
+	}
+	// the copies are indexed; only now unindex the old packs
+	for _, j := range jobs {
+		for _, name := range packIndex[j.name] {
+			if err := s.B.Delete(ctx, backend.Key{Kind: backend.Index, Name: name}); err != nil {
+				return err
+			}
+		}
+		st.Repacked++
+	}
+	return nil
 }

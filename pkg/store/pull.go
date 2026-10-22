@@ -125,6 +125,14 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	var packs []digest.Digest
 	if m.Locator != nil {
 		nodes, packs, err = s.planFromLocator(ctx, m, *m.Locator)
+		if err == nil {
+			// GC repacks live chunks into new packs and then removes the old ones; a locator written
+			// before that names packs that are gone, and the index knows where the chunks are now
+			var gone bool
+			if gone, err = s.anyMissing(ctx, packs); err == nil && gone {
+				nodes, packs, err = s.planFromIndex(ctx, m)
+			}
+		}
 	} else {
 		nodes, packs, err = s.planFromIndex(ctx, m)
 	}
@@ -256,6 +264,23 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	st.ReadBytes, st.CacheBytes = readBytes.Load(), cacheBytes.Load()
 	st.Duration = time.Since(start)
 	return st, nil
+}
+
+func (s *Store) anyMissing(ctx context.Context, packs []digest.Digest) (bool, error) {
+	keys := make([]backend.Key, len(packs))
+	for i, p := range packs {
+		keys[i] = backend.Key{Kind: backend.Pack, Name: p.Hex()}
+	}
+	have, err := s.B.Has(ctx, keys)
+	if err != nil {
+		return false, err
+	}
+	for _, h := range have {
+		if !h {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // planFromIndex plans with the store's index and the chunk lists (manifests without a locator).

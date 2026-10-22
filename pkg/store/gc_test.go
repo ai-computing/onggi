@@ -269,3 +269,53 @@ func TestGCDryRunChangesNothing(t *testing.T) {
 		t.Fatalf("dry run wrote state: %v", err)
 	}
 }
+
+// Live and dead chunks in the same packs: without repack the dead bytes stay; with it the live
+// chunks move to new packs, the old packs go after the grace period, and pulls whose locator names
+// a removed pack still work through the index.
+func TestGCRepacksMostlyDeadPacks(t *testing.T) {
+	ctx := context.Background()
+	storeDir := t.TempDir()
+	mixed := t.TempDir()
+	// one push interleaves a kept file and a dropped file in the same packs
+	write(t, filepath.Join(mixed, "a-keep.bin"), random(51, 3<<20))
+	write(t, filepath.Join(mixed, "b-drop.bin"), random(52, 3<<20))
+	keepOnly := t.TempDir()
+	write(t, filepath.Join(keepOnly, "a-keep.bin"), random(51, 3<<20))
+
+	s, refs := gcStore(t, storeDir)
+	pushRef(t, s, refs, mixed, "mixed")
+	mk := pushRef(t, s, refs, keepOnly, "keep") // dedups fully: its locator names the mixed packs
+	refs.SetRef(ctx, "mixed", mustRef(t, refs, "mixed"), "")
+	before := dirBytes(t, storeDir, "packs")
+
+	t0 := time.Now()
+	run := func(after time.Duration) GCStats {
+		g, _ := gcStore(t, storeDir)
+		st, err := g.GC(ctx, refs, GCOptions{Grace: time.Hour, LeaseTTL: 1000 * time.Hour, RepackDead: 0.25, Now: clock(t0, after)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return st
+	}
+	st1 := run(0)
+	t.Logf("run 1: %+v", st1)
+	run(2 * time.Hour)
+	st3 := run(4 * time.Hour)
+	t.Logf("run 3: %+v", st3)
+	after := dirBytes(t, storeDir, "packs")
+	t.Logf("packs %d B -> %d B", before, after)
+	if st1.Repacked == 0 || after > before*6/10 {
+		t.Fatalf("repack reclaimed too little: %d -> %d (repacked %d)", before, after, st1.Repacked)
+	}
+	if st := run(6 * time.Hour); st.Candidates != 0 || st.DeadInLive != 0 {
+		t.Fatalf("left after repack and sweeps: %+v", st)
+	}
+	out := t.TempDir()
+	g, _ := gcStore(t, storeDir)
+	if _, err := g.Pull(ctx, mk, out, PullOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, keepOnly, out)
+	assertIndexConsistent(t, g)
+}
