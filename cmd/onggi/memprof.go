@@ -11,7 +11,22 @@ import (
 // a heap profile there each time the heap in use grows by 256 MB past its previous peak, so the
 // file ends up describing the peak. It returns a function that stops sampling and reports the
 // peak heap in use, in bytes (0 when profiling is off).
+// With ONGGI_CPUPROFILE naming a file, it also writes a CPU profile there (#42).
 func startMemProfile() func() uint64 {
+	if cpu := os.Getenv("ONGGI_CPUPROFILE"); cpu != "" {
+		if f, err := os.Create(cpu); err == nil && pprof.StartCPUProfile(f) == nil {
+			stopMem := startHeapSampler()
+			return func() uint64 {
+				pprof.StopCPUProfile()
+				f.Close()
+				return stopMem()
+			}
+		}
+	}
+	return startHeapSampler()
+}
+
+func startHeapSampler() func() uint64 {
 	path := os.Getenv("ONGGI_MEMPROFILE")
 	if path == "" {
 		return func() uint64 { return 0 }

@@ -34,10 +34,11 @@ func (s *Store) Extents(ctx context.Context, m *Manifest) ([][]Extent, error) {
 	if err != nil {
 		return nil, err
 	}
-	return extentsOf(nodes, len(m.Files)), nil
+	return extentsOf(nodes, len(m.Files), true), nil
 }
 
-func extentsOf(nodes []node, files int) [][]Extent {
+// extentsOf lists the stored chunks of each file, in file order if sorted is set.
+func extentsOf(nodes []node, files int, sorted bool) [][]Extent {
 	out := make([][]Extent, files)
 	var place func(id int32, base int64, d digest.Digest, n uint32)
 	place = func(id int32, base int64, d digest.Digest, n uint32) {
@@ -61,6 +62,9 @@ func extentsOf(nodes []node, files int) [][]Extent {
 		}
 	}
 	for _, es := range out {
+		if !sorted {
+			break
+		}
 		slices.SortFunc(es, func(a, b Extent) int {
 			switch {
 			case a.Off < b.Off:

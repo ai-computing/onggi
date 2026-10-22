@@ -96,7 +96,7 @@ Kubernetes에서는 CSI 드라이버([deploy/csi](deploy/csi/README.md))가 ref�
 
 decode 변형끼리는 연속된 한 구간만 다르므로, 노드는 15 GB를 다시 쓰지 않고 사본을 제자리에서 고칩니다.
 `onggi pull --base REF --base-dir DIR`은 DIR에 풀어 둔 결과물을 새 결과물로 바꾸면서 다른 부분만 씁니다(#41). CSI 플러그인은
-pod가 쓰지 않는 결과물로 이렇게 합니다. 연구실 노드에서 decode B8을 B2 사본에서 5.7초(노드 캐시를 거치면 26.8초)에
+pod가 쓰지 않는 결과물로 이렇게 합니다. 연구실 노드에서 decode B8을 B2 사본에서 5.7초(노드 캐시를 거치면 8.9초)에
 만들었고, 일반 pull은 73.8초였습니다. 결과는 원본과 같았습니다.
 prefill과 decode는 같은 가중치를 다른 순서로 담고 있습니다.
 

@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"encoding/binary"
 	"slices"
 
 	"github.com/ai-computing/onggi/pkg/digest"
@@ -17,6 +18,8 @@ type chunkIndex struct {
 	ent    []entry
 	subs   []uint32                 // composite sub-chunks, by id
 	sorted []uint32                 // ids whose digests are merged, in digest order
+	keys   []uint64                 // the first 8 bytes of sorted's digests, searched instead of the digests
+	bucket []uint32                 // bucket[p]: first position in sorted whose digest starts with the 16 bits p
 	delta  map[digest.Digest]uint32 // ids added since the last merge
 	stored int
 	comps  int
@@ -39,17 +42,34 @@ const (
 
 func newChunkIndex() *chunkIndex { return &chunkIndex{delta: map[digest.Digest]uint32{}} }
 
+func prefix(d *digest.Digest) uint64 { return binary.BigEndian.Uint64(d[:8]) }
+
+// find looks d up. The sorted part is searched in keys, a contiguous array of 8-byte prefixes
+// narrowed by bucket, not through the ids into dig: that indirection made loading the ATOM
+// store's index take 30 s, most of it in comparisons (#42).
 func (x *chunkIndex) find(d digest.Digest) (uint32, bool) {
 	if id, ok := x.delta[d]; ok {
 		return id, true
 	}
-	i, ok := slices.BinarySearchFunc(x.sorted, d, func(id uint32, d digest.Digest) int {
-		return bytes.Compare(x.dig[id][:], d[:])
-	})
-	if !ok {
+	if len(x.sorted) == 0 {
 		return 0, false
 	}
-	return x.sorted[i], true
+	k := prefix(&d)
+	lo, hi := int(x.bucket[k>>48]), int(x.bucket[k>>48+1])
+	for lo < hi { // first position with keys >= k
+		mid := int(uint(lo+hi) >> 1)
+		if x.keys[mid] < k {
+			lo = mid + 1
+		} else {
+			hi = mid
+		}
+	}
+	for i := lo; i < len(x.keys) && x.keys[i] == k; i++ {
+		if id := x.sorted[i]; x.dig[id] == d {
+			return id, true
+		}
+	}
+	return 0, false
 }
 
 // idOf returns the id of d, adding an unknown entry of the given raw length if d is new.
@@ -73,7 +93,15 @@ func (x *chunkIndex) merge() {
 	for _, id := range x.delta {
 		add = append(add, id)
 	}
-	cmp := func(a, b uint32) int { return bytes.Compare(x.dig[a][:], x.dig[b][:]) }
+	cmp := func(a, b uint32) int {
+		if pa, pb := prefix(&x.dig[a]), prefix(&x.dig[b]); pa != pb {
+			if pa < pb {
+				return -1
+			}
+			return 1
+		}
+		return bytes.Compare(x.dig[a][:], x.dig[b][:])
+	}
 	slices.SortFunc(add, cmp)
 	out := make([]uint32, 0, len(x.sorted)+len(add))
 	i, j := 0, 0
@@ -88,6 +116,19 @@ func (x *chunkIndex) merge() {
 	}
 	out = append(append(out, x.sorted[i:]...), add[j:]...)
 	x.sorted = out
+	x.keys = slices.Grow(x.keys[:0], len(out))[:len(out)]
+	if x.bucket == nil {
+		x.bucket = make([]uint32, 1<<16+1)
+	}
+	clear(x.bucket)
+	for i, id := range out {
+		k := prefix(&x.dig[id])
+		x.keys[i] = k
+		x.bucket[k>>48+1]++
+	}
+	for p := 1; p < len(x.bucket); p++ {
+		x.bucket[p] += x.bucket[p-1]
+	}
 	clear(x.delta)
 }
 

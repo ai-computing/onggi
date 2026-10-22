@@ -45,7 +45,7 @@ func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, 
 		if err != nil {
 			continue
 		}
-		p := rebasePlan{base: b, files: bm.Files, ext: extentsOf(bnodes, len(bm.Files)), pair: pairFiles(bm, m)}
+		p := rebasePlan{base: b, files: bm.Files, ext: extentsOf(bnodes, len(bm.Files), true), pair: pairFiles(bm, m)}
 		for i, j := range p.pair {
 			if j < 0 {
 				continue

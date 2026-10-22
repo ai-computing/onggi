@@ -76,3 +76,42 @@ func TestChunkIndexCompositeBeforeItsSubChunks(t *testing.T) {
 		t.Fatal("composite record replaced a stored chunk")
 	}
 }
+
+// Digests that share their first 8 bytes, or their first 16 bits, are still told apart (#42).
+func TestIndexFindWithSharedPrefixes(t *testing.T) {
+	x := newChunkIndex()
+	var ds []digest.Digest
+	for i := 0; i < 3000; i++ {
+		var d digest.Digest
+		d[0], d[1] = 0xab, byte(i%3) // three 16-bit buckets
+		if i%2 == 0 {
+			d[31] = byte(i) // same 8-byte prefix as its neighbours
+			d[30] = byte(i >> 8)
+		} else {
+			d[7] = byte(i)
+			d[6] = byte(i >> 8)
+		}
+		ds = append(ds, d)
+		x.addStored(d, Loc{Length: uint32(i + 1)})
+		if i == 1500 {
+			x.merge()
+		}
+	}
+	x.merge()
+	for i, d := range ds {
+		id, ok := x.find(d)
+		if !ok || x.ent[id].loc.Length != uint32(i+1) {
+			t.Fatalf("digest %d: found %v, id %d", i, ok, id)
+		}
+	}
+	var none digest.Digest
+	none[0], none[1] = 0xab, 1
+	none[5] = 0xff
+	if _, ok := x.find(none); ok {
+		t.Fatal("found a digest that was never added")
+	}
+	none[0] = 0xff
+	if _, ok := x.find(none); ok {
+		t.Fatal("found a digest past the last bucket")
+	}
+}

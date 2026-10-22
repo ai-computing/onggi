@@ -117,3 +117,37 @@ func TestRebaseSkipsUnknownBase(t *testing.T) {
 		t.Fatalf("%+v", st)
 	}
 }
+
+// After delta apply only a few chunks are left, and the node cache finds them by scanning its
+// pack indexes instead of loading its whole index (#42).
+func TestRebaseThroughCacheReadsTheRestFromIt(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	cacheDir := t.TempDir()
+	w := random(71, 16<<20)
+	patch := random(72, 384<<10) // large next to the chunks at its edges, which are new
+	v := append([]byte(nil), w...)
+	copy(v[5<<20:], patch)
+	b, nm, src := rebaseFixture(t, s, map[string][]byte{"m.rbln": w}, map[string][]byte{"m.rbln": v})
+	// the cache has seen the patch bytes in another artifact, and the base's chunks
+	other := pushDir(t, s, map[string][]byte{"p.rbln": patch})
+	for _, d := range []digest.Digest{b.Manifest, other} {
+		if _, err := s.Pull(ctx, d, t.TempDir(), PullOptions{Cache: openCache(t, cacheDir, s)}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	c := openCache(t, cacheDir, s)
+	out := t.TempDir()
+	st, err := s.Pull(ctx, nm, out, PullOptions{Cache: c, Bases: []Base{b}, Claim: func(x Base) (string, bool) { return x.Dir, true }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+	t.Logf("%+v", st)
+	if st.Base == "" || st.CacheBytes == 0 || st.ReadBytes > st.CacheBytes {
+		t.Fatalf("%+v", st)
+	}
+	if c.loaded {
+		t.Fatal("the cache's whole index was loaded for a few chunks")
+	}
+}

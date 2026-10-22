@@ -101,7 +101,7 @@ chunks and without parsing any format (#38): bytes at the same offset (can stay)
 Decode variants differ in one contiguous region, so a node updates a copy in place instead of rewriting 15 GB:
 `onggi pull --base REF --base-dir DIR` turns an artifact restored in DIR into the new one and writes only what differs
 (#41), and the CSI plugin does this with artifacts no pod uses. On the lab node decode B8 came from a B2 copy in 5.7 s
-(26.8 s through the node cache) instead of 73.8 s, byte-identical. Prefill and decode hold the same weights in a
+(8.9 s through the node cache) instead of 73.8 s, byte-identical. Prefill and decode hold the same weights in a
 different order.
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
