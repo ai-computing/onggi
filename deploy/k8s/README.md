@@ -13,6 +13,6 @@ installing anything on the nodes.
 Limits of v0:
 - Each pod gets its own copy of the artifact in its emptyDir, which a CSI volume will avoid.
 - Nothing evicts from the cache by itself; run `onggi gc --store CACHE --roots-store S --keep-used 168h` on the node, or use the CSI driver, which does (#33).
-- There is no peer-to-peer fetch between nodes.
+- Peers (`onggi pull --peers`, #34) need an `onggi peer serve` on each node next to the cache; this template does not run one.
 - Pods that write into a hostPath under a user's home should run as that user (`securityContext.runAsUser`), so the cache does not become root-owned.
 - If pods run as a non-root user, create the cache directory beforehand as that user and use `type: Directory`. A `DirectoryOrCreate` hostPath is created by the kubelet as root, and the pull then fails with `mkdir /var/lib/onggi/cache/tmp: permission denied`. #25 hit this on its first run.
