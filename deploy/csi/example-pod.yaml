@@ -1,0 +1,20 @@
+# A pod that reads an artifact from an onggi volume (#27). The pod stays in ContainerCreating
+# until the node has materialized the artifact; pods with the same ref share one copy.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <engine-pod>
+spec:
+  containers:
+    - name: engine
+      image: <engine image>
+      args: ["--model", "/models/model"]
+      volumeMounts:
+        - {name: model, mountPath: /models/model, readOnly: true}
+  volumes:
+    - name: model
+      csi:
+        driver: onggi.ai-computing.github.io
+        readOnly: true # required: onggi volumes are read-only
+        volumeAttributes:
+          ref: <ref> # a ref in the plugin's store, or sha256:<manifest digest>
