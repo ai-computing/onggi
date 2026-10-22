@@ -29,6 +29,9 @@ usage:
   onggi gc      --store S [--grace 24h] [--dry-run]
                                                  mark and sweep: a run records candidates, a run
                                                  after the grace period deletes them
+  onggi gc      --store CACHE --roots-store S [--keep-used 168h]
+                                                 evict from a node cache what recently used
+                                                 artifacts do not need
   onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
   onggi csi     --store S [flags]                CSI node plugin: serve artifacts as read-only volumes (Linux)
   onggi version

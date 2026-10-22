@@ -72,7 +72,12 @@ type GCOptions struct {
 	// a candidate like any other unreferenced object.
 	RepackDead float64
 	TempDir    string // where repacked packs are assembled
-	Now        func() time.Time
+	// RootStore makes this a node-cache GC (#31): the store has no refs or manifests; its roots
+	// are the manifests used within KeepUsed (from the use records pulls leave) plus Keep, read
+	// from RootStore, and their locators name the chunks to keep.
+	RootStore *Store
+	KeepUsed  time.Duration
+	Now       func() time.Time
 }
 
 // GCStats reports a GC run.
@@ -120,7 +125,13 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 
 	// roots
 	roots := append([]digest.Digest(nil), o.Keep...)
-	if refs != nil {
+	if o.RootStore != nil {
+		used, err := s.usedSince(ctx, now.Add(-o.KeepUsed))
+		if err != nil {
+			return st, err
+		}
+		roots = append(roots, used...)
+	} else if refs != nil {
 		if err := refs.ListRefs(ctx, func(name, value string) error {
 			d, err := digest.Parse(value)
 			if err != nil {
@@ -164,6 +175,14 @@ func (s *Store) GC(ctx context.Context, refs backend.Refs, o GCOptions) (GCStats
 	}
 	for _, md := range roots {
 		if liveObj[keyString(backend.Manifest, md.Hex())] {
+			continue
+		}
+		if o.RootStore != nil {
+			if err := s.markFromLocator(ctx, o.RootStore, md, live, livePack); err != nil {
+				return st, fmt.Errorf("root manifest %s: %w (nothing deleted)", md, err)
+			}
+			liveObj[keyString(backend.Manifest, md.Hex())] = true
+			st.LiveManifests++
 			continue
 		}
 		m, err := s.ReadManifest(ctx, md)
@@ -509,6 +528,95 @@ func (s *Store) repack(ctx context.Context, o GCOptions, live []bool, livePack m
 			}
 		}
 		st.Repacked++
+	}
+	return nil
+}
+
+// ---- node-cache roots (#31)
+
+const usePrefix = "use-"
+
+type use struct {
+	Used time.Time `json:"used"`
+}
+
+// recordUse notes that manifest d was pulled through this cache at t.
+func (s *Store) recordUse(ctx context.Context, d digest.Digest, t time.Time) error {
+	k := backend.Key{Kind: backend.Config, Name: usePrefix + d.Hex()}
+	data, _ := json.Marshal(use{Used: t.UTC()})
+	if err := s.B.Delete(ctx, k); err != nil {
+		return err
+	}
+	return s.B.Put(ctx, k, bytes.NewReader(data), int64(len(data)))
+}
+
+// usedSince lists the manifests pulled through this cache at or after t.
+func (s *Store) usedSince(ctx context.Context, t time.Time) ([]digest.Digest, error) {
+	var names []string
+	if err := s.B.List(ctx, backend.Config, func(name string, _ int64) error {
+		if strings.HasPrefix(name, usePrefix) {
+			names = append(names, name)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	var out []digest.Digest
+	for _, name := range names {
+		data, err := readAll(ctx, s.B, backend.Key{Kind: backend.Config, Name: name})
+		if errors.Is(err, backend.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		var u use
+		if err := json.Unmarshal(data, &u); err != nil {
+			return nil, fmt.Errorf("use record %s: %v", name, err)
+		}
+		if u.Used.Before(t) {
+			continue
+		}
+		d, err := digest.Parse("sha256:" + strings.TrimPrefix(name, usePrefix))
+		if err != nil {
+			return nil, fmt.Errorf("use record %s: %v", name, err)
+		}
+		out = append(out, d)
+	}
+	return out, nil
+}
+
+// markFromLocator marks, in this cache, every stored chunk that manifest md's locator in the
+// root store names. Chunks the cache does not hold are skipped: a cache holds only what was read.
+func (s *Store) markFromLocator(ctx context.Context, root *Store, md digest.Digest, live []bool, livePack map[uint32]int64) error {
+	m, err := root.ReadManifest(ctx, md)
+	if err != nil {
+		return err
+	}
+	if m.Locator == nil {
+		return errors.New("the manifest has no locator, so its chunks cannot be found without the root store's index")
+	}
+	data, err := readAll(ctx, root.B, backend.Key{Kind: backend.List, Name: m.Locator.Hex()})
+	if err != nil {
+		return err
+	}
+	if digest.Of(data) != *m.Locator {
+		return fmt.Errorf("locator %s: content does not match its digest", m.Locator)
+	}
+	nodes, _, err := readLocator(data, m)
+	if err != nil {
+		return err
+	}
+	for i := range nodes {
+		if !nodes[i].stored {
+			continue
+		}
+		id, e, ok := s.lookup(nodes[i].chunk)
+		if !ok || e.state != stateStored || live[id] {
+			continue
+		}
+		live[id] = true
+		livePack[e.loc.Pack] += int64(e.loc.Stored)
 	}
 	return nil
 }
