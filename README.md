@@ -79,6 +79,9 @@ unreferenced objects; a run at least `--grace` (default 24 h) later deletes the 
 a push holds a lease. Packs that are mostly dead are repacked first (`--repack 0.25`). On the lab node, dropping the full
 ATOM set and one decode variant and keeping two variants took the packs from 15.9 GB to 12.2 GB (live: 12.1 GB) in
 four runs, and both remaining artifacts pulled byte-identical.
+A node cache has no refs: `onggi gc --store CACHE --roots-store S --keep-used 168h` keeps what the artifacts pulled
+through it within that period need (pulls record their use) and evicts the rest. On the lab node a cache holding three
+variants (12.2 GB) shrank to the one still in use (10.2 GB); pulling it again read 0 B from the store.
 
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
