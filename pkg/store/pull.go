@@ -47,10 +47,10 @@ type PullStats struct {
 	CacheBytes int64         `json:"cache_bytes"` // bytes read from the node cache
 	PeerBytes  int64         `json:"peer_bytes"`  // bytes received from peers
 	PeerChunks int64         `json:"peer_chunks"`
-	Cached     int64         `json:"cached"`         // stored bytes added to the node cache
-	Base       string        `json:"base,omitempty"` // the artifact this pull turned into the new one
-	Reused     int64         `json:"reused"`         // bytes left in place in the base's files
-	BaseBest   int64         `json:"base_best"`      // bytes the best offered base keeps at the same offsets, taken or not (#49)
+	Cached     int64         `json:"cached"`               // stored bytes added to the node cache
+	Base       string        `json:"base,omitempty"`       // the artifact this pull turned into the new one
+	Reused     int64         `json:"reused"`               // bytes left in place in the base's files
+	BaseBest   int64         `json:"base_best"`            // bytes the best offered base keeps at the same offsets, taken or not (#49)
 	LocalBase  string        `json:"local_base,omitempty"` // a base read where it is, not consumed (#58)
 	LocalBytes int64         `json:"local_bytes"`          // bytes read from that base's files
 	Ranges     int           `json:"ranges"`
