@@ -308,7 +308,9 @@ func TestGCRepacksMostlyDeadPacks(t *testing.T) {
 	if st1.Repacked == 0 || after > before*6/10 {
 		t.Fatalf("repack reclaimed too little: %d -> %d (repacked %d)", before, after, st1.Repacked)
 	}
-	if st := run(6 * time.Hour); st.Candidates != 0 || st.DeadInLive != 0 {
+	// a live pack with less than RepackDead dead bytes stays; which dead chunks share a pack with
+	// live ones depends on how the parallel push packed them (#44)
+	if st := run(6 * time.Hour); st.Candidates != 0 || st.DeadInLive > after/4 {
 		t.Fatalf("left after repack and sweeps: %+v", st)
 	}
 	out := t.TempDir()
