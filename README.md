@@ -89,6 +89,18 @@ A node cache has no refs: `onggi gc --store CACHE --roots-store S --keep-used 16
 through it within that period need (pulls record their use) and evicts the rest. On the lab node a cache holding three
 variants (12.2 GB) shrank to the one still in use (10.2 GB); pulling it again read 0 B from the store.
 
+`onggi diff --store S <base> <ref>` shows what turning a node's copy of one artifact into another takes, by stored
+chunks and without parsing any format (#38): bytes at the same offset (can stay), bytes the base holds elsewhere
+(a local copy), and new bytes (fetched). On the lab store:
+
+| base → new | same offset | elsewhere in base | new | to fetch | changed runs |
+|---|---|---|---|---|---|
+| decode B2 → decode B8 (15.2 GB) | 98.6 %, all in whole 4 KiB blocks | 0 | 1.4 % | 28.3 MB | 3, largest 218 MB |
+| decode B2 → prefill C128 (14.0 GB) | 0 | 79.4 % | 20.6 % | 1.9 GB | 1 |
+
+Decode variants differ in one contiguous region, so a node could update a copy in place instead of rewriting
+15 GB. Prefill and decode hold the same weights in a different order.
+
 Memory: a pull reads only the artifact's locator, not the store's whole index. For that set it peaks at 3.6 GB RSS by
 default and stays under 1.9 GB with `GOMEMLIMIT=1800MiB` (Go's soft memory limit), which node agents should set. Push
 holds the store's index (compact arrays) for dedup and peaks at 1.9 GiB by default (push 2 min 24 s).
