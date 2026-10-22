@@ -29,11 +29,18 @@ func openFramed(t *testing.T, root string, frame int64) *Store {
 	return s
 }
 
-// compressible returns data that compresses well but does not dedup: numbered lines of text.
+// compressible returns data that does not dedup but compresses across chunks: a random 16 KiB
+// block repeated with a counter written every 512 bytes, so every sub-chunk differs while a frame
+// finds the repeats.
 func compressible(seed, n int) []byte {
+	block := random(int64(seed), 16<<10)
 	var b bytes.Buffer
 	for i := 0; b.Len() < n; i++ {
-		fmt.Fprintf(&b, "layer %d op %d: tensor %x shape [%d %d] stride %d\n", seed, i, i*7919+seed, i%128, i%96, i%31)
+		blk := append([]byte(nil), block...)
+		for o := 0; o < len(blk); o += 512 {
+			copy(blk[o:], fmt.Sprintf("%08x", i*64+o))
+		}
+		b.Write(blk)
 	}
 	return b.Bytes()[:n]
 }

@@ -16,8 +16,10 @@ import (
 // the frame (Offset, Stored, Codec), the frame's raw length (Frame) and the chunk's place in it
 // (Inner). On the decode B2 → B8 switch, 256 KiB frames send 3.3 MB.
 
-// DefaultFrame is the raw size of compression frames in new two-level stores.
-const DefaultFrame = 256 << 10
+// DefaultFrame is the largest raw size of a compression frame in new two-level stores. It stays
+// below 256 KiB so that the byte planes of a frame fit one Huffman block and weights keep the
+// Shuffle2Huffman codec (pkg/codec).
+const DefaultFrame = 255 << 10
 
 // share is the part of the stored bytes that is the chunk's: for a chunk in a frame, the frame's
 // stored bytes split by raw length. GC sums it per pack.
@@ -83,14 +85,16 @@ type frameBuilder struct {
 	members []member
 }
 
-// add appends a new chunk, sending the frame once it holds limit bytes. It returns the raw bytes
-// added.
+// add appends a new chunk, sending the frame first if the chunk would take it past limit. It
+// returns the raw bytes added.
 func (fb *frameBuilder) add(ctx context.Context, raw []byte, d digest.Digest, out chan<- pending) (int64, error) {
+	if len(fb.raw)+len(raw) > fb.limit {
+		if err := fb.flush(ctx, out); err != nil {
+			return 0, err
+		}
+	}
 	fb.members = append(fb.members, member{chunk: d, inner: uint32(len(fb.raw)), length: uint32(len(raw))})
 	fb.raw = append(fb.raw, raw...)
-	if len(fb.raw) >= fb.limit {
-		return int64(len(raw)), fb.flush(ctx, out)
-	}
 	return int64(len(raw)), nil
 }
 
