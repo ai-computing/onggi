@@ -37,9 +37,18 @@ retries it. The pull keeps running in the meantime, and the retry joins it.
 `NodeUnpublishVolume` unmounts and drops the lease. A ref moved to a new manifest gets a new directory; pods that
 already run keep the old one.
 
+## Eviction (#33)
+
+Every `--gc-every` (default 1 h) the plugin:
+1. deletes materialized artifacts that no lease holds and that no pod has published or released for `--evict-after`
+   (default 24 h): unmount the self-bind, rename into `tmp/`, remove;
+2. runs `onggi gc` on the node cache with the plugin's store as the roots store: chunks that the artifacts still
+   materialized or pulled within `--keep-used` (default 168 h) need stay; the rest go after `--gc-grace` (default 1 h).
+
+`--gc-every 0` turns both off.
+
 ## Limits of v0
 
-- Nothing deletes materialized artifacts or evicts from the node cache. The leases are there for eviction (P3).
 - The files are a second copy next to the node cache, which holds packed and compressed chunks. Reflinks or
   hardlinks from the cache need a cache of plain files.
 - One plugin per node and data directory. Linux only.
@@ -63,3 +72,15 @@ two-level store on a read-only hostPath; the node cache started empty.
 The first build remounted only the target read-only. Inside the pods the volume was read-only, but the host's
 mountinfo showed `rw`: a remount does not propagate to the host. The plugin now binds from a read-only self-bind of
 the artifact, and the host shows `ro,nosuid,nodev`.
+
+## Tested (#33)
+
+Same node and store, with `--gc-every 1m --evict-after 2m --keep-used 3m --gc-grace 30s` and an empty node cache.
+
+| step | result |
+|---|---|
+| pods with decode B2, then B8 | 10.20 GB, then 28.3 MB read from the store; GC rounds during the pulls deleted nothing (the pulls hold cache leases) |
+| delete the B8 pod | its artifact evicted 2 min 35 s later; the B2 pod's volume still mounted and identical to the source |
+| node-cache GC | after `--keep-used` ran out: 2 objects (29.7 MB) deleted two rounds later; the cache is back to what B2 needs (10.20 GB) |
+| new B8 pod | 28.3 MB from the store, 10.18 GB from the cache, 59 s; identical to the source; read-only |
+| delete the pods | every unpublish succeeded; no leases, volume mounts or files left |

@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/ai-computing/onggi/pkg/backend"
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
@@ -29,6 +30,10 @@ func csiNode(args []string, stderr io.Writer) int {
 	dataDir := fs.String("data-dir", "/var/lib/onggi", "node directory for materialized artifacts and leases")
 	cacheDir := fs.String("cache", "", "node chunk cache (default <data-dir>/cache; none: no cache)")
 	workers := fs.Int("workers", 16, "ranges read at once per pull")
+	evictAfter := fs.Duration("evict-after", 24*time.Hour, "evict materialized artifacts no volume used for this long (0: never)")
+	gcEvery := fs.Duration("gc-every", time.Hour, "how often to evict and collect the node cache (0: never)")
+	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
+	gcGrace := fs.Duration("gc-grace", time.Hour, "grace period of the node cache's GC")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
 		fmt.Fprintln(stderr, "usage: onggi csi --store S [--endpoint unix:///csi/csi.sock] [--node-id N] [--data-dir DIR] [--cache DIR]")
 		return 2
@@ -45,16 +50,23 @@ func csiNode(args []string, stderr io.Writer) int {
 		return 1
 	}
 	tmp := filepath.Join(*dataDir, "tmp")
-	var cache *store.Store
+	// the cache is opened afresh for each pull and each GC round: GC deletes packs, and a store
+	// opened before would still list them in its index
+	openCache := func(context.Context) (*store.Store, error) { return nil, nil }
 	if *cacheDir != "none" {
 		if *cacheDir == "" {
 			*cacheDir = filepath.Join(*dataDir, "cache")
 		}
-		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
-		if err == nil {
-			cache, err = store.OpenWith(ctx, cb, store.Create{Chunker: s.Config.Chunker, Sub: s.Config.Sub,
+		dir := *cacheDir
+		openCache = func(ctx context.Context) (*store.Store, error) {
+			cb, err := bfs.Open(dir, backend.DurabilityNone)
+			if err != nil {
+				return nil, err
+			}
+			return store.OpenWith(ctx, cb, store.Create{Chunker: s.Config.Chunker, Sub: s.Config.Sub,
 				SubKinds: s.Config.SubKinds, PackSize: s.Config.PackSize})
 		}
+		cache, err := openCache(ctx)
 		if err == nil {
 			err = cache.LoadIndex(ctx)
 		}
@@ -65,18 +77,26 @@ func csiNode(args []string, stderr io.Writer) int {
 		chunks, packs := cache.Stats()
 		logger.Printf("node cache %s: %d chunks in %d packs", *cacheDir, chunks, packs)
 	}
-	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePuller(s, cache, tmp, *workers), Logf: logger.Printf}
+	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerOpen(s, openCache, tmp, *workers), Logf: logger.Printf}
 	if err := m.Init(); err != nil {
 		logger.Print("data dir: ", err)
 		return 1
 	}
+	mounter := csi.NewMounter()
 	n := &csi.Node{
 		Version: version,
 		NodeID:  *nodeID,
 		M:       m,
 		Resolve: func(ctx context.Context, ref string) (digest.Digest, error) { return store.Resolve(ctx, refs, ref) },
-		Mounter: csi.NewMounter(),
+		Mounter: mounter,
 		Logf:    logger.Printf,
+	}
+	if *gcEvery > 0 {
+		go func() {
+			for range time.Tick(*gcEvery) {
+				nodeGC(ctx, logger, m, mounter, s, openCache, *cacheDir != "none", *evictAfter, *keepUsed, *gcGrace, tmp)
+			}
+		}()
 	}
 	l, err := csi.Listen(*endpoint)
 	if err != nil {
@@ -98,6 +118,38 @@ func csiNode(args []string, stderr io.Writer) int {
 	}
 	os.Remove(l.Addr().String())
 	return 0
+}
+
+// nodeGC is one round of node-side cleanup (#33): evict idle artifacts, then collect the node
+// cache with the artifacts still materialized and the recently used ones as roots.
+func nodeGC(ctx context.Context, logger *log.Logger, m *csi.Materializer, mounter csi.Mounter, s *store.Store,
+	openCache func(context.Context) (*store.Store, error), withCache bool, evictAfter, keepUsed, grace time.Duration, tmp string) {
+	if evictAfter > 0 {
+		if _, err := m.Evict(time.Now(), evictAfter, mounter.Unmount); err != nil {
+			logger.Print("evict: ", err)
+		}
+	}
+	if !withCache {
+		return
+	}
+	keep, err := m.Materialized()
+	if err != nil {
+		logger.Print("node GC: ", err)
+		return
+	}
+	cache, err := openCache(ctx)
+	if err != nil {
+		logger.Print("node GC: ", err)
+		return
+	}
+	st, err := cache.GC(ctx, nil, store.GCOptions{RootStore: s, Keep: keep, KeepUsed: keepUsed, Grace: grace,
+		RepackDead: 0.25, TempDir: tmp})
+	if err != nil {
+		logger.Print("node GC: ", err)
+		return
+	}
+	logger.Printf("node GC: %s; %d roots; %d candidates; deleted %d objects (%d B); repacked %d packs",
+		st.Phase, st.Roots, st.Candidates, st.Deleted, st.DeletedBytes, st.Repacked)
 }
 
 func envOr(k, def string) string {

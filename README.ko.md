@@ -65,7 +65,7 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 `--cache DIR`를 주면 pull이 노드에 이미 있는 청크는 로컬 캐시 저장소에서 읽고, 새로 받은 청크는 캐시에 더합니다.
 연구실 노드에서 ATOM decode 변형 하나(저장소에서 10.2 GB 읽음)를 받은 뒤, 두 번째 변형은 저장소에서 28 MB(0.3%)만,
 prefill 빌드는 1.9 GB를 읽었고, 같은 변형을 다시 받을 때는 0 B를 읽었습니다. 모두 원본과 바이트 단위로 같았습니다.
-캐시 정리(eviction)는 노드 agent에서 다룹니다.
+CSI 플러그인은 쓰이지 않는 결과물을 지우고 노드 캐시를 스스로 정리합니다(#33).
 Kubernetes에서는 CSI 드라이버([deploy/csi](deploy/csi/README.md))가 ref를 읽기 전용 볼륨으로 마운트합니다. 노드는 결과물을
 노드 캐시를 거쳐 한 번만 풀어 두고, 같은 ref를 쓰는 pod는 그 사본을 함께 씁니다. 연구실 클러스터에서 두 번째 decode 변형은
 저장소에서 28 MB만 읽었습니다. init container로 pod의 emptyDir에 푸는 방법도 있습니다([deploy/k8s](deploy/k8s/README.md)).
