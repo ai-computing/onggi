@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
 	"github.com/ai-computing/onggi/pkg/csi"
 	"github.com/ai-computing/onggi/pkg/digest"
+	"github.com/ai-computing/onggi/pkg/peer"
 	"github.com/ai-computing/onggi/pkg/store"
 )
 
@@ -34,8 +36,12 @@ func csiNode(args []string, stderr io.Writer) int {
 	gcEvery := fs.Duration("gc-every", time.Hour, "how often to evict and collect the node cache (0: never)")
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
 	gcGrace := fs.Duration("gc-grace", time.Hour, "grace period of the node cache's GC")
+	peerListen := fs.String("peer-listen", "", "serve the node cache to other nodes' pulls on this address, e.g. :7070 (#37)")
+	peers := fs.String("peers", "", "comma-separated peer URLs asked for chunks before the store")
+	peersDNS := fs.String("peers-dns", "", "host:port whose name resolves to the peers, e.g. a headless Service; re-resolved every 30 s")
+	selfIP := fs.String("pod-ip", os.Getenv("POD_IP"), "this plugin's address, left out of --peers-dns (env POD_IP)")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
-		fmt.Fprintln(stderr, "usage: onggi csi --store S [--endpoint unix:///csi/csi.sock] [--node-id N] [--data-dir DIR] [--cache DIR]")
+		fmt.Fprintln(stderr, "usage: onggi csi --store S [--endpoint unix:///csi/csi.sock] [--node-id N] [--data-dir DIR] [--cache DIR] [--peer-listen :7070] [--peers-dns H:P]")
 		return 2
 	}
 	logger := log.New(stderr, "", log.LstdFlags|log.Lmicroseconds)
@@ -77,7 +83,17 @@ func csiNode(args []string, stderr io.Writer) int {
 		chunks, packs := cache.Stats()
 		logger.Printf("node cache %s: %d chunks in %d packs", *cacheDir, chunks, packs)
 	}
-	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerOpen(s, openCache, tmp, *workers), Logf: logger.Printf}
+	var peerList func(context.Context) []store.ChunkSource
+	if static := peerClients(*peers); len(static) > 0 || *peersDNS != "" {
+		d := &peer.Discovery{Name: *peersDNS, Self: []string{*selfIP}, Logf: logger.Printf}
+		peerList = func(ctx context.Context) []store.ChunkSource {
+			if *peersDNS == "" {
+				return static
+			}
+			return append(append([]store.ChunkSource(nil), static...), d.Peers(ctx)...)
+		}
+	}
+	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerPeers(s, openCache, peerList, tmp, *workers), Logf: logger.Printf}
 	if err := m.Init(); err != nil {
 		logger.Print("data dir: ", err)
 		return 1
@@ -95,6 +111,15 @@ func csiNode(args []string, stderr io.Writer) int {
 		go func() {
 			for range time.Tick(*gcEvery) {
 				nodeGC(ctx, logger, m, mounter, s, openCache, *cacheDir != "none", *evictAfter, *keepUsed, *gcGrace, tmp)
+			}
+		}()
+	}
+	if *peerListen != "" && *cacheDir != "none" {
+		ps := &peer.Server{Open: openCache}
+		go func() {
+			logger.Printf("serving the node cache to peers on %s", *peerListen)
+			if err := http.ListenAndServe(*peerListen, ps); err != nil {
+				logger.Print("peer server: ", err)
 			}
 		}()
 	}
