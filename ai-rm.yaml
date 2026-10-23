@@ -1,8 +1,8 @@
 name: onggi
 protocol: "0.1"
 layer: l2-memory
-kind: tool                    # P0: a CLI; the controller, node agent and CSI driver follow in P2-P3 (docs/design.md)
-summary: Content-addressed store for model weights and accelerator-compiled artifacts (P0 dedup-report)
+kind: tool                    # CLI plus CSI node plugin; controller/compile farm remain planned
+summary: Content-addressed artifact store with node cache, peers, delta apply and read-only CSI volumes (P2)
 maturity: experimental
 hardware: [RNGD, ATOM, A100]  # reads their artifacts; runs on any Linux/Windows host without an accelerator
 install:
@@ -11,7 +11,7 @@ test:
   - go vet ./...
   - go test ./...
 deploy:
-  target: none                # P0 runs where the files are; cluster components come with P2
+  target: none                # CSI examples require site image/store settings; no automatic deployment
   manifests: null
   image: null
 config:

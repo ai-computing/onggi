@@ -81,9 +81,13 @@ type Materializer struct {
 	RebaseIdle time.Duration
 	// Unmount removes the read-only self-bind publishing put on an artifact directory (nil: none).
 	Unmount func(dir string) error
+	// MaxPulls bounds distinct artifacts materialized concurrently (0: one).
+	// Set before the first Ensure; retries for one digest still share one pull.
+	MaxPulls int
 
 	mu       sync.Mutex
 	inflight map[digest.Digest]*flight
+	slots    chan struct{}
 }
 
 type flight struct {
@@ -111,6 +115,9 @@ func (m *Materializer) Dir(d digest.Digest) string {
 // Init creates the layout and removes pulls that a previous process left unfinished. Only one
 // materializer may use Root at a time.
 func (m *Materializer) Init() error {
+	if m.MaxPulls < 0 {
+		return fmt.Errorf("MaxPulls must not be negative")
+	}
 	for _, d := range []string{"artifacts", "tmp", "volumes", "leases"} {
 		if err := os.MkdirAll(filepath.Join(m.Root, d), 0o755); err != nil {
 			return err
@@ -144,13 +151,16 @@ func (m *Materializer) Ensure(ctx context.Context, d digest.Digest) (string, err
 	}
 	if m.inflight == nil {
 		m.inflight = map[digest.Digest]*flight{}
+		m.slots = make(chan struct{}, max(1, m.MaxPulls))
 	}
 	f, ok := m.inflight[d]
 	if !ok {
 		f = &flight{done: make(chan struct{})}
 		m.inflight[d] = f
 		go func() {
+			m.slots <- struct{}{}
 			f.err = m.materialize(d)
+			<-m.slots
 			m.mu.Lock()
 			delete(m.inflight, d)
 			m.mu.Unlock()
@@ -239,15 +249,41 @@ func (m *Materializer) Acquire(id string, d digest.Digest, target string) error 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	name := volumeName(id)
+	vf := filepath.Join(m.Root, "volumes", name+".json")
+	if data, err := os.ReadFile(vf); err == nil {
+		var v Volume
+		if err := json.Unmarshal(data, &v); err != nil {
+			return fmt.Errorf("volume %s: %w", id, err)
+		}
+		if v.Manifest != d.String() || v.Target != target {
+			return fmt.Errorf("volume %s already uses %s at %s", id, v.Manifest, v.Target)
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
 	ldir := filepath.Join(m.Root, "leases", d.Hex())
 	if err := os.MkdirAll(ldir, 0o755); err != nil {
 		return err
 	}
-	if err := writeAtomic(filepath.Join(ldir, name), []byte(target+"\n")); err != nil {
+	lease := filepath.Join(ldir, name)
+	_, statErr := os.Stat(lease)
+	if statErr != nil && !errors.Is(statErr, os.ErrNotExist) {
+		return statErr
+	}
+	if err := writeAtomic(lease, []byte(target+"\n")); err != nil {
 		return err
 	}
 	data, _ := json.Marshal(Volume{Manifest: d.String(), Target: target})
-	return writeAtomic(filepath.Join(m.Root, "volumes", name+".json"), data)
+	// Lease first so a process crash cannot leave a published artifact unprotected.
+	if err := writeAtomic(vf, data); err != nil {
+		if errors.Is(statErr, os.ErrNotExist) {
+			if removeErr := os.Remove(lease); removeErr != nil {
+				return errors.Join(err, fmt.Errorf("rollback lease: %w", removeErr))
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 // Release drops volume id's lease and returns the artifact it used and how many volumes still
@@ -308,6 +344,7 @@ func writeAtomic(path string, data []byte) error {
 	if err := os.WriteFile(tmp, data, 0o644); err != nil {
 		return err
 	}
+	defer os.Remove(tmp)
 	return os.Rename(tmp, path)
 }
 

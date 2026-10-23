@@ -15,25 +15,38 @@ weights, and FuriosaAI RNGD keeps three copies of weights that are byte-identica
 chunking finds 99.3 % shared bytes between ATOM variants that fixed-size blocks miss entirely
 ([measurements](docs/artifact-formats.md)).
 
-Onggi (옹기, the Korean jar that stores and ferments food) keeps each distinct byte once, moves artifacts to the nodes
-that need them before a pod asks, and hands them to any engine as plain files.
+Onggi (옹기, the Korean jar that stores and ferments food) keeps each distinct byte once and hands restored artifacts
+to engines as plain files. The CSI plugin restores them on demand; placement-driven prefetch remains planned.
 
 <p align="center"><img src="docs/assets/architecture.svg" width="100%" alt="Onggi architecture: users act through the Kubernetes API; onggi-controller runs the compile farm, prefetch, GC and a webhook; a durable tier behind pluggable fs, s3 and oci backends; a cache tier of node agents that fetch missing chunks, share them peer to peer and mount artifacts into engine pods; integration points with rm-core, rm-accel, rm-controller, llm-d, npu-train, lmd-top and Optimus Prime"></p>
 
-**How it fits together:** ① a compile Job (or `onggi push`) chunks an artifact and uploads only the chunks the durable
+**Target architecture:** ① a compile Job (or `onggi push`) chunks an artifact and uploads only the chunks the durable
 tier does not have, then ② commits a Ref in the Kubernetes API. ③ When a pod mounts the artifact, the node's agent
 fetches the missing chunks from peers or the durable tier, verifies every hash and hands the engine plain files.
-Placement decisions and scale-up signals from ai-rm and llm-d start the fetch before the pod exists.
+The Kubernetes Ref API, compile controller and fetches triggered by ai-rm/llm-d placement or scale-up signals are future work.
 
 ## What it does
 
 | | |
 |---|---|
 | **Store once** | content-defined chunks, manifests per artifact, weights stored once per weight layout |
-| **Place ahead** | per-node cache tier with rendezvous (HRW) placement and peer-to-peer transfer; prefetch from placement and autoscaling signals |
+| **Reuse node data** | node cache and hash-checked peer transfer; placement/autoscaling prefetch is planned |
 | **Deliver as files** | CSI volume: kubelet mounts a ready artifact; vLLM, vllm-rbln, furiosa-llm, rngd-pd and Optimus Prime need no changes |
-| **Build declaratively** | `ArtifactSet` CRDs drive a compile farm; results are deduplicated on publish |
+| **Build declaratively (planned)** | `ArtifactSet` CRDs and a compile farm; today, publish existing builds with `onggi push` |
 | **Stay multi-node** | durable tier on an existing erasure-coded object store; caches survive node loss by design |
+
+## Prepared variants and NPU delta loading
+
+Onggi restores precompiled variants and weights, including their unchanged chunks, as ordinary files. A serving
+runtime such as [rngd-pd](https://github.com/ai-computing/rngd-pd) selects a compatible prepared batch/sequence
+variant, drains active requests when required, and performs any supported device-memory update. Onggi's file
+delta does not itself update NPU memory or establish that two compiled graphs can share resident weights.
+
+Record the source checkpoint identity, compiler/SDK, device, weight layout and supported batch/sequence shapes
+with each build. Changing batch or sequence length still requires a compatible precompiled graph. RNGD external
+weights and ATOM device-input weights have different runtime capabilities; ATOM graphs with embedded weights
+require their corresponding compiled artifacts. Automated compatibility selection, prewarm and placement hooks
+remain integration work; see [integration](docs/integration.md).
 
 ## Quick start
 
@@ -122,9 +135,9 @@ holds the store's index (compact arrays) for dedup and peaks at 1.9 GiB by defau
 
 ## Part of ai-rm
 
-Onggi is a component of [ai-rm](https://github.com/ai-computing/ai-rm), the heterogeneous AI resource management stack,
-and connects through [rm-core](https://github.com/ai-computing/rm-core) contracts. [lmd-top](https://github.com/ai-computing/lmd-top)
-is its operator console.
+Onggi is a component of [ai-rm](https://github.com/ai-computing/ai-rm), the heterogeneous AI resource management stack.
+Its [rm-core](https://github.com/ai-computing/rm-core) artifact contract and
+[lmd-top](https://github.com/ai-computing/lmd-top) operator-console integration are planned; the current interfaces are the CLI and CSI volumes.
 
 ## Contributing
 

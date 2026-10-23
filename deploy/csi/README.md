@@ -34,8 +34,17 @@ On `NodePublishVolume` the plugin:
 The pod stays in `ContainerCreating` until this returns. kubelet gives up on a call after about two minutes and
 retries it. The pull keeps running in the meantime, and the retry joins it.
 
+Distinct artifacts are materialized one at a time by default (`--pulls 1`). Increase `--pulls` only with
+enough node memory: each pull has its own planner and up to `--workers` concurrent range reads. This bounds
+the number of large working sets; `GOMEMLIMIT` alone is a soft GC target, not a process memory cap.
+
 `NodeUnpublishVolume` unmounts and drops the lease. A ref moved to a new manifest gets a new directory; pods that
 already run keep the old one.
+
+A failed volume-record write rolls back its newly created lease. Reusing a volume ID with a different
+manifest or target is rejected; unpublish it first. A process crash between the lease and volume-record
+writes can still leave a conservative extra lease, so restart does not automatically remove such leases
+without checking whether their mounts are in use.
 
 ## Eviction (#33)
 
