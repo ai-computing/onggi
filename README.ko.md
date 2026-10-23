@@ -129,8 +129,9 @@ prefill과 decode는 같은 가중치를 다른 순서로 담고 있습니다.
 
 ## ai-rm 구성요소
 
-Onggi는 이종 AI 자원관리 스택 [ai-rm](https://github.com/ai-computing/ai-rm)의 구성요소이며
-[rm-core](https://github.com/ai-computing/rm-core) 계약으로 연결됩니다. 운영 콘솔은 [lmd-top](https://github.com/ai-computing/lmd-top)입니다.
+Onggi는 이종 AI 자원관리 스택 [ai-rm](https://github.com/ai-computing/ai-rm)의 구성요소입니다.
+[rm-core](https://github.com/ai-computing/rm-core) 아티팩트 계약과 [lmd-top](https://github.com/ai-computing/lmd-top)
+운영 콘솔 연동은 계획 단계이며, 현재 인터페이스는 CLI와 CSI 볼륨입니다.
 
 ## 기여
 

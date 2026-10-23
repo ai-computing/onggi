@@ -135,9 +135,9 @@ holds the store's index (compact arrays) for dedup and peaks at 1.9 GiB by defau
 
 ## Part of ai-rm
 
-Onggi is a component of [ai-rm](https://github.com/ai-computing/ai-rm), the heterogeneous AI resource management stack,
-and connects through [rm-core](https://github.com/ai-computing/rm-core) contracts. [lmd-top](https://github.com/ai-computing/lmd-top)
-is its operator console.
+Onggi is a component of [ai-rm](https://github.com/ai-computing/ai-rm), the heterogeneous AI resource management stack.
+Its [rm-core](https://github.com/ai-computing/rm-core) artifact contract and
+[lmd-top](https://github.com/ai-computing/lmd-top) operator-console integration are planned; the current interfaces are the CLI and CSI volumes.
 
 ## Contributing
 
