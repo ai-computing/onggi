@@ -32,6 +32,7 @@ func csiNode(args []string, stderr io.Writer) int {
 	dataDir := fs.String("data-dir", "/var/lib/onggi", "node directory for materialized artifacts and leases")
 	cacheDir := fs.String("cache", "", "node chunk cache (default <data-dir>/cache; none: no cache)")
 	workers := fs.Int("workers", 16, "ranges read at once per pull")
+	pulls := fs.Int("pulls", 1, "distinct artifacts materialized at once per node")
 	evictAfter := fs.Duration("evict-after", 24*time.Hour, "evict materialized artifacts no volume used for this long (0: never)")
 	gcEvery := fs.Duration("gc-every", time.Hour, "how often to evict and collect the node cache (0: never)")
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
@@ -43,6 +44,10 @@ func csiNode(args []string, stderr io.Writer) int {
 	selfIP := fs.String("pod-ip", os.Getenv("POD_IP"), "this plugin's address, left out of --peers-dns (env POD_IP)")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
 		fmt.Fprintln(stderr, "usage: onggi csi --store S [--endpoint unix:///csi/csi.sock] [--node-id N] [--data-dir DIR] [--cache DIR] [--peer-listen :7070] [--peers-dns H:P]")
+		return 2
+	}
+	if *pulls < 1 {
+		fmt.Fprintln(stderr, "--pulls must be at least 1")
 		return 2
 	}
 	logger := log.New(stderr, "", log.LstdFlags|log.Lmicroseconds)
@@ -94,7 +99,7 @@ func csiNode(args []string, stderr io.Writer) int {
 			return append(append([]store.ChunkSource(nil), static...), d.Peers(ctx)...)
 		}
 	}
-	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerPeers(s, openCache, peerList, tmp, *workers), Logf: logger.Printf}
+	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerPeers(s, openCache, peerList, tmp, *workers), Logf: logger.Printf, MaxPulls: *pulls}
 	if err := m.Init(); err != nil {
 		logger.Print("data dir: ", err)
 		return 1
