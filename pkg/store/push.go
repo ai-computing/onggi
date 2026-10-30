@@ -269,7 +269,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				if ctx.Err() != nil {
 					continue
 				}
-				list, nb, err := s.chunkFile(ctx, files[i].abs, s.subChunks(files[i].rel), o.Compress, claim, addComp, chunks)
+				list, nb, err := s.chunkFile(ctx, files[i].abs, s.subChunks(files[i].rel, files[i].Size), o.Compress, claim, addComp, chunks)
 				if err != nil {
 					fail(fmt.Errorf("%s: %w", files[i].rel, err))
 					continue
