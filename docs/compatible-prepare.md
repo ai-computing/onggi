@@ -74,6 +74,10 @@ All readable candidates are reported; missing/corrupt manifests fail closed.
 For multiple matches, the lexically lowest manifest digest wins, independently
 of argument order. Refs resolve once under a GC lease; subsequent ref movement
 does not change the selected artifact. For reproducible jobs, supply digests.
+This reuses the existing GC lease protocol (default TTL 24 hours), not a new
+reader/writer lock. Strong exclusion of a sweep already in progress is not
+established by this increment; retain immutable refs and coordinate GC during
+critical preparation jobs.
 
 Stdout is a JSON report: `selection` contains the chosen manifest, compatible
 digests and rejection reasons; `ready` is true only after verified publication;
@@ -102,3 +106,7 @@ RNGD and ATOM resident-update paths remain separate runtime integrations;
 this command does not implement live request draining, variant switching or
 device mutation. Cluster-wide discovery, CRDs/compile farm, placement-driven
 prefetch and native prewarming remain later P3/P4 work.
+
+[CPU validation and source hashes](data/compatible-prepare-20261030.json) record
+the complete race suite, source-byte checks and three reproduced review fixes.
+Final publication-head Go and live S3 CI links are recorded in the PR.

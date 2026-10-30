@@ -43,8 +43,8 @@ Interface: prepare CLI per spec, always JSON report; request shares Profile v1.
 - [x] Implement prepare via existing Pull/Cache/Peers, sibling temp+mkdir lock,
       store GC lease and atomic rename; never use shared CSI Materializer.Init.
 - [x] GREEN focused tests, full race/vet/build; bilingual docs and examples.
-- [ ] One independent branch review, fix important findings with RED->GREEN.
-- [ ] Commit/push draft PR, verify exact-head CI, record final gate in PR.
+- [x] One independent branch review, fix important findings with RED->GREEN.
+- [x] Commit/push draft PR #71; final publication-head CI gate recorded in PR.
 
 ## Ledger
 
@@ -74,3 +74,34 @@ Interface: prepare CLI per spec, always JSON report; request shares Profile v1.
   rather than silently trusting them; process-crash temp/lock recovery remains
   explicit and documented. This costs manual recovery/new destination on a
   crash, and avoids treating an unverified existing directory as ready.
+- Final review at1f1ca21 found three Important issues, no Critical/Minor.
+  All reproduced together RED atee6e457: partial-suffix files overwritten in
+  reverse-order manifests; temporary tree mode0755; locator count4294967295
+  returned despite error. Fixed c7e3910: private tree0700 until verification,
+  unique0600 staging filenames excluding all final/ancestor paths, duplicate
+  final-path refusal, and locator count0 on error before allocation. GREEN
+  focused regressions and full race/vet/build;151 test/subtest pass events,
+ 10 environment-dependent skips, no failed test/package. Maximal allocation
+  was never executed. Byte hashes for72 Go/source-dependency files independently
+  match local tested files. Evidence: docs/data/compatible-prepare-20261030.json.
+- Final: Ruling on reviewer-declined publisher truth/omitted vendor dimensions,
+  ABI, native readiness and latency: metadata exact agreement only; publisher
+  records complete build identities/options and runtime validates artifacts.
+  No new native claim; the cost of inaccurate declarations is load rejection
+  or incorrect vendor compatibility, not something this selector can certify.
+- Final: Ruling on hostile parent replacement/noncooperating writers: lock
+  coordinates cooperating preparers only; deployment uses owned directories.
+  Adversarial filesystem isolation requires a separate hardened filesystem API.
+- Final: Ruling on crash durability/stale-lock recovery/existing adoption:
+  retain explicit documented operator recovery and refuse existing targets;
+  no crash-durable or automatic recovery claim. Cost: manual retry preparation.
+- Final: Ruling on strong concurrent GC exclusion: reuse existing TTL/snapshot
+  lease protocol, not a reader/writer lock. Document24h default TTL and retain
+  immutable refs/coordinate critical GC; a future protocol change is separate.
+- Final: Ruling on S3/Kubernetes/hardware review limits: both real S3 servers
+  passed CI41003744490 before fixes; final exact-head CI must pass again and
+  is recorded in the PR. Kubernetes example is syntax-checked, not deployed;
+  no NPU hardware operation, native warming or new performance claim.
+- Owned CPU suite runner has exited; no NPU allocated. Keep isolated source/
+  logs/cache for inspection. Final publication keeps the branch/worktree and
+  records CI in PR metadata rather than creating another CI-only commit.
