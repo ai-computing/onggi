@@ -122,7 +122,7 @@ interrupted native copy. Group8 currently fails native compilation with a
 memory-explosion error, so it is not a validated 2026.4 configuration.
 Initial full-model loading remains about 19–21 seconds; partial replacement
 does not establish faster cold loading or a speedup over the old SDK.
-[2026.4 protocol and all measured runs](https://github.com/ai-computing/rngd-pd/blob/feat/rngd-sdk264-resident/experiments/2026-10-30-rngd-sdk264.md).
+[2026.4 protocol and all measured runs](https://github.com/ai-computing/rngd-pd/blob/0bc244db0239bddfdda005454809aee0812877d8/experiments/2026-10-30-rngd-sdk264.md).
 The earlier preflight record above describes the baseline loader.
 
 The migrated cache uses separately versioned artifacts and checks SDK/Torch

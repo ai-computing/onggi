@@ -74,7 +74,7 @@ SDK 2026.4는 DMA·스트림 오버헤드 개선을 포함하므로 다음 검�
 projection·LM 행 갱신 후 새 전체 로딩과 토큰이 일치하고, 버퍼·컴파일 모듈 유지와 native 복사 중단 후 복구도
 확인했습니다. group8은 현재 컴파일러의 memory explosion 오류로 검증되지 않은 설정입니다.
 최초 전체 로딩은 약 19~21초이며, 부분 갱신 검증이 최초 적재나 이전 SDK 대비 속도 향상을 뜻하지는 않습니다.
-[2026.4 재현 조건과 전체 측정 결과](https://github.com/ai-computing/rngd-pd/blob/feat/rngd-sdk264-resident/experiments/2026-10-30-rngd-sdk264.md).
+[2026.4 재현 조건과 전체 측정 결과](https://github.com/ai-computing/rngd-pd/blob/0bc244db0239bddfdda005454809aee0812877d8/experiments/2026-10-30-rngd-sdk264.md).
 이 캐시는 Furiosa-LLM의 FXB 로더와 별개이며, 앞의 preflight는 이식 전 기준 로더에 대한 기록입니다.
 
 이식된 캐시는 버전별 결과물을 분리하고 SDK·Torch 호환성을 확인합니다. 2026.2 측정값을 2026.4 결과로 표시하거나
