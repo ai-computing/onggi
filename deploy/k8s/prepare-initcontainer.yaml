@@ -1,0 +1,47 @@
+# Replace every <...>; supply request.json as a ConfigMap with the exact target profile.
+# This prepares files, not NPU graphs. Use a fresh emptyDir destination and an engine-specific
+# device request/readiness probe. Do not deploy this template unchanged.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: onggi-compatible-prepare
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: <compatible-node>
+  initContainers:
+    - name: prepare-artifact
+      image: <onggi-image-with-prepare>
+      command: ["onggi", "prepare"]
+      args:
+        - --request
+        - /request/request.json
+        - --cache
+        - /cache
+        - --dir
+        - /models/ready
+        - <candidate-ref-or-digest-1>
+        - <candidate-ref-or-digest-2>
+      env:
+        - name: ONGGI_STORE
+          value: <store-url>
+        - name: GOMEMLIMIT
+          value: 1800MiB
+      # For S3, provide AWS credentials with secretKeyRef as in pull-initcontainer.yaml.
+      volumeMounts:
+        - {name: request, mountPath: /request, readOnly: true}
+        - {name: cache, mountPath: /cache}
+        - {name: models, mountPath: /models}
+  containers:
+    - name: engine
+      image: <engine-image>
+      args: ["--model", "/models/ready"]
+      # Add the actual runtime's device allocation, graph setup and readiness probe.
+      volumeMounts:
+        - {name: models, mountPath: /models, readOnly: true}
+  volumes:
+    - name: request
+      configMap: {name: onggi-artifact-request}
+    - name: cache
+      hostPath: {path: /var/lib/onggi/cache, type: DirectoryOrCreate}
+    - name: models
+      emptyDir: {}
