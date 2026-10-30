@@ -3,11 +3,109 @@ package store
 import (
 	"bytes"
 	"context"
+	"io"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/ai-computing/onggi/pkg/backend"
 	"github.com/ai-computing/onggi/pkg/digest"
 )
+
+type diffReads struct {
+	backend.Backend
+	gets map[backend.Key]int
+}
+
+func (b *diffReads) Get(ctx context.Context, k backend.Key, off, n int64) (io.ReadCloser, error) {
+	b.gets[k]++
+	return b.Backend.Get(ctx, k, off, n)
+}
+
+func TestDiffReadsEachLocatorOnce(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(29, 2<<20)
+	base := pushDir(t, s, map[string][]byte{"weights.rbln": w})
+	v := append([]byte(nil), w...)
+	copy(v[1<<20:], random(30, 64<<10))
+	newID := pushDir(t, s, map[string][]byte{"weights.rbln": v})
+	bm, err := s.ReadManifest(ctx, base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nm, err := s.ReadManifest(ctx, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bm.Locator == nil || nm.Locator == nil || *bm.Locator == *nm.Locator {
+		t.Fatal("fixture needs two distinct locators")
+	}
+	b := &diffReads{Backend: s.B, gets: map[backend.Key]int{}}
+	s.B = b
+	st, err := s.Diff(ctx, base, newID, DiffOptions{Ranges: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Same+st.Moved+st.New != st.Size || st.NewStored == 0 || st.ChangedRuns == 0 {
+		t.Fatalf("invalid diff: %+v", st)
+	}
+	for _, d := range []*digest.Digest{bm.Locator, nm.Locator} {
+		key := backend.Key{Kind: backend.List, Name: d.Hex()}
+		if got := b.gets[key]; got != 1 {
+			t.Errorf("locator read %d times, want 1", got)
+		}
+	}
+}
+
+func TestDiffLegacyAndIdenticalManifests(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(31, 2<<20)
+	base := pushDir(t, s, map[string][]byte{"weights.rbln": w, "empty": nil})
+	v := append([]byte(nil), w...)
+	copy(v[1<<20:], random(32, 64<<10))
+	newID := pushDir(t, s, map[string][]byte{"weights.rbln": v, "empty": nil})
+	want, err := s.Diff(ctx, base, newID, DiffOptions{Ranges: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyBase, legacyNew := withoutLocator(t, s, base), withoutLocator(t, s, newID)
+	for _, pair := range [][2]digest.Digest{{legacyBase, newID}, {base, legacyNew}, {legacyBase, legacyNew}} {
+		got, err := s.Diff(ctx, pair[0], pair[1], DiffOptions{Ranges: true})
+		if err != nil || !reflect.DeepEqual(got, want) {
+			t.Fatalf("legacy diff differs: %+v, %v; want %+v", got, err, want)
+		}
+	}
+	for _, id := range []digest.Digest{base, legacyBase} {
+		got, err := s.Diff(ctx, id, id, DiffOptions{Ranges: true})
+		if err != nil || got.Same != got.Size || got.NewStored != 0 || got.ChangedRuns != 0 {
+			t.Fatalf("identical diff: %+v, %v", got, err)
+		}
+	}
+}
+
+func TestDiffRejectsDamagedTargetLocator(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	base := pushDir(t, s, map[string][]byte{"a.bin": random(33, 4096)})
+	newID := pushDir(t, s, map[string][]byte{"a.bin": random(34, 8192)})
+	m, err := s.ReadManifest(ctx, newID)
+	if err != nil || m.Locator == nil {
+		t.Fatalf("target manifest: %v", err)
+	}
+	k := backend.Key{Kind: backend.List, Name: m.Locator.Hex()}
+	if err := s.B.Delete(ctx, k); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.B.Put(ctx, k, bytes.NewReader([]byte("corrupt")), 7); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Diff(ctx, base, newID, DiffOptions{}); err == nil || !strings.Contains(err.Error(), "content does not match") {
+		t.Fatalf("target locator corruption was not rejected: %v", err)
+	}
+}
 
 func pushDir(t *testing.T, s *Store, files map[string][]byte) digest.Digest {
 	t.Helper()

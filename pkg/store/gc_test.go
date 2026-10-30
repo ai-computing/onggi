@@ -319,5 +319,11 @@ func TestGCRepacksMostlyDeadPacks(t *testing.T) {
 		t.Fatal(err)
 	}
 	sameTree(t, keepOnly, out)
+	// Diff must also rebuild stale locator plans from the repacked index.
+	g, _ = gcStore(t, storeDir)
+	diff, err := g.Diff(ctx, mk, mk, DiffOptions{Ranges: true})
+	if err != nil || diff.Same != diff.Size || diff.ChangedRuns != 0 || diff.NewStored != 0 {
+		t.Fatalf("diff after repack: %+v, %v", diff, err)
+	}
 	assertIndexConsistent(t, g)
 }
