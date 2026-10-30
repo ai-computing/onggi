@@ -60,7 +60,9 @@ It walks the paths (symlinks are not followed), sorts files by kind (HF source, 
 decode/prefill `.rbln`) so source checkpoints come first, chunks files in parallel at content-defined boundaries
 (FastCDC, 16/64/256 KiB by default) and prints, per kind, the logical size, the distinct bytes and the bytes each
 kind adds on top of the earlier ones. `--fixed-block` repeats the measurement with fixed-size blocks for comparison;
-`--pairs N` prints which share of each of the N largest files occurs in each other.
+`--pairs N` prints which share of each of the N largest files occurs in each other; `--classify [--reference
+CHECKPOINT]` adds each file's weight-placement class (referenced, embedded-rearranged, embedded-shifted, new) from
+chunk shares alone.
 
 Store and restore an artifact (only chunks the store lacks are uploaded and are compressed per chunk; every chunk is
 hash-checked on the way back):
@@ -78,7 +80,8 @@ export ONGGI_STORE='s3://models/onggi?endpoint=s3.lab.example:8333&insecure=1' A
 ```
 
 On the lab node, the 264 GB ATOM Llama-3.1-8B build set is stored in **15.9 GB** (push 3 min, pull 5 min,
-byte-identical). Two steps get it there. Two-level chunking re-splits new ATOM chunks into ~4 KiB sub-chunks, so prefill
+byte-identical). Two steps get it there. Two-level chunking re-splits new chunks of every file of at least 1 MiB into ~4 KiB sub-chunks (by size, not by
+format: [docs/sub-chunk-policy.md](docs/sub-chunk-policy.md)), so prefill
 variants that hold the same weights in a different order dedup (24.9 GB new instead of 46.8 GB). Per-chunk compression
 then takes 1.6× off. `--compress none` and `--sub 0` turn the two off. New chunks of sub-chunked files are compressed together in frames
 of up to 255 KiB where that is smaller (#52; `--frame 0` turns it off).

@@ -25,7 +25,7 @@ import (
 )
 
 type storeFlags struct {
-	url, durability, min, avg, max, sub, subKinds, subMinFile, subProbe, packSize, frame *string
+	url, durability, min, avg, max, sub, subKinds, subMinFile, packSize, frame *string
 }
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
@@ -38,7 +38,6 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 		sub:        fs.String("sub", "4KiB", "average sub-chunk size for two-level chunking, 0 for one level (only when creating a store)"),
 		subKinds:   fs.String("sub-kinds", "", "file kinds (pkg/layout, by name) that get sub-chunks, or all; overrides --sub-min-file (only when creating a store; the behaviour before #74)"),
 		subMinFile: fs.String("sub-min-file", "1MiB", "sub-chunk new chunks of files of at least this size, whatever their name or format (only when creating a store)"),
-		subProbe:   fs.String("sub-probe", "", "experiment: N:SHARE stops sub-chunking a file when its first N new chunks find less than SHARE of their sub-chunk bytes stored (only when creating a store)"),
 		packSize:   fs.String("pack-size", "64MiB", "pack object size (only when creating a store)"),
 		frame:      fs.String("frame", "256KiB", "compress new chunks of sub-chunked files together up to this size, 0 for one by one (only when creating a store)"),
 	}
@@ -109,13 +108,6 @@ func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error
 			for _, k := range strings.Split(*f.subKinds, ",") {
 				c.SubKinds = append(c.SubKinds, layout.Kind(strings.TrimSpace(k)))
 			}
-		}
-		if *f.subProbe != "" {
-			var p store.SubProbe
-			if _, err := fmt.Sscanf(*f.subProbe, "%d:%g", &p.Chunks, &p.MinShare); err != nil || p.Chunks < 1 {
-				return nil, nil, fmt.Errorf("bad --sub-probe %q: want N:SHARE", *f.subProbe)
-			}
-			c.SubProbe = &p
 		}
 	}
 	s, err := store.OpenWith(ctx, b, c)

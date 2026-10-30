@@ -1,0 +1,3498 @@
+{
+ "schema": "onggi.bench.subchunk-policy.v1",
+ "issue": 74,
+ "date": "2026-10-30",
+ "environment": {
+  "node": "lab node with the ATOM build set and RNGD artifacts (96 cores, shared; no NPU used)",
+  "os_kernel": "6.8.0-40-generic",
+  "go": "go1.24.13 linux/amd64",
+  "nice": "nice -n 19 ionice -c3, GOMAXPROCS=16",
+  "store": "local fs backend on the same disk; page cache not dropped",
+  "binaries": {
+   "onggi-new": "feat/74-vendor-neutral-chunking ec9bc0f (with the --sub-probe experiment)",
+   "onggi-main": "main 05c9760",
+   "onggi-a3": "feat/75-binding-contract 2d84ac3"
+  },
+  "sha256": [
+   "9faa746445147cbfe1332fd8efa0c5dfd7332e2a9c8b12604caf7fe8579bd99f  onggi-new",
+   "8dc25cac59af6cf8f84a9f0b872433ca581e14d780feb89f1a44592d35c178b1  onggi-main",
+   "085f8f30f9ac4fb3231688e45e789168fe59345bee942dafe8e809aed8d40403  onggi-a3",
+   ""
+  ]
+ },
+ "inputs": {
+  "atom-set": "Rebellions ATOM Llama-3.1-8B build set, 19 files, 263.9 GB (read-only)",
+  "hf-checkpoint": "meta-llama/Llama-3.1-8B-Instruct safetensors snapshot, 16.07 GB (hard links)",
+  "rngd": "four furiosa-llm 2026.3 artifacts pfbatch, preset (params + graphs), coarse, fine (graphs), pushed in that order",
+  "switch": "decode_S256_B2.rbln then decode_S256_B8_lm.rbln (two single-file artifacts)",
+  "switchlm": "decode_S256_B2_lm.rbln then decode_S256_B8_lm.rbln (the B2 -> B8 switch of docs/evaluation.md)"
+ },
+ "policies": {
+  "kind": "--sub-kinds atom-prefill,atom-decode,atom-other (the default before #74), --workers 16",
+  "size1m": "--sub-min-file 1MiB (the new default), --workers 16",
+  "size64m": "--sub-min-file 64MiB, --workers 16",
+  "probe": "--sub-probe 64:0.1 (experiment, commit ec9bc0f; not in the final PR), --workers 1 (deterministic order)",
+  "probe16": "--sub-probe 64:0.1, --workers 16",
+  "main": "binary built from main 05c9760 with its defaults, --workers 16"
+ },
+ "method": "Each workload pushes into a fresh store per policy (n=1; storage results are deterministic for a given push order). store.* = bytes on disk by object kind (packs, pack indexes, composite tables, lists incl. locators, manifests, config); push.stats.pack_bytes of the second artifact = bytes a node fetches for the switch; diff = onggi diff --json between the two refs. wall_s includes process start and the store size scan is excluded.",
+ "results": [
+  {
+   "workload": "switch",
+   "policy": "kind",
+   "step": "b2",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "241.72",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:003ace8dcf1d5525ac9afaaa2571f7d642ce88d57c5d6e28f276a50201ada95c",
+    "ref": "b2",
+    "stats": {
+     "files": 1,
+     "bytes": 14175423892,
+     "new_bytes": 14093640343,
+     "packs": 138,
+     "pack_bytes": 9221814957,
+     "skipped": null,
+     "duration_ns": 241619427838,
+     "files_total": 1,
+     "bytes_total": 14175423892
+    }
+   },
+   "store": {
+    "packs": 9221814957,
+    "pack_index": 170369944,
+    "composite_tables": 116493300,
+    "lists": 203936286,
+    "manifests": 465,
+    "config": 350,
+    "n_packs": 138,
+    "n_pack_index": 138,
+    "n_composite_tables": 12,
+    "n_lists": 2,
+    "metadata": 490800345,
+    "total": 9712615302
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "kind",
+   "step": "b8",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "40.78",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:24833c16895ffcee7557a8682155a490956abeca21230c0b926b48f711a50390",
+    "ref": "b8",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 1199677342,
+     "packs": 11,
+     "pack_bytes": 693887547,
+     "skipped": null,
+     "duration_ns": 40684694878,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9915702504,
+    "pack_index": 184685036,
+    "composite_tables": 126667740,
+    "lists": 423595205,
+    "manifests": 933,
+    "config": 350,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 13,
+    "n_lists": 4,
+    "metadata": 734949264,
+    "total": 10650651768
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "kind",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2.rbln",
+      "size": 15228048882,
+      "same": 0,
+      "moved": 13959162419,
+      "new": 1268886463,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 15228048882
+     }
+    ],
+    "size": 15228048882,
+    "same": 0,
+    "moved": 13959162419,
+    "new": 1268886463,
+    "new_stored": 693760073,
+    "same_blocks": 0,
+    "changed_runs": 1,
+    "largest_run": 15228048882
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "size1m",
+   "step": "b2",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "231.97",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:9de03564d70423141257eff373c9b45c7480ab6bb041e59d9b13d0c450b3582f",
+    "ref": "b2",
+    "stats": {
+     "files": 1,
+     "bytes": 14175423892,
+     "new_bytes": 14093640343,
+     "packs": 138,
+     "pack_bytes": 9221814957,
+     "skipped": null,
+     "duration_ns": 231906166625,
+     "files_total": 1,
+     "bytes_total": 14175423892
+    }
+   },
+   "store": {
+    "packs": 9221814957,
+    "pack_index": 170369944,
+    "composite_tables": 116493300,
+    "lists": 203936286,
+    "manifests": 465,
+    "config": 299,
+    "n_packs": 138,
+    "n_pack_index": 138,
+    "n_composite_tables": 12,
+    "n_lists": 2,
+    "metadata": 490800294,
+    "total": 9712615251
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "size1m",
+   "step": "b8",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "40.45",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:e418a448b201576f21dcd31bd67188cf4d1912e4ef4d89e6164a636a85b893ad",
+    "ref": "b8",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 1199677342,
+     "packs": 11,
+     "pack_bytes": 693887547,
+     "skipped": null,
+     "duration_ns": 40359521269,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9915702504,
+    "pack_index": 184685036,
+    "composite_tables": 126667740,
+    "lists": 423595205,
+    "manifests": 933,
+    "config": 299,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 13,
+    "n_lists": 4,
+    "metadata": 734949213,
+    "total": 10650651717
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "size1m",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2.rbln",
+      "size": 15228048882,
+      "same": 0,
+      "moved": 13959162419,
+      "new": 1268886463,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 15228048882
+     }
+    ],
+    "size": 15228048882,
+    "same": 0,
+    "moved": 13959162419,
+    "new": 1268886463,
+    "new_stored": 693760073,
+    "same_blocks": 0,
+    "changed_runs": 1,
+    "largest_run": 15228048882
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "probe",
+   "step": "b2",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "97.74",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:7335d1d9f9b96ab6037361ce4b9dc2b85331039b36ab35fb903b3cc90b6c11da",
+    "ref": "b2",
+    "stats": {
+     "files": 1,
+     "bytes": 14175423892,
+     "new_bytes": 14119815362,
+     "packs": 138,
+     "pack_bytes": 9230786655,
+     "skipped": null,
+     "duration_ns": 97695027257,
+     "files_total": 1,
+     "bytes_total": 14175423892
+    }
+   },
+   "store": {
+    "packs": 9230786655,
+    "pack_index": 9138784,
+    "composite_tables": 37236,
+    "lists": 17058132,
+    "manifests": 465,
+    "config": 360,
+    "n_packs": 138,
+    "n_pack_index": 138,
+    "n_composite_tables": 1,
+    "n_lists": 2,
+    "metadata": 26234977,
+    "total": 9257021632
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "probe",
+   "step": "b8",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "22.14",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:90712ef18524b27f208a76cabf22d0aa6fe3286212e6da757f186b8acae4064b",
+    "ref": "b8",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 1256914338,
+     "packs": 11,
+     "pack_bytes": 696870797,
+     "skipped": null,
+     "duration_ns": 22101499920,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9927657452,
+    "pack_index": 9979292,
+    "composite_tables": 77892,
+    "lists": 35412175,
+    "manifests": 933,
+    "config": 360,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 2,
+    "n_lists": 4,
+    "metadata": 45470652,
+    "total": 9973128104
+   }
+  },
+  {
+   "workload": "switch",
+   "policy": "probe",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2.rbln",
+      "size": 15228048882,
+      "same": 0,
+      "moved": 13959145400,
+      "new": 1268903482,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 15228048882
+     }
+    ],
+    "size": 15228048882,
+    "same": 0,
+    "moved": 13959145400,
+    "new": 1268903482,
+    "new_stored": 696870291,
+    "same_blocks": 0,
+    "changed_runs": 1,
+    "largest_run": 15228048882
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "kind",
+   "step": "pfbatch",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "37.79",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:f9b077ee06e4cb91a77f9cc775cc9bcd50682eb22206ffe7da0ff31ce91b5df1",
+    "ref": "pfbatch",
+    "stats": {
+     "files": 13,
+     "bytes": 16182992947,
+     "new_bytes": 16181295422,
+     "packs": 160,
+     "pack_bytes": 10734532809,
+     "skipped": null,
+     "duration_ns": 37754093211,
+     "files_total": 13,
+     "bytes_total": 16182992947
+    }
+   },
+   "store": {
+    "packs": 10734532809,
+    "pack_index": 10394960,
+    "composite_tables": 0,
+    "lists": 19483698,
+    "manifests": 3595,
+    "config": 350,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 0,
+    "n_lists": 14,
+    "metadata": 29882603,
+    "total": 10764415412
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "kind",
+   "step": "preset",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "5.51",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:4ce2c276844387a9c785b10a4650f7146448442c8848dc45523ef172219b0fc8",
+    "ref": "preset",
+    "stats": {
+     "files": 13,
+     "bytes": 16182266742,
+     "new_bytes": 20060051,
+     "packs": 1,
+     "pack_bytes": 4329095,
+     "skipped": null,
+     "duration_ns": 5467560119,
+     "files_total": 13,
+     "bytes_total": 16182266742
+    }
+   },
+   "store": {
+    "packs": 10738861904,
+    "pack_index": 10404748,
+    "composite_tables": 0,
+    "lists": 31190642,
+    "manifests": 7190,
+    "config": 350,
+    "n_packs": 161,
+    "n_pack_index": 161,
+    "n_composite_tables": 0,
+    "n_lists": 18,
+    "metadata": 41602930,
+    "total": 10780464834
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "kind",
+   "step": "coarse",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "0.42",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:430d2ceb265bdcaf9e62679ce26162516f000b2605fa42f8092f1e500ececfa9",
+    "ref": "coarse",
+    "stats": {
+     "files": 7,
+     "bytes": 35623630,
+     "new_bytes": 14650233,
+     "packs": 1,
+     "pack_bytes": 2959933,
+     "skipped": null,
+     "duration_ns": 391573317,
+     "files_total": 7,
+     "bytes_total": 35623630
+    }
+   },
+   "store": {
+    "packs": 10741821837,
+    "pack_index": 10411848,
+    "composite_tables": 0,
+    "lists": 31221186,
+    "manifests": 8729,
+    "config": 350,
+    "n_packs": 162,
+    "n_pack_index": 162,
+    "n_composite_tables": 0,
+    "n_lists": 21,
+    "metadata": 41642113,
+    "total": 10783463950
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "kind",
+   "step": "fine",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "0.41",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:8b177db7f5f17eeef60f26dc6ded6f185786da04fa3ba77de081757b8b9be08a",
+    "ref": "fine",
+    "stats": {
+     "files": 7,
+     "bytes": 39402719,
+     "new_bytes": 16531138,
+     "packs": 1,
+     "pack_bytes": 3504915,
+     "skipped": null,
+     "duration_ns": 382856097,
+     "files_total": 7,
+     "bytes_total": 39402719
+    }
+   },
+   "store": {
+    "packs": 10745326752,
+    "pack_index": 10419860,
+    "composite_tables": 0,
+    "lists": 31255502,
+    "manifests": 10268,
+    "config": 350,
+    "n_packs": 163,
+    "n_pack_index": 163,
+    "n_composite_tables": 0,
+    "n_lists": 24,
+    "metadata": 41685980,
+    "total": 10787012732
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "kind",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "artifact.json",
+      "base": "artifact.json",
+      "size": 7191899,
+      "same": 0,
+      "moved": 778410,
+      "new": 6413489,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 7191899
+     },
+     {
+      "path": "binary_bundle.zip",
+      "base": "binary_bundle.zip",
+      "size": 30170684,
+      "same": 285270,
+      "moved": 16170898,
+      "new": 13714516,
+      "same_blocks": 270336,
+      "changed_runs": 5,
+      "largest_run": 27953895
+     },
+     {
+      "path": "chat_template.jinja",
+      "base": "chat_template.jinja",
+      "size": 4614,
+      "same": 4614,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4614,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 896,
+      "same": 896,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 896,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "generation_config.json",
+      "base": "generation_config.json",
+      "size": 183,
+      "same": 183,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 183,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "size": 19,
+      "same": 0,
+      "moved": 0,
+      "new": 19,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 19
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "size": 4976698656,
+      "same": 4976698656,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4976698656,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "size": 4999802704,
+      "same": 4999802704,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4999802704,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "size": 4915916168,
+      "same": 4915916168,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4915916168,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "size": 1235247792,
+      "same": 1235247792,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 1235247792,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "size": 22856,
+      "same": 22856,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 22856,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer.json",
+      "base": "tokenizer.json",
+      "size": 17209920,
+      "same": 17209920,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 17209920,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer_config.json",
+      "base": "tokenizer_config.json",
+      "size": 351,
+      "same": 351,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 351,
+      "changed_runs": 0,
+      "largest_run": 0
+     }
+    ],
+    "size": 16182266742,
+    "same": 16145189410,
+    "moved": 16949308,
+    "new": 20128024,
+    "new_stored": 4329095,
+    "same_blocks": 16145174476,
+    "changed_runs": 7,
+    "largest_run": 27953895
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size1m",
+   "step": "pfbatch",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "112.9",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:28875e8c508edae73e0ef3a2bbb773bda6b91747729122490252322e01e925bf",
+    "ref": "pfbatch",
+    "stats": {
+     "files": 13,
+     "bytes": 16182992947,
+     "new_bytes": 16179665261,
+     "packs": 160,
+     "pack_bytes": 10740728486,
+     "skipped": null,
+     "duration_ns": 112789105650,
+     "files_total": 13,
+     "bytes_total": 16182992947
+    }
+   },
+   "store": {
+    "packs": 10740728486,
+    "pack_index": 196011632,
+    "composite_tables": 133805280,
+    "lists": 234314252,
+    "manifests": 3595,
+    "config": 298,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 13,
+    "n_lists": 14,
+    "metadata": 564135057,
+    "total": 11304863543
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size1m",
+   "step": "preset",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "12.26",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:ec3a70c7ec33f12b2833590639880da44416964dc5d226404ecaa2f4b2384907",
+    "ref": "preset",
+    "stats": {
+     "files": 13,
+     "bytes": 16182266742,
+     "new_bytes": 9162268,
+     "packs": 1,
+     "pack_bytes": 646801,
+     "skipped": null,
+     "duration_ns": 12183606140,
+     "files_total": 13,
+     "bytes_total": 16182266742
+    }
+   },
+   "store": {
+    "packs": 10741375287,
+    "pack_index": 196101892,
+    "composite_tables": 133941516,
+    "lists": 460844143,
+    "manifests": 7190,
+    "config": 298,
+    "n_packs": 161,
+    "n_pack_index": 161,
+    "n_composite_tables": 14,
+    "n_lists": 18,
+    "metadata": 790895039,
+    "total": 11532270326
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size1m",
+   "step": "coarse",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "4.65",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:a9a00055de32a0cb38dceab0b6973816001cd47e0c2c0a6332be2070ff90f45d",
+    "ref": "coarse",
+    "stats": {
+     "files": 7,
+     "bytes": 35623630,
+     "new_bytes": 5862163,
+     "packs": 1,
+     "pack_bytes": 362050,
+     "skipped": null,
+     "duration_ns": 4575559085,
+     "files_total": 7,
+     "bytes_total": 35623630
+    }
+   },
+   "store": {
+    "packs": 10741737337,
+    "pack_index": 196159280,
+    "composite_tables": 134039772,
+    "lists": 461288895,
+    "manifests": 8729,
+    "config": 298,
+    "n_packs": 162,
+    "n_pack_index": 162,
+    "n_composite_tables": 15,
+    "n_lists": 21,
+    "metadata": 791496974,
+    "total": 11533234311
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size1m",
+   "step": "fine",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "4.83",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:fd5a71b348078b7e12bad4481bfff95625f40ee01fa843aa41c9bc1147b634ab",
+    "ref": "fine",
+    "stats": {
+     "files": 7,
+     "bytes": 39402719,
+     "new_bytes": 6707710,
+     "packs": 1,
+     "pack_bytes": 591031,
+     "skipped": null,
+     "duration_ns": 4738243941,
+     "files_total": 7,
+     "bytes_total": 39402719
+    }
+   },
+   "store": {
+    "packs": 10742328368,
+    "pack_index": 196227028,
+    "composite_tables": 134152680,
+    "lists": 461778974,
+    "manifests": 10268,
+    "config": 298,
+    "n_packs": 163,
+    "n_pack_index": 163,
+    "n_composite_tables": 16,
+    "n_lists": 24,
+    "metadata": 792169248,
+    "total": 11534497616
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size1m",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "artifact.json",
+      "base": "artifact.json",
+      "size": 7191899,
+      "same": 0,
+      "moved": 967362,
+      "new": 6224537,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 7191899
+     },
+     {
+      "path": "binary_bundle.zip",
+      "base": "binary_bundle.zip",
+      "size": 30170684,
+      "same": 2159322,
+      "moved": 24925300,
+      "new": 3086062,
+      "same_blocks": 2068480,
+      "changed_runs": 22,
+      "largest_run": 27812561
+     },
+     {
+      "path": "chat_template.jinja",
+      "base": "chat_template.jinja",
+      "size": 4614,
+      "same": 4614,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4614,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 896,
+      "same": 896,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 896,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "generation_config.json",
+      "base": "generation_config.json",
+      "size": 183,
+      "same": 183,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 183,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "size": 19,
+      "same": 0,
+      "moved": 0,
+      "new": 19,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 19
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "size": 4976698656,
+      "same": 4976698656,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4976698656,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "size": 4999802704,
+      "same": 4999802704,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4999802704,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "size": 4915916168,
+      "same": 4915916168,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4915916168,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "size": 1235247792,
+      "same": 1235247792,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 1235247792,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "size": 22856,
+      "same": 22856,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 22856,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer.json",
+      "base": "tokenizer.json",
+      "size": 17209920,
+      "same": 17209920,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 17209920,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer_config.json",
+      "base": "tokenizer_config.json",
+      "size": 351,
+      "same": 351,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 351,
+      "changed_runs": 0,
+      "largest_run": 0
+     }
+    ],
+    "size": 16182266742,
+    "same": 16147063462,
+    "moved": 25892662,
+    "new": 9310618,
+    "new_stored": 646001,
+    "same_blocks": 16146972620,
+    "changed_runs": 24,
+    "largest_run": 27812561
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size64m",
+   "step": "pfbatch",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "122.46",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:efb6f0f4dd0144dffdc1f09cc03ac80034fc14b3be66c3a2ae06f2d9c061ffd2",
+    "ref": "pfbatch",
+    "stats": {
+     "files": 13,
+     "bytes": 16182992947,
+     "new_bytes": 16181287976,
+     "packs": 160,
+     "pack_bytes": 10743365262,
+     "skipped": null,
+     "duration_ns": 122336762353,
+     "files_total": 13,
+     "bytes_total": 16182992947
+    }
+   },
+   "store": {
+    "packs": 10743365262,
+    "pack_index": 195477000,
+    "composite_tables": 133404744,
+    "lists": 233702487,
+    "manifests": 3595,
+    "config": 300,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 13,
+    "n_lists": 14,
+    "metadata": 562588126,
+    "total": 11305953388
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size64m",
+   "step": "preset",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "12.21",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:26aed391755823d0ca4db7285b40bdba103cb56b20515aa0c30351c4ab113806",
+    "ref": "preset",
+    "stats": {
+     "files": 13,
+     "bytes": 16182266742,
+     "new_bytes": 20060051,
+     "packs": 1,
+     "pack_bytes": 4329095,
+     "skipped": null,
+     "duration_ns": 12104338895,
+     "files_total": 13,
+     "bytes_total": 16182266742
+    }
+   },
+   "store": {
+    "packs": 10747694357,
+    "pack_index": 195486788,
+    "composite_tables": 133404744,
+    "lists": 459628220,
+    "manifests": 7189,
+    "config": 300,
+    "n_packs": 161,
+    "n_pack_index": 161,
+    "n_composite_tables": 13,
+    "n_lists": 18,
+    "metadata": 788527241,
+    "total": 11536221598
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size64m",
+   "step": "coarse",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "4.54",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:027238e680cce9c1ae671ddc66cbe5d7da3454e69d6a34de909e543cff598738",
+    "ref": "coarse",
+    "stats": {
+     "files": 7,
+     "bytes": 35623630,
+     "new_bytes": 14650233,
+     "packs": 1,
+     "pack_bytes": 2959933,
+     "skipped": null,
+     "duration_ns": 4449459089,
+     "files_total": 7,
+     "bytes_total": 35623630
+    }
+   },
+   "store": {
+    "packs": 10750654290,
+    "pack_index": 195493888,
+    "composite_tables": 133404744,
+    "lists": 459658668,
+    "manifests": 8728,
+    "config": 300,
+    "n_packs": 162,
+    "n_pack_index": 162,
+    "n_composite_tables": 13,
+    "n_lists": 21,
+    "metadata": 788566328,
+    "total": 11539220618
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size64m",
+   "step": "fine",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "4.23",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:f96fb8c158c986c0c06935a61f622ef3f1a5f61dd53e2ef2e7f05cc2bd10f0aa",
+    "ref": "fine",
+    "stats": {
+     "files": 7,
+     "bytes": 39402719,
+     "new_bytes": 16531138,
+     "packs": 1,
+     "pack_bytes": 3504915,
+     "skipped": null,
+     "duration_ns": 4143447567,
+     "files_total": 7,
+     "bytes_total": 39402719
+    }
+   },
+   "store": {
+    "packs": 10754159205,
+    "pack_index": 195501900,
+    "composite_tables": 133404744,
+    "lists": 459692888,
+    "manifests": 10266,
+    "config": 300,
+    "n_packs": 163,
+    "n_pack_index": 163,
+    "n_composite_tables": 13,
+    "n_lists": 24,
+    "metadata": 788610098,
+    "total": 11542769303
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "size64m",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "artifact.json",
+      "base": "artifact.json",
+      "size": 7191899,
+      "same": 0,
+      "moved": 778410,
+      "new": 6413489,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 7191899
+     },
+     {
+      "path": "binary_bundle.zip",
+      "base": "binary_bundle.zip",
+      "size": 30170684,
+      "same": 285270,
+      "moved": 16170898,
+      "new": 13714516,
+      "same_blocks": 270336,
+      "changed_runs": 5,
+      "largest_run": 27953895
+     },
+     {
+      "path": "chat_template.jinja",
+      "base": "chat_template.jinja",
+      "size": 4614,
+      "same": 4614,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4614,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 896,
+      "same": 896,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 896,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "generation_config.json",
+      "base": "generation_config.json",
+      "size": 183,
+      "same": 183,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 183,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "size": 19,
+      "same": 0,
+      "moved": 0,
+      "new": 19,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 19
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "size": 4976698656,
+      "same": 4976698656,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4976698656,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "size": 4999802704,
+      "same": 4999802704,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4999802704,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "size": 4915916168,
+      "same": 4915916168,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4915916168,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "size": 1235247792,
+      "same": 1235247792,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 1235247792,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "size": 22856,
+      "same": 22856,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 22856,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer.json",
+      "base": "tokenizer.json",
+      "size": 17209920,
+      "same": 17209920,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 17209920,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer_config.json",
+      "base": "tokenizer_config.json",
+      "size": 351,
+      "same": 351,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 351,
+      "changed_runs": 0,
+      "largest_run": 0
+     }
+    ],
+    "size": 16182266742,
+    "same": 16145189410,
+    "moved": 16949308,
+    "new": 20128024,
+    "new_stored": 4329095,
+    "same_blocks": 16145174476,
+    "changed_runs": 7,
+    "largest_run": 27953895
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe",
+   "step": "pfbatch",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "113.51",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:62b5d09d77cabbc9bac3a90f46ef38f4c04fbeb1f2ce2d7f1f108e7be139c3d2",
+    "ref": "pfbatch",
+    "stats": {
+     "files": 13,
+     "bytes": 16182992947,
+     "new_bytes": 16181002765,
+     "packs": 160,
+     "pack_bytes": 10734023281,
+     "skipped": null,
+     "duration_ns": 113465450858,
+     "files_total": 13,
+     "bytes_total": 16182992947
+    }
+   },
+   "store": {
+    "packs": 10734023281,
+    "pack_index": 10831984,
+    "composite_tables": 279192,
+    "lists": 19926240,
+    "manifests": 3595,
+    "config": 360,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 1,
+    "n_lists": 14,
+    "metadata": 31041371,
+    "total": 10765064652
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe",
+   "step": "preset",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "16.76",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:34d76e26877ab320773363a134df6b19456cd0fb4da195ebb593a7106585b396",
+    "ref": "preset",
+    "stats": {
+     "files": 13,
+     "bytes": 16182266742,
+     "new_bytes": 16084800,
+     "packs": 1,
+     "pack_bytes": 2587053,
+     "skipped": null,
+     "duration_ns": 16719314956,
+     "files_total": 13,
+     "bytes_total": 16182266742
+    }
+   },
+   "store": {
+    "packs": 10736610334,
+    "pack_index": 10991628,
+    "composite_tables": 414960,
+    "lists": 32178670,
+    "manifests": 7189,
+    "config": 360,
+    "n_packs": 161,
+    "n_pack_index": 161,
+    "n_composite_tables": 2,
+    "n_lists": 18,
+    "metadata": 43592807,
+    "total": 10780203141
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe",
+   "step": "coarse",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "0.55",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:35242e1e693742194f9c1e59f8003ba0745d5d9f1836f5d582f3b9ca2d9c7ec0",
+    "ref": "coarse",
+    "stats": {
+     "files": 7,
+     "bytes": 35623630,
+     "new_bytes": 6635647,
+     "packs": 1,
+     "pack_bytes": 576012,
+     "skipped": null,
+     "duration_ns": 515231310,
+     "files_total": 7,
+     "bytes_total": 35623630
+    }
+   },
+   "store": {
+    "packs": 10737186346,
+    "pack_index": 11057080,
+    "composite_tables": 513216,
+    "lists": 32437984,
+    "manifests": 8728,
+    "config": 360,
+    "n_packs": 162,
+    "n_pack_index": 162,
+    "n_composite_tables": 3,
+    "n_lists": 21,
+    "metadata": 44017368,
+    "total": 10781203714
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe",
+   "step": "fine",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "0.55",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:063e53be881442ed2f4002e2cec5e317ff5bd632d60f510c83973f3c7682fd92",
+    "ref": "fine",
+    "stats": {
+     "files": 7,
+     "bytes": 39402719,
+     "new_bytes": 7133500,
+     "packs": 1,
+     "pack_bytes": 749868,
+     "skipped": null,
+     "duration_ns": 521278253,
+     "files_total": 7,
+     "bytes_total": 39402719
+    }
+   },
+   "store": {
+    "packs": 10737936214,
+    "pack_index": 11129252,
+    "composite_tables": 626124,
+    "lists": 32744635,
+    "manifests": 10266,
+    "config": 360,
+    "n_packs": 163,
+    "n_pack_index": 163,
+    "n_composite_tables": 4,
+    "n_lists": 24,
+    "metadata": 44510637,
+    "total": 10782446851
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "artifact.json",
+      "base": "artifact.json",
+      "size": 7191899,
+      "same": 0,
+      "moved": 959157,
+      "new": 6232742,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 7191899
+     },
+     {
+      "path": "binary_bundle.zip",
+      "base": "binary_bundle.zip",
+      "size": 30170684,
+      "same": 2159322,
+      "moved": 17779836,
+      "new": 10231526,
+      "same_blocks": 2068480,
+      "changed_runs": 22,
+      "largest_run": 27812561
+     },
+     {
+      "path": "chat_template.jinja",
+      "base": "chat_template.jinja",
+      "size": 4614,
+      "same": 4614,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4614,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 896,
+      "same": 896,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 896,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "generation_config.json",
+      "base": "generation_config.json",
+      "size": 183,
+      "same": 183,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 183,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+      "size": 19,
+      "same": 0,
+      "moved": 0,
+      "new": 19,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 19
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+      "size": 4976698656,
+      "same": 4976698656,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4976698656,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+      "size": 4999802704,
+      "same": 4999802704,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4999802704,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+      "size": 4915916168,
+      "same": 4915916168,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 4915916168,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+      "size": 1235247792,
+      "same": 1235247792,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 1235247792,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "base": "params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+      "size": 22856,
+      "same": 22856,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 22856,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer.json",
+      "base": "tokenizer.json",
+      "size": 17209920,
+      "same": 17209920,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 17209920,
+      "changed_runs": 0,
+      "largest_run": 0
+     },
+     {
+      "path": "tokenizer_config.json",
+      "base": "tokenizer_config.json",
+      "size": 351,
+      "same": 351,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 351,
+      "changed_runs": 0,
+      "largest_run": 0
+     }
+    ],
+    "size": 16182266742,
+    "same": 16147063462,
+    "moved": 18738993,
+    "new": 16464287,
+    "new_stored": 2585701,
+    "same_blocks": 16146972620,
+    "changed_runs": 24,
+    "largest_run": 27812561
+   }
+  },
+  {
+   "workload": "hf",
+   "policy": "kind",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "38.33",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:b696d7fda1dc7f451a4003c239f8709c6f69b23e4057dfd32dc86d0817d2eeb9",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069779031,
+     "packs": 160,
+     "pack_bytes": 10704552351,
+     "skipped": null,
+     "duration_ns": 38285414339,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 10704552351,
+    "pack_index": 10330784,
+    "composite_tables": 0,
+    "lists": 19362368,
+    "manifests": 2668,
+    "config": 350,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 0,
+    "n_lists": 14,
+    "metadata": 29696170,
+    "total": 10734248521
+   }
+  },
+  {
+   "workload": "hf",
+   "policy": "size1m",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "122.21",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:a4f473c36a59a8824d06196f6c65a901b8409a66f79d59594e0d556bba15152a",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069771585,
+     "packs": 160,
+     "pack_bytes": 10716456241,
+     "skipped": null,
+     "duration_ns": 122126559480,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 10716456241,
+    "pack_index": 194789040,
+    "composite_tables": 132960504,
+    "lists": 232865437,
+    "manifests": 2668,
+    "config": 299,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 13,
+    "n_lists": 14,
+    "metadata": 560617948,
+    "total": 11277074189
+   }
+  },
+  {
+   "workload": "hf",
+   "policy": "probe",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "103.98",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:aeb05391b8b37eb8c12fb71b6956684ea9b407cb49fbad21bdd241536d0a118f",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069779031,
+     "packs": 160,
+     "pack_bytes": 10704538330,
+     "skipped": null,
+     "duration_ns": 103943932282,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 10704538330,
+    "pack_index": 10651416,
+    "composite_tables": 197904,
+    "lists": 19677646,
+    "manifests": 2668,
+    "config": 360,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 1,
+    "n_lists": 14,
+    "metadata": 30529994,
+    "total": 10735068324
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "kind",
+   "step": "atom",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "110.1",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:ec61891fc60072041fe3c928c31f7ddd4dd8f56b9eac4c4f1405d775a62a6470",
+    "ref": "atom",
+    "stats": {
+     "files": 19,
+     "bytes": 263893021566,
+     "new_bytes": 24888631685,
+     "packs": 233,
+     "pack_bytes": 15619622182,
+     "skipped": null,
+     "duration_ns": 109968266103,
+     "files_total": 19,
+     "bytes_total": 263893021566
+    }
+   },
+   "store": {
+    "packs": 15619622182,
+    "pack_index": 265827012,
+    "composite_tables": 364977180,
+    "lists": 453697243,
+    "manifests": 3980,
+    "config": 350,
+    "n_packs": 233,
+    "n_pack_index": 233,
+    "n_composite_tables": 33,
+    "n_lists": 20,
+    "metadata": 1084505765,
+    "total": 16704127947
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "kind",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "37.81",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:9d8af12e82e61faf83b55faeb637ce7f83e89f7149dc5de9c12d9259f0a319b2",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069779031,
+     "packs": 160,
+     "pack_bytes": 10704552351,
+     "skipped": null,
+     "duration_ns": 37698704296,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 26324174533,
+    "pack_index": 276157796,
+    "composite_tables": 364977180,
+    "lists": 473059611,
+    "manifests": 6648,
+    "config": 350,
+    "n_packs": 393,
+    "n_pack_index": 393,
+    "n_composite_tables": 33,
+    "n_lists": 34,
+    "metadata": 1114201585,
+    "total": 27438376118
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "size1m",
+   "step": "atom",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "120.31",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:9f6e0c1336f8282b8a7f8e87ce1ad5efb0ab3ae6c47d464a623e5e62d3fb6f5a",
+    "ref": "atom",
+    "stats": {
+     "files": 19,
+     "bytes": 263893021566,
+     "new_bytes": 24888602368,
+     "packs": 233,
+     "pack_bytes": 15623049420,
+     "skipped": null,
+     "duration_ns": 120143476413,
+     "files_total": 19,
+     "bytes_total": 263893021566
+    }
+   },
+   "store": {
+    "packs": 15623049420,
+    "pack_index": 293739828,
+    "composite_tables": 382368372,
+    "lists": 481623294,
+    "manifests": 3980,
+    "config": 299,
+    "n_packs": 233,
+    "n_pack_index": 233,
+    "n_composite_tables": 35,
+    "n_lists": 20,
+    "metadata": 1157735773,
+    "total": 16780785193
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "size1m",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "117.52",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:8d54819d9bfb9ecf8398f6eabf80eefd6416ef1ccde37b27300e6ccc75a39bce",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069771585,
+     "packs": 160,
+     "pack_bytes": 10716456241,
+     "skipped": null,
+     "duration_ns": 117334059517,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 26339505661,
+    "pack_index": 488528868,
+    "composite_tables": 515328876,
+    "lists": 714488731,
+    "manifests": 6648,
+    "config": 299,
+    "n_packs": 393,
+    "n_pack_index": 393,
+    "n_composite_tables": 48,
+    "n_lists": 34,
+    "metadata": 1718353422,
+    "total": 28057859083
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "probe",
+   "step": "atom",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "598.93",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:107a363c578c8bb4f2a938427a8085df7115a6408329382c34c997c5f4e1040a",
+    "ref": "atom",
+    "stats": {
+     "files": 19,
+     "bytes": 263893021566,
+     "new_bytes": 41507734230,
+     "packs": 391,
+     "pack_bytes": 26238851934,
+     "skipped": null,
+     "duration_ns": 598801644495,
+     "files_total": 19,
+     "bytes_total": 263893021566
+    }
+   },
+   "store": {
+    "packs": 26238851934,
+    "pack_index": 181873444,
+    "composite_tables": 155503836,
+    "lists": 347736388,
+    "manifests": 3980,
+    "config": 360,
+    "n_packs": 391,
+    "n_pack_index": 391,
+    "n_composite_tables": 15,
+    "n_lists": 20,
+    "metadata": 685118008,
+    "total": 26923969942
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "probe",
+   "step": "hf",
+   "binary": "onggi-new",
+   "rc": "0",
+   "wall_s": "90.26",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:d3409fb339542d9bf1fd2f457d4cae747afcf9043fd45337bcdb3b3f1ba579a7",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069779031,
+     "packs": 160,
+     "pack_bytes": 10704538330,
+     "skipped": null,
+     "duration_ns": 90148212541,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 36943390264,
+    "pack_index": 192524860,
+    "composite_tables": 155701740,
+    "lists": 367414034,
+    "manifests": 6648,
+    "config": 360,
+    "n_packs": 551,
+    "n_pack_index": 551,
+    "n_composite_tables": 16,
+    "n_lists": 34,
+    "metadata": 715647642,
+    "total": 37659037906
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "main",
+   "step": "atom",
+   "binary": "onggi-main",
+   "rc": "0",
+   "wall_s": "112.83",
+   "peak_heap": "",
+   "push": {
+    "manifest": "sha256:58b87b04ea3066623ef70d49644e609cd77f62914148e88a4c21a75f1f40ee6b",
+    "ref": "atom",
+    "stats": {
+     "files": 19,
+     "bytes": 263893021566,
+     "new_bytes": 24888631685,
+     "packs": 233,
+     "pack_bytes": 15619344317,
+     "skipped": null,
+     "duration_ns": 112671085994,
+     "files_total": 19,
+     "bytes_total": 263893021566
+    }
+   },
+   "store": {
+    "packs": 15619344317,
+    "pack_index": 265826332,
+    "composite_tables": 364977180,
+    "lists": 453730843,
+    "manifests": 3980,
+    "config": 350,
+    "n_packs": 233,
+    "n_pack_index": 233,
+    "n_composite_tables": 33,
+    "n_lists": 20,
+    "metadata": 1084538685,
+    "total": 16703883002
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "kind",
+   "step": "la",
+   "wall_s": 268.42,
+   "push": {
+    "manifest": "sha256:70ff57bf0346d99b4929bee7ba91b9214e3dd166f244e081bdb3db285fbe22ac",
+    "ref": "la",
+    "stats": {
+     "files": 1,
+     "bytes": 15238278850,
+     "new_bytes": 15160648815,
+     "packs": 148,
+     "pack_bytes": 9912388355,
+     "skipped": null,
+     "duration_ns": 268322403851,
+     "files_total": 1,
+     "bytes_total": 15238278850
+    }
+   },
+   "store": {
+    "packs": 9912388355,
+    "pack_index": 183259344,
+    "composite_tables": 125311716,
+    "lists": 219358109,
+    "manifests": 468,
+    "config": 350,
+    "n_packs": 148,
+    "n_pack_index": 148,
+    "n_composite_tables": 12,
+    "n_lists": 2,
+    "metadata": 527929987,
+    "total": 10440318342
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "kind",
+   "step": "lb",
+   "wall_s": 23.48,
+   "push": {
+    "manifest": "sha256:4104405741df87245b5e66716ea5c29411f520c5580199cfd7f3e72ec136b97c",
+    "ref": "lb",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 149094548,
+     "packs": 1,
+     "pack_bytes": 3567290,
+     "skipped": null,
+     "duration_ns": 23376092096,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9915955645,
+    "pack_index": 184840212,
+    "composite_tables": 126793452,
+    "lists": 439017764,
+    "manifests": 936,
+    "config": 350,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 13,
+    "n_lists": 4,
+    "metadata": 750652714,
+    "total": 10666608359
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "kind",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2_lm.rbln",
+      "size": 15228048882,
+      "same": 15009857021,
+      "moved": 0,
+      "new": 218191861,
+      "same_blocks": 15009845248,
+      "changed_runs": 3,
+      "largest_run": 218137453
+     }
+    ],
+    "size": 15228048882,
+    "same": 15009857021,
+    "moved": 0,
+    "new": 218191861,
+    "new_stored": 3553089,
+    "same_blocks": 15009845248,
+    "changed_runs": 3,
+    "largest_run": 218137453
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "size1m",
+   "step": "la",
+   "wall_s": 257.69,
+   "push": {
+    "manifest": "sha256:72e487e8155dfd79d0a8a30c4b3ac9a17c691f9065232e0a647510c66e6bf011",
+    "ref": "la",
+    "stats": {
+     "files": 1,
+     "bytes": 15238278850,
+     "new_bytes": 15160648815,
+     "packs": 148,
+     "pack_bytes": 9912388355,
+     "skipped": null,
+     "duration_ns": 257586123171,
+     "files_total": 1,
+     "bytes_total": 15238278850
+    }
+   },
+   "store": {
+    "packs": 9912388355,
+    "pack_index": 183259344,
+    "composite_tables": 125311728,
+    "lists": 219358109,
+    "manifests": 468,
+    "config": 299,
+    "n_packs": 148,
+    "n_pack_index": 148,
+    "n_composite_tables": 13,
+    "n_lists": 2,
+    "metadata": 527929948,
+    "total": 10440318303
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "size1m",
+   "step": "lb",
+   "wall_s": 24.7,
+   "push": {
+    "manifest": "sha256:4c3823e6d0e0379fe30074912cb219759b56e6d3d52fa6dc59b05a22693ff725",
+    "ref": "lb",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 149094548,
+     "packs": 1,
+     "pack_bytes": 3567290,
+     "skipped": null,
+     "duration_ns": 24588950354,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9915955645,
+    "pack_index": 184840212,
+    "composite_tables": 126793464,
+    "lists": 439017764,
+    "manifests": 936,
+    "config": 299,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 14,
+    "n_lists": 4,
+    "metadata": 750652675,
+    "total": 10666608320
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "size1m",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2_lm.rbln",
+      "size": 15228048882,
+      "same": 15009857021,
+      "moved": 0,
+      "new": 218191861,
+      "same_blocks": 15009845248,
+      "changed_runs": 3,
+      "largest_run": 218137453
+     }
+    ],
+    "size": 15228048882,
+    "same": 15009857021,
+    "moved": 0,
+    "new": 218191861,
+    "new_stored": 3553089,
+    "same_blocks": 15009845248,
+    "changed_runs": 3,
+    "largest_run": 218137453
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "probe",
+   "step": "la",
+   "wall_s": 104.66,
+   "push": {
+    "manifest": "sha256:3f99e3aaf828b92f0bae384d6b131c261a1a945c34fd138b857399d3f54dd8bb",
+    "ref": "la",
+    "stats": {
+     "files": 1,
+     "bytes": 15238278850,
+     "new_bytes": 15189950012,
+     "packs": 148,
+     "pack_bytes": 9922051518,
+     "skipped": null,
+     "duration_ns": 104612347432,
+     "files_total": 1,
+     "bytes_total": 15238278850
+    }
+   },
+   "store": {
+    "packs": 9922051518,
+    "pack_index": 9827808,
+    "composite_tables": 37344,
+    "lists": 18337924,
+    "manifests": 468,
+    "config": 360,
+    "n_packs": 148,
+    "n_pack_index": 148,
+    "n_composite_tables": 1,
+    "n_lists": 2,
+    "metadata": 28203904,
+    "total": 9950255422
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "probe",
+   "step": "lb",
+   "wall_s": 18.79,
+   "push": {
+    "manifest": "sha256:2620ae64bdaa289a077ee5ad882f0b855a77d9376c6775d99ba1fc75bed33585",
+    "ref": "lb",
+    "stats": {
+     "files": 1,
+     "bytes": 15228048882,
+     "new_bytes": 149161111,
+     "packs": 1,
+     "pack_bytes": 3581677,
+     "skipped": null,
+     "duration_ns": 18748141804,
+     "files_total": 1,
+     "bytes_total": 15228048882
+    }
+   },
+   "store": {
+    "packs": 9925633195,
+    "pack_index": 11409404,
+    "composite_tables": 1519080,
+    "lists": 38408151,
+    "manifests": 936,
+    "config": 360,
+    "n_packs": 149,
+    "n_pack_index": 149,
+    "n_composite_tables": 2,
+    "n_lists": 4,
+    "metadata": 51337931,
+    "total": 9976971126
+   }
+  },
+  {
+   "workload": "switchlm",
+   "policy": "probe",
+   "step": "diff",
+   "diff": {
+    "files": [
+     {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2_lm.rbln",
+      "size": 15228048882,
+      "same": 15009790458,
+      "moved": 0,
+      "new": 218258424,
+      "same_blocks": 15009775616,
+      "changed_runs": 3,
+      "largest_run": 218204016
+     }
+    ],
+    "size": 15228048882,
+    "same": 15009790458,
+    "moved": 0,
+    "new": 218258424,
+    "new_stored": 3567740,
+    "same_blocks": 15009775616,
+    "changed_runs": 3,
+    "largest_run": 218204016
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "probe16",
+   "step": "atom",
+   "rc": 0,
+   "wall_s": 172.19,
+   "push": {
+    "manifest": "sha256:f97b82dfddf8d294082b8324af71f8f838a8fbf9ce6164ac098f7d9fa3246e8f",
+    "ref": "atom",
+    "stats": {
+     "files": 19,
+     "bytes": 263893021566,
+     "new_bytes": 41878923241,
+     "packs": 393,
+     "pack_bytes": 26351656485,
+     "skipped": null,
+     "duration_ns": 172044477282,
+     "files_total": 19,
+     "bytes_total": 263893021566
+    }
+   },
+   "store": {
+    "packs": 26351656485,
+    "pack_index": 174913820,
+    "composite_tables": 147090984,
+    "lists": 329591360,
+    "manifests": 3980,
+    "config": 360,
+    "n_packs": 393,
+    "n_pack_index": 393,
+    "n_composite_tables": 14,
+    "n_lists": 20,
+    "metadata": 651600504,
+    "total": 27003256989
+   }
+  },
+  {
+   "workload": "atom",
+   "policy": "probe16",
+   "step": "hf",
+   "rc": 0,
+   "wall_s": 31.77,
+   "push": {
+    "manifest": "sha256:ef9a02e91e1f94177494f2ed14709799628893ddc9994a1addc8008286d18b58",
+    "ref": "hf",
+    "stats": {
+     "files": 13,
+     "bytes": 16069779031,
+     "new_bytes": 16069779031,
+     "packs": 160,
+     "pack_bytes": 10704538330,
+     "skipped": null,
+     "duration_ns": 31680785672,
+     "files_total": 13,
+     "bytes_total": 16069779031
+    }
+   },
+   "store": {
+    "packs": 37056194815,
+    "pack_index": 185565340,
+    "composite_tables": 147288888,
+    "lists": 349269006,
+    "manifests": 6648,
+    "config": 360,
+    "n_packs": 553,
+    "n_pack_index": 553,
+    "n_composite_tables": 15,
+    "n_lists": 34,
+    "metadata": 682130242,
+    "total": 37738325057
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe16",
+   "step": "pfbatch",
+   "rc": 0,
+   "wall_s": 36.84,
+   "push": {
+    "manifest": "sha256:dbfd412c98426362fcbdb92067206b968f130bb4b3625af9258c4ac85be319b5",
+    "ref": "pfbatch",
+    "stats": {
+     "files": 13,
+     "bytes": 16182992947,
+     "new_bytes": 16181002765,
+     "packs": 160,
+     "pack_bytes": 10734023281,
+     "skipped": null,
+     "duration_ns": 36790793677,
+     "files_total": 13,
+     "bytes_total": 16182992947
+    }
+   },
+   "store": {
+    "packs": 10734023281,
+    "pack_index": 10842560,
+    "composite_tables": 279192,
+    "lists": 19926240,
+    "manifests": 3595,
+    "config": 360,
+    "n_packs": 160,
+    "n_pack_index": 160,
+    "n_composite_tables": 1,
+    "n_lists": 14,
+    "metadata": 31051947,
+    "total": 10765075228
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe16",
+   "step": "preset",
+   "rc": 0,
+   "wall_s": 5.56,
+   "push": {
+    "manifest": "sha256:d14f57ef0f9d250b338043c55b9f777367e6cdbd7cf50d1cc15d5ee06ecb80fd",
+    "ref": "preset",
+    "stats": {
+     "files": 13,
+     "bytes": 16182266742,
+     "new_bytes": 16084800,
+     "packs": 1,
+     "pack_bytes": 2587053,
+     "skipped": null,
+     "duration_ns": 5508510146,
+     "files_total": 13,
+     "bytes_total": 16182266742
+    }
+   },
+   "store": {
+    "packs": 10736610334,
+    "pack_index": 11002204,
+    "composite_tables": 414960,
+    "lists": 32178670,
+    "manifests": 7190,
+    "config": 360,
+    "n_packs": 161,
+    "n_pack_index": 161,
+    "n_composite_tables": 2,
+    "n_lists": 18,
+    "metadata": 43603384,
+    "total": 10780213718
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe16",
+   "step": "coarse",
+   "rc": 0,
+   "wall_s": 0.41,
+   "push": {
+    "manifest": "sha256:bf3c4d987bac1f9dec319c31cbad90d1db777b33a16bcca48425fa716bb40f12",
+    "ref": "coarse",
+    "stats": {
+     "files": 7,
+     "bytes": 35623630,
+     "new_bytes": 6635647,
+     "packs": 1,
+     "pack_bytes": 576012,
+     "skipped": null,
+     "duration_ns": 387361432,
+     "files_total": 7,
+     "bytes_total": 35623630
+    }
+   },
+   "store": {
+    "packs": 10737186346,
+    "pack_index": 11067656,
+    "composite_tables": 513216,
+    "lists": 32438048,
+    "manifests": 8729,
+    "config": 360,
+    "n_packs": 162,
+    "n_pack_index": 162,
+    "n_composite_tables": 3,
+    "n_lists": 21,
+    "metadata": 44028009,
+    "total": 10781214355
+   }
+  },
+  {
+   "workload": "rngd",
+   "policy": "probe16",
+   "step": "fine",
+   "rc": 0,
+   "wall_s": 0.43,
+   "push": {
+    "manifest": "sha256:6766426350b8d7fdc03aaecddb0fe77480b6e97a054606ddc081e42b2a34a970",
+    "ref": "fine",
+    "stats": {
+     "files": 7,
+     "bytes": 39402719,
+     "new_bytes": 7133500,
+     "packs": 1,
+     "pack_bytes": 749868,
+     "skipped": null,
+     "duration_ns": 408093230,
+     "files_total": 7,
+     "bytes_total": 39402719
+    }
+   },
+   "store": {
+    "packs": 10737936214,
+    "pack_index": 11139828,
+    "composite_tables": 626124,
+    "lists": 32744763,
+    "manifests": 10268,
+    "config": 360,
+    "n_packs": 163,
+    "n_pack_index": 163,
+    "n_composite_tables": 4,
+    "n_lists": 24,
+    "metadata": 44521343,
+    "total": 10782457557
+   }
+  }
+ ],
+ "placement_reports": {
+  "atom_with_hf_reference": {
+   "chunk_params": {
+    "Min": 16384,
+    "Avg": 65536,
+    "Max": 262144
+   },
+   "bytes": 263893021566,
+   "unique_bytes": 46775134846,
+   "ratio": 5.6417372699154695,
+   "chunks": 3517972,
+   "unique_chunks": 610743,
+   "groups": [
+    {
+     "kind": "atom-decode",
+     "files": 13,
+     "bytes": 191152006863,
+     "new_bytes": 16768736171,
+     "unique_bytes": 16768736171
+    },
+    {
+     "kind": "atom-prefill",
+     "files": 4,
+     "bytes": 56521901037,
+     "new_bytes": 27791852124,
+     "unique_bytes": 40672984441
+    },
+    {
+     "kind": "atom-other",
+     "files": 1,
+     "bytes": 14117765368,
+     "new_bytes": 113198253,
+     "unique_bytes": 14072331549
+    },
+    {
+     "kind": "other",
+     "files": 1,
+     "bytes": 2101348298,
+     "new_bytes": 2101348298,
+     "unique_bytes": 2101348298
+    }
+   ],
+   "files": [
+    {
+     "path": "atom-set/decode_S256_B1.rbln",
+     "kind": "atom-decode",
+     "bytes": 14118071282,
+     "new_bytes": 14069173778,
+     "chunks": 187819,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9889304589218747,
+      "fine": 0.9949680963793848
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B1_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15177735226,
+     "new_bytes": 1159986479,
+     "chunks": 201919,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9891072675509065,
+      "fine": 0.990313885582339
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B2.rbln",
+     "kind": "atom-decode",
+     "bytes": 14175423892,
+     "new_bytes": 160909157,
+     "chunks": 189136,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9855955357980345,
+      "fine": 0.9909991199577455
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B2_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15238278850,
+     "new_bytes": 168150225,
+     "chunks": 203315,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9876847443305581,
+      "fine": 0.9920115155918675
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B4.rbln",
+     "kind": "atom-decode",
+     "bytes": 14152245933,
+     "new_bytes": 175376839,
+     "chunks": 188691,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9900808900817171,
+      "fine": 0.9936993127859602
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B4_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15214978703,
+     "new_bytes": 178626793,
+     "chunks": 202962,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9901050017263373,
+      "fine": 0.9940192951448523
+     }
+    },
+    {
+     "path": "atom-set/decode_S256_B8_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15228048882,
+     "new_bytes": 206308937,
+     "chunks": 202585,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9856647373086624,
+      "fine": 0.9856717135142697
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B1.rbln",
+     "kind": "atom-decode",
+     "bytes": 14002676629,
+     "new_bytes": 43501172,
+     "chunks": 187039,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9977549025923449,
+      "fine": 0.9995112341603444
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B1_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15061413691,
+     "new_bytes": 39556930,
+     "chunks": 201192,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.997373624361461,
+      "fine": 0.9990573825079592
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B2.rbln",
+     "kind": "atom-decode",
+     "bytes": 14176417264,
+     "new_bytes": 162117526,
+     "chunks": 189127,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9862878851278146,
+      "fine": 0.9906461871479518
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B2_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15239296537,
+     "new_bytes": 149647866,
+     "chunks": 203227,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9871159447207232,
+      "fine": 0.9896259774448144
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B4.rbln",
+     "kind": "atom-decode",
+     "bytes": 14152348510,
+     "new_bytes": 134162298,
+     "chunks": 188798,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9921266131256402,
+      "fine": 0.9950553444221252
+     }
+    },
+    {
+     "path": "atom-set/decode_S512_B4_lm.rbln",
+     "kind": "atom-decode",
+     "bytes": 15215071464,
+     "new_bytes": 121218171,
+     "chunks": 203040,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.991596341344664,
+      "fine": 0.9956085234198148
+     }
+    },
+    {
+     "path": "atom-set/prefill_S256_C128.rbln",
+     "kind": "atom-prefill",
+     "bytes": 14017135688,
+     "new_bytes": 9828954890,
+     "chunks": 187201,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.44525966766114106,
+      "fine": 0.8965216613233087
+     }
+    },
+    {
+     "path": "atom-set/prefill_S256_C16.rbln",
+     "kind": "atom-prefill",
+     "bytes": 14154808354,
+     "new_bytes": 196359084,
+     "chunks": 188162,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.985982481003077,
+      "fine": 0.9861830471943669
+     }
+    },
+    {
+     "path": "atom-set/prefill_S256_C256.rbln",
+     "kind": "atom-prefill",
+     "bytes": 14113353000,
+     "new_bytes": 9125719032,
+     "chunks": 188209,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.4155616143803673,
+      "fine": 0.8677158882797023
+     }
+    },
+    {
+     "path": "atom-set/prefill_S512_C512.rbln",
+     "kind": "atom-prefill",
+     "bytes": 14236603995,
+     "new_bytes": 8640819118,
+     "chunks": 189687,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.3930561585449227,
+      "fine": 0.8924220907220648
+     }
+    },
+    {
+     "path": "atom-set/llama8b_S256_fp16.rbln",
+     "kind": "atom-other",
+     "bytes": 14117765368,
+     "new_bytes": 113198253,
+     "chunks": 187830,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.9887636557298535,
+      "fine": 0.9938685088791596
+     }
+    },
+    {
+     "path": "atom-set/tables.npz",
+     "kind": "other",
+     "bytes": 2101348298,
+     "new_bytes": 2101348298,
+     "chunks": 28033,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0,
+      "fine": 9.517698717073888e-10
+     }
+    }
+   ],
+   "classify": {
+    "fine_params": {
+     "Min": 1024,
+     "Avg": 4096,
+     "Max": 16384
+    },
+    "references": [
+     "hf-checkpoint"
+    ],
+    "ref_share": 0.95,
+    "rearranged_gap": 0.25,
+    "shifted_share": 0.5,
+    "reference_files": 13,
+    "reference_bytes": 16069779031
+   }
+  },
+  "rngd_with_hf_reference": {
+   "chunk_params": {
+    "Min": 16384,
+    "Avg": 65536,
+    "Max": 262144
+   },
+   "bytes": 32440286038,
+   "unique_bytes": 16232536844,
+   "ratio": 1.9984729651170228,
+   "chunks": 433776,
+   "unique_chunks": 216931,
+   "groups": [
+    {
+     "kind": "rngd-params",
+     "files": 8,
+     "bytes": 32255330640,
+     "new_bytes": 16127665320,
+     "unique_bytes": 16127665320
+    },
+    {
+     "kind": "rngd-bundle",
+     "files": 8,
+     "bytes": 116045792,
+     "new_bytes": 87632666,
+     "unique_bytes": 87632666
+    },
+    {
+     "kind": "other",
+     "files": 24,
+     "bytes": 68909606,
+     "new_bytes": 17238858,
+     "unique_bytes": 17238858
+    }
+   ],
+   "files": [
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4976698656,
+     "new_bytes": 4976698656,
+     "chunks": 66642,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.9999849725681281,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4999802704,
+     "new_bytes": 4999802704,
+     "chunks": 66801,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.999986890482709,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4915916168,
+     "new_bytes": 4915916168,
+     "chunks": 65892,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.9999859118834347,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 1235247792,
+     "new_bytes": 1235247792,
+     "chunks": 16430,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.9454986736782607,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00001-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4976698656,
+     "new_bytes": 0,
+     "chunks": 66642,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.9999849725681281,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00002-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4999802704,
+     "new_bytes": 0,
+     "chunks": 66801,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.999986890482709,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00003-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 4915916168,
+     "new_bytes": 0,
+     "chunks": 65892,
+     "class": "referenced",
+     "shares": {
+      "ref": 0.9999859118834347,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model-00004-of-00004.safetensors",
+     "kind": "rngd-params",
+     "bytes": 1235247792,
+     "new_bytes": 0,
+     "chunks": 16430,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.9454986736782607,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/coarse/artifact.json",
+     "kind": "rngd-bundle",
+     "bytes": 4911304,
+     "new_bytes": 4911304,
+     "chunks": 51,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0,
+      "fine": 0.00033616326743365915
+     }
+    },
+    {
+     "path": "rngd/coarse/binary_bundle.zip",
+     "kind": "rngd-bundle",
+     "bytes": 13496362,
+     "new_bytes": 13428389,
+     "chunks": 145,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.36724155739154,
+      "fine": 0.9556762037058579
+     }
+    },
+    {
+     "path": "rngd/fine/artifact.json",
+     "kind": "rngd-bundle",
+     "bytes": 6108280,
+     "new_bytes": 6108280,
+     "chunks": 59,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.12743521907967545,
+      "fine": 0.1923469454576411
+     }
+    },
+    {
+     "path": "rngd/fine/binary_bundle.zip",
+     "kind": "rngd-bundle",
+     "bytes": 16078475,
+     "new_bytes": 11726186,
+     "chunks": 178,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.3033376610654928,
+      "fine": 0.8862514013300391
+     }
+    },
+    {
+     "path": "rngd/pfbatch/artifact.json",
+     "kind": "rngd-bundle",
+     "bytes": 7415165,
+     "new_bytes": 6636755,
+     "chunks": 76,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.10497541187552806,
+      "fine": 0.13045724538833592
+     }
+    },
+    {
+     "path": "rngd/pfbatch/binary_bundle.zip",
+     "kind": "rngd-bundle",
+     "bytes": 30673623,
+     "new_bytes": 25686802,
+     "chunks": 362,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.5364924775922296,
+      "fine": 0.8834996439774981
+     }
+    },
+    {
+     "path": "rngd/preset/artifact.json",
+     "kind": "rngd-bundle",
+     "bytes": 7191899,
+     "new_bytes": 6413489,
+     "chunks": 73,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.10823427859595915,
+      "fine": 0.1655470968098968
+     }
+    },
+    {
+     "path": "rngd/preset/binary_bundle.zip",
+     "kind": "rngd-bundle",
+     "bytes": 30170684,
+     "new_bytes": 12721461,
+     "chunks": 358,
+     "class": "embedded-rearranged",
+     "shares": {
+      "ref": 0,
+      "coarse": 0.578350262128628,
+      "fine": 0.9579323093901352
+     }
+    },
+    {
+     "path": "rngd/coarse/chat_template.jinja",
+     "kind": "other",
+     "bytes": 4614,
+     "new_bytes": 4614,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/coarse/config.json",
+     "kind": "other",
+     "bytes": 896,
+     "new_bytes": 896,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/coarse/generation_config.json",
+     "kind": "other",
+     "bytes": 183,
+     "new_bytes": 183,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/coarse/tokenizer.json",
+     "kind": "other",
+     "bytes": 17209920,
+     "new_bytes": 17209920,
+     "chunks": 231,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.18962121846005095,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/coarse/tokenizer_config.json",
+     "kind": "other",
+     "bytes": 351,
+     "new_bytes": 351,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/fine/chat_template.jinja",
+     "kind": "other",
+     "bytes": 4614,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/fine/config.json",
+     "kind": "other",
+     "bytes": 896,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/fine/generation_config.json",
+     "kind": "other",
+     "bytes": 183,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/fine/tokenizer.json",
+     "kind": "other",
+     "bytes": 17209920,
+     "new_bytes": 0,
+     "chunks": 231,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.18962121846005095,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/fine/tokenizer_config.json",
+     "kind": "other",
+     "bytes": 351,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/chat_template.jinja",
+     "kind": "other",
+     "bytes": 4614,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/config.json",
+     "kind": "other",
+     "bytes": 896,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/generation_config.json",
+     "kind": "other",
+     "bytes": 183,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+     "kind": "other",
+     "bytes": 19,
+     "new_bytes": 19,
+     "chunks": 1,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0,
+      "fine": 0
+     }
+    },
+    {
+     "path": "rngd/pfbatch/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+     "kind": "other",
+     "bytes": 22856,
+     "new_bytes": 22856,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/tokenizer.json",
+     "kind": "other",
+     "bytes": 17209920,
+     "new_bytes": 0,
+     "chunks": 231,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.18962121846005095,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/pfbatch/tokenizer_config.json",
+     "kind": "other",
+     "bytes": 351,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/chat_template.jinja",
+     "kind": "other",
+     "bytes": 4614,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/config.json",
+     "kind": "other",
+     "bytes": 896,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/generation_config.json",
+     "kind": "other",
+     "bytes": 183,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/cache_access_log.txt",
+     "kind": "other",
+     "bytes": 19,
+     "new_bytes": 19,
+     "chunks": 1,
+     "class": "new",
+     "shares": {
+      "ref": 0,
+      "coarse": 0,
+      "fine": 0
+     }
+    },
+    {
+     "path": "rngd/preset/params-Llama-3.1-8B-Instruct-llama-32L-W16A16KV16-shard_size=5000000000-500336bba7f6353fa0b3e71a8614ee0f7643eb4399e41451475599c4c28a191c.safetensors/model.safetensors.index.json",
+     "kind": "other",
+     "bytes": 22856,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/tokenizer.json",
+     "kind": "other",
+     "bytes": 17209920,
+     "new_bytes": 0,
+     "chunks": 231,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0.18962121846005095,
+      "coarse": 1,
+      "fine": 1
+     }
+    },
+    {
+     "path": "rngd/preset/tokenizer_config.json",
+     "kind": "other",
+     "bytes": 351,
+     "new_bytes": 0,
+     "chunks": 1,
+     "class": "embedded-shifted",
+     "shares": {
+      "ref": 0,
+      "coarse": 1,
+      "fine": 1
+     }
+    }
+   ],
+   "classify": {
+    "fine_params": {
+     "Min": 1024,
+     "Avg": 4096,
+     "Max": 16384
+    },
+    "references": [
+     "hf-checkpoint"
+    ],
+    "ref_share": 0.95,
+    "rearranged_gap": 0.25,
+    "shifted_share": 0.5,
+    "reference_files": 13,
+    "reference_bytes": 16069779031
+   }
+  }
+ },
+ "placement_report_cost": {
+  "atom": [
+   "Command being timed: \"nice -n 19 ionice -c3 ./onggi-new dedup-report --quiet --json --classify --reference hf-checkpoint --workers 16 atom-set\"",
+   "\tUser time (seconds): 549.31",
+   "\tSystem time (seconds): 51.23",
+   "\tPercent of CPU this job got: 777%",
+   "\tElapsed (wall clock) time (h:mm:ss or m:ss): 1:17.24",
+   "\tAverage shared text size (kbytes): 0",
+   "\tAverage unshared data size (kbytes): 0",
+   "\tAverage stack size (kbytes): 0",
+   "\tAverage total size (kbytes): 0",
+   "\tMaximum resident set size (kbytes): 1841864"
+  ],
+  "rngd": [
+   "Command being timed: \"nice -n 19 ionice -c3 ./onggi-new dedup-report --quiet --json --classify --reference hf-checkpoint --workers 16 rngd/pfbatch rngd/preset rngd/coarse rngd/fine\"",
+   "\tUser time (seconds): 92.76",
+   "\tSystem time (seconds): 9.77",
+   "\tPercent of CPU this job got: 449%",
+   "\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:22.81",
+   "\tAverage shared text size (kbytes): 0",
+   "\tAverage unshared data size (kbytes): 0",
+   "\tAverage stack size (kbytes): 0",
+   "\tAverage total size (kbytes): 0",
+   "\tMaximum resident set size (kbytes): 449236"
+  ]
+ },
+ "switch_plans": {
+  "a3-plan-la-lb.json": {
+   "schema": "onggi.switchplan.v1",
+   "bytes_json": 1429,
+   "size": 15228048882,
+   "same": 15009857021,
+   "moved": 0,
+   "new": 218191861,
+   "new_stored": 3553089,
+   "files": [
+    {
+     "path": "decode_S256_B8_lm.rbln",
+     "base": "decode_S256_B2_lm.rbln",
+     "size": 15228048882,
+     "same": 15009857021,
+     "moved": 0,
+     "new": 218191861,
+     "changed_runs": 3,
+     "ranges_by_kind": {
+      "new": [
+       3,
+       218191861
+      ],
+      "same": [
+       2,
+       15009857021
+      ]
+     },
+     "n_ranges": 5
+    }
+   ]
+  },
+  "a3-plan-va-vb.json": {
+   "schema": "onggi.switchplan.v1",
+   "bytes_json": 17671,
+   "size": 15228048882,
+   "same": 0,
+   "moved": 13959162419,
+   "new": 1268886463,
+   "new_stored": 693760073,
+   "files": [
+    {
+     "path": "decode_S256_B8_lm.rbln",
+     "base": "decode_S256_B2.rbln",
+     "size": 15228048882,
+     "same": 0,
+     "moved": 13959162419,
+     "new": 1268886463,
+     "changed_runs": 1,
+     "ranges_by_kind": {
+      "new": [
+       7,
+       1268886463
+      ],
+      "elsewhere": [
+       82,
+       13959162419
+      ]
+     },
+     "n_ranges": 89
+    }
+   ]
+  },
+  "a3-plan-va-vc.json": {
+   "schema": "onggi.switchplan.v1",
+   "bytes_json": 68247501,
+   "size": 14017135688,
+   "same": 0,
+   "moved": 11125321034,
+   "new": 2891814654,
+   "new_stored": 1921135926,
+   "files": [
+    {
+     "path": "prefill_S256_C128.rbln",
+     "base": "decode_S256_B2.rbln",
+     "size": 14017135688,
+     "same": 0,
+     "moved": 11125321034,
+     "new": 2891814654,
+     "changed_runs": 1,
+     "ranges_by_kind": {
+      "new": [
+       226845,
+       2891814654
+      ],
+      "elsewhere": [
+       226894,
+       11125321034
+      ]
+     },
+     "n_ranges": 453739
+    }
+   ]
+  },
+  "a3-plan-va-vb.time": "\tCommand being timed: \"./onggi-a3 diff --store stores/a3 --json --ranges va vb\"\n\tUser time (seconds): 10.02\n\tSystem time (seconds): 2.74\n\tPercent of CPU this job got: 114%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:11.12\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 2114644\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 826018\n\tVoluntary context switches: 3038\n\tInvoluntary context switches: 98\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 40\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+  "a3-plan-va-vc.time": "\tCommand being timed: \"./onggi-a3 diff --store stores/a3 --json --ranges va vc\"\n\tUser time (seconds): 9.87\n\tSystem time (seconds): 2.50\n\tPercent of CPU this job got: 112%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:11.00\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 1953432\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 860133\n\tVoluntary context switches: 2965\n\tInvoluntary context switches: 33\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 133296\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n"
+ },
+ "compatibility": {
+  "main_binary_pulls_store_created_with_size_policy": "manifest sha256:fd5a71b348078b7e12bad4481bfff95625f40ee01fa843aa41c9bc1147b634ab\nfiles    7\nwritten  39.4 MB (read 7.6 MB in 148 ranges)\ntook     0s (688 MB/s)\nrc=0\nIDENTICAL\nREF      MANIFEST                                                                 BYTES\ncoarse   sha256:a9a00055de32a0cb38dceab0b6973816001cd47e0c2c0a6332be2070ff90f45d  35.6 MB\nfine     sha256:fd5a71b348078b7e12bad4481bfff95625f40ee01fa843aa41c9bc1147b634ab  39.4 MB\npfbatch  sha256:28875e8c508edae73e0ef3a2bbb773bda6b91747729122490252322e01e925bf  16.2 GB\npreset   sha256:ec3a70c7ec33f12b2833590639880da44416964dc5d226404ecaa2f4b2384907  16.2 GB\n\nstore: 3503926 chunks in 163 packs, 10.7 GB; chunker 16.4 kB/65.5 kB/262.1 kB; durability unknown\ntwo-level: 216922 chunks held as sub-chunks of 1.0 kB/4.1 kB/16.4 kB (all kinds)\n",
+  "new_binary_reads_store_created_by_main": "REF   MANIFEST                                                                 BYTES\natom  sha256:58b87b04ea3066623ef70d49644e609cd77f62914148e88a4c21a75f1f40ee6b  263.9 GB\n\nstore: 4842079 chunks in 233 packs, 15.6 GB; chunker 16.4 kB/65.5 kB/262.1 kB; durability unknown\ntwo-level: 582709 chunks held as sub-chunks of 1.0 kB/4.1 kB/16.4 kB (kinds [atom-prefill atom-decode atom-other])\n{'schema': 'onggi.store.v1', 'chunker': {'Min': 16384, 'Avg': 65536, 'Max': 262144}, 'pack_size': 67108864, 'sub_chunker': {'Min': 1024, 'Avg': 4096, 'Max': 16384}, 'sub_kinds': ['atom-prefill', 'atom-decode', 'atom-other'], 'frame': 262144, 'created': '2026-10-30T07:36:15.209415807Z'}\n"
+ }
+}

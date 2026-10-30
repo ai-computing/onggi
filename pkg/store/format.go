@@ -237,19 +237,10 @@ type Config struct {
 	// format (#74). With neither SubKinds nor SubMinFile, every file gets sub-chunks; that is also
 	// what binaries from before #74 do on a store that records only SubMinFile.
 	SubMinFile int64 `json:"sub_min_file,omitempty"`
-	// SubProbe is an experiment (#74); binaries from before it ignore it like SubMinFile.
-	SubProbe *SubProbe `json:"sub_probe,omitempty"`
 	// Frame, when set, makes push compress consecutive new chunks of a sub-chunked file
 	// together, up to this many raw bytes (#52). Stores created before it have none.
 	Frame   int64     `json:"frame,omitempty"`
 	Created time.Time `json:"created"`
-}
-
-// SubProbe stops sub-chunking a file when the first Chunks new chunks it sub-chunks find less
-// than MinShare of their bytes already stored (#74 experiment).
-type SubProbe struct {
-	Chunks   int     `json:"chunks"`
-	MinShare float64 `json:"min_share"`
 }
 
 // File is one file of an artifact.

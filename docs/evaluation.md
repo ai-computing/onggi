@@ -89,8 +89,8 @@ reads 10.8 GB. Since #58 a pull reads such bytes from the base's files where the
 the ATOM set, prefill C128 next to a decode B2 copy (0 % at the same offsets, 79 % elsewhere) read 1.93 GB from the
 store instead of 9.47 GB and 11.1 GB from the base, byte-identical.
 
-Unlike ATOM, sub-chunks are not used here (TensorRT engines are kind `other`); 64 KiB chunks already find the shifted
-weights.
+These engines were stored before #74, without sub-chunks (TensorRT engines were kind `other`); 64 KiB chunks already
+find the shifted weights. Since #74 new stores sub-chunk them like any file of at least 1 MiB.
 
 ## RNGD: furiosa-llm artifacts (#54)
 

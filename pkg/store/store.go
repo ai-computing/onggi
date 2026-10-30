@@ -54,7 +54,6 @@ type Create struct {
 	// SubMinFile sub-chunks the new chunks of every file of at least this many bytes (#74); used
 	// only with Sub. With neither SubKinds nor SubMinFile, every file gets sub-chunks.
 	SubMinFile int64
-	SubProbe   *SubProbe // experiment (#74): stop sub-chunking a file whose first new chunks find nothing
 	PackSize   int64
 	Frame      int64 // compression frames for sub-chunked files (#52); used only with Sub
 }
@@ -64,8 +63,7 @@ type Create struct {
 var DefaultSubKinds = []layout.Kind{layout.ATOMPrefill, layout.ATOMDecode, layout.ATOMOther}
 
 // DefaultSubMinFile is the file size from which new stores sub-chunk new chunks (#74). It looks
-// at no name or format: weight-bearing files are large, and below it the second level only adds
-// metadata.
+// at no name or format; docs/sub-chunk-policy.md has the measurements behind it.
 const DefaultSubMinFile = 1 << 20
 
 // Open reads the store's config, creating it with p and packSize (one level of chunks) if the
@@ -98,7 +96,7 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 		}
 		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Sub: c.Sub, Created: time.Now().UTC()}
 		if c.Sub != nil {
-			cfg.SubKinds, cfg.SubMinFile, cfg.SubProbe, cfg.Frame = c.SubKinds, c.SubMinFile, c.SubProbe, c.Frame
+			cfg.SubKinds, cfg.SubMinFile, cfg.Frame = c.SubKinds, c.SubMinFile, c.Frame
 		}
 		data, _ := json.MarshalIndent(cfg, "", "  ")
 		if err := b.Put(ctx, configKey, bytes.NewReader(data), int64(len(data))); err != nil {
