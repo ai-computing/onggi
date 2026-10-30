@@ -1,0 +1,64 @@
+{
+  "schema": "onggi.switchplan.v1",
+  "base_manifest": "sha256:4c45361a32a82eba30135c1b12e30300fb794044562344277d56b7d21be1b9f0",
+  "manifest": "sha256:057328b9fbbb63443c9cbc6abbc3265aff5229d51d396534f290cad78c8a059b",
+  "files": [
+    {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 13,
+      "same": 13,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 13,
+      "changed_runs": 0,
+      "largest_run": 0,
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 13,
+          "kind": "same"
+        }
+      ]
+    },
+    {
+      "path": "model.bin",
+      "base": "model.bin",
+      "size": 2115104,
+      "same": 0,
+      "moved": 2092961,
+      "new": 22143,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 2115104,
+      "changed": [
+        [
+          0,
+          2115104
+        ]
+      ],
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 22143,
+          "kind": "new"
+        },
+        {
+          "offset": 22143,
+          "length": 2092961,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 4191
+        }
+      ]
+    }
+  ],
+  "size": 2115117,
+  "same": 13,
+  "moved": 2092961,
+  "new": 22143,
+  "new_stored": 22143,
+  "same_blocks": 13,
+  "changed_runs": 1,
+  "largest_run": 2115104
+}

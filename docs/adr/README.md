@@ -14,3 +14,4 @@ A decision changes only through a new ADR that supersedes the old one.
 | [0007](0007-refs-in-the-kubernetes-api.md) | Only refs live in the Kubernetes API; manifests are content-addressed objects | proposed |
 | [0008](0008-pluggable-storage-backends.md) | Pluggable storage backends behind one interface; durability delegated to the backend | proposed |
 | [0009](0009-clean-room-and-vendor-formats.md) | Vendor artifacts are opaque; clean-room code; published algorithms implemented as published | accepted |
+| [0010](0010-device-binding-contract.md) | Device binding interface: five JSON operations, versioned schemas (`onggi.switchplan.v1` …), levels B0–B2, conformance kit | proposed |

@@ -1,0 +1,73 @@
+{
+  "schema": "onggi.switchplan.v1",
+  "base_manifest": "sha256:7c6928f0385a257b5ceb9d13ea205a5ab0643a4fcec6b2a421ef5756aea93280",
+  "manifest": "sha256:cb4a0497f3a7c591b276b4526d0e305718fff0e98f35f3104185a6fdb0117a03",
+  "files": [
+    {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 13,
+      "same": 0,
+      "moved": 0,
+      "new": 13,
+      "same_blocks": 0,
+      "changed_runs": 1,
+      "largest_run": 13,
+      "changed": [
+        [
+          0,
+          13
+        ]
+      ],
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 13,
+          "kind": "new"
+        }
+      ]
+    },
+    {
+      "path": "model.bin",
+      "base": "model.bin",
+      "size": 2097152,
+      "same": 2031875,
+      "moved": 0,
+      "new": 65277,
+      "same_blocks": 2027520,
+      "changed_runs": 1,
+      "largest_run": 65277,
+      "changed": [
+        [
+          1046344,
+          65277
+        ]
+      ],
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 1046344,
+          "kind": "same"
+        },
+        {
+          "offset": 1046344,
+          "length": 65277,
+          "kind": "new"
+        },
+        {
+          "offset": 1111621,
+          "length": 985531,
+          "kind": "same"
+        }
+      ]
+    }
+  ],
+  "size": 2097165,
+  "same": 2031875,
+  "moved": 0,
+  "new": 65290,
+  "new_stored": 65290,
+  "same_blocks": 2027520,
+  "changed_runs": 2,
+  "largest_run": 65277
+}

@@ -1,0 +1,8 @@
+{
+  "batch": 8,
+  "device": "fake",
+  "format": "bytes",
+  "layout": "rows-4KiB",
+  "runtime": "onggi-fake-binding",
+  "schema": "onggi.profile.v1"
+}

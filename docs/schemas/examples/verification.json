@@ -1,0 +1,22 @@
+{
+  "bytes_written": 69645,
+  "manifest": "sha256:cb4a0497f3a7c591b276b4526d0e305718fff0e98f35f3104185a6fdb0117a03",
+  "mode": "units",
+  "ok": true,
+  "op": "apply",
+  "schema": "onggi.verification.v1",
+  "units": [
+    {
+      "file": "config.json",
+      "length": 13,
+      "offset": 0,
+      "sha256": "d2c3ed81e63d9795d2471722d6c381bdfdadad21c00c926a044c40107187cc68"
+    },
+    {
+      "file": "model.bin",
+      "length": 69632,
+      "offset": 1044480,
+      "sha256": "9b865032bc8b647286722b4495a85cb32cc877135e3b7e0651993f478d51f68e"
+    }
+  ]
+}

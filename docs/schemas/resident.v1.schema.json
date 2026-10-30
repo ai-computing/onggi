@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-computing/onggi/docs/schemas/resident.v1.schema.json",
+  "title": "onggi.resident.v1",
+  "description": "Which artifact is resident on the device (ADR-0010 resident), so a node can choose the base of a switch.",
+  "type": "object",
+  "required": ["schema", "manifest", "state"],
+  "properties": {
+    "schema": {"const": "onggi.resident.v1"},
+    "manifest": {"oneOf": [{"$ref": "switchplan.v1.schema.json#/$defs/digest"}, {"type": "null"}]},
+    "state": {"enum": ["empty", "ready", "staged"], "description": "staged: an apply has not finished or not been verified"}
+  }
+}
