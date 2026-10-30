@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/ai-computing/onggi/pkg/backend"
@@ -21,6 +24,29 @@ const prepareProfileJSON = `{"schema":"onggi.profile.v1","model_source":"sha256:
 type prepareFixture struct {
 	root, source, storage, request string
 	data                           []byte
+}
+
+type inspectPrepareBackend struct {
+	backend.Backend
+	inspect func() error
+}
+
+func (b inspectPrepareBackend) Get(ctx context.Context,k backend.Key,off,n int64)(io.ReadCloser,error) {
+	if k.Kind==backend.Pack {if err:=b.inspect();err!=nil {return nil,err}}
+	return b.Backend.Get(ctx,k,off,n)
+}
+
+func TestPrepareTreePrivateDuringBackendRead(t *testing.T) {
+	f:=newPrepareFixture(t);ctx:=context.Background();b,err:=bfs.Open(f.storage,backend.DurabilityNone);if err!=nil {t.Fatal(err)}
+	var inspected atomic.Bool
+	wrapped:=inspectPrepareBackend{b,func()error {
+		inspected.Store(true);paths,err:=filepath.Glob(filepath.Join(f.root,".output.onggi-*"));if err!=nil||len(paths)!=1{return fmt.Errorf("missing staging root: %v",paths)}
+		info,err:=os.Stat(paths[0]);if err!=nil{return err};if info.Mode().Perm()&0077!=0{return fmt.Errorf("restricted files exposed through staging mode %o",info.Mode().Perm())};return nil
+	}}
+	s,err:=store.Open(ctx,wrapped,chunker.Default,0);if err!=nil{t.Fatal(err)};d,err:=store.Resolve(ctx,b,"model");if err!=nil{t.Fatal(err)}
+	dest:=filepath.Join(f.root,"output");if _,err=prepareFiles(ctx,s,d,dest,store.PullOptions{});err!=nil{t.Fatal(err)}
+	if !inspected.Load(){t.Fatal("backend read not inspected")}
+	got,err:=os.ReadFile(filepath.Join(dest,"graph.bin"));if err!=nil||!bytes.Equal(got,f.data){t.Fatal("output changed")}
 }
 
 func newPrepareFixture(t *testing.T) prepareFixture {
