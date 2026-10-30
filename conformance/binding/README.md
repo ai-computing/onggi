@@ -7,6 +7,7 @@ Python 3.6+, standard library only, Apache-2.0.
 python3 conformance.py                          # the reference fake binding, level B2
 python3 conformance.py --level B1               # the fake binding acting as B1 (plan always reloads)
 python3 conformance.py --level B2 -- ./my-binding --device 0   # your binding
+python3 conformance.py --level B2 --fixtures /runs/fixtures.json --report /runs/result.json -- ./my-binding
 ```
 
 Your binding is run as `COMMAND <operation> [args]` with JSON on stdin and stdout and a non-zero exit on error:
@@ -21,6 +22,67 @@ Your binding is run as `COMMAND <operation> [args]` with JSON on stdin and stdou
 | `conformance-load ARTIFACT_DIR MANIFEST` | — | — (kit hook: load the base artifact the normal way and remember MANIFEST as its identity) |
 
 Schemas and examples: [`docs/schemas/`](../../docs/schemas/).
+
+## Runtime artifact fixtures
+
+`--fixtures FILE` selects external artifact directories instead of the four synthetic switches. Options for the
+kit go before `--`; the command and options for your binding go after it. A provider file has this shape:
+
+```json
+{
+  "schema": "onggi.binding-fixtures.v1",
+  "cases": [
+    {
+      "name": "native-identical",
+      "base_dir": "/runs/artifacts/base",
+      "target_dir": "/runs/artifacts/base",
+      "switchplan": "identical.switchplan.json",
+      "expect_mode": "units"
+    },
+    {
+      "name": "native-inplace",
+      "base_dir": "/runs/artifacts/base",
+      "target_dir": "/runs/artifacts/target",
+      "switchplan": "inplace.switchplan.json",
+      "expect_mode": "units"
+    }
+  ]
+}
+```
+
+`cases` must be nonempty, with unique nonempty names. Every case requires all five fields shown. Relative
+`base_dir`, `target_dir`, and `switchplan` paths resolve against the provider file's directory. `switchplan` may
+instead contain an inline `onggi.switchplan.v1` object. Obtain it with `onggi diff --ranges --json BASE TARGET`;
+the provider is responsible for supplying verified artifacts and their authentic manifest identities. The kit
+checks manifest syntax, the complete target file inventory and sizes, paired/source base files, range partitions,
+and byte counts before invoking the binding. Every `same` range must equal the paired base at the same offset;
+every `elsewhere` range must equal its declared base source interval. Artifact directories must exist and contain regular files; symlinks
+are rejected so no files are silently skipped or read outside those directories.
+
+`expect_mode` is exactly `units` or `reload`. At B2 each case must return its declared mode, and at least one case
+must declare `units` with changed ranges (`switchplan.moved + switchplan.new > 0`) and an actual byte difference
+between target files and the same-path base files (or paired base files when the path is new). A nonempty target
+file without a base counterpart also counts. Reload-only or identical-only fixtures cannot establish B2, even
+if unchanged bytes are labeled `new`. Individual `new` spans may include equal bytes, as chunk boundaries can
+produce such spans. At B1 every case must declare `reload`, and the binding must always return it.
+B2 retains coverage, apply readback, resident identity,
+rollback restoration, and second-rollback refusal checks for these fixtures. A runtime supporting a bounded
+lossless subset can provide native identical and in-place cases with `units`; a passing fixture run establishes
+that declared subset, rather than support for every native switch. Default runs still require `units` for the
+synthetic `identical` and `inplace` cases and still run all four synthetic cases.
+
+The checker uses file sizes from filesystem metadata and compares or hashes intervals with reads of at most 1 MiB.
+It neither copies external artifacts nor reads a whole model into memory. Keep the directories unchanged while
+the kit runs. Binding-side staging and memory use remain the binding's responsibility.
+
+`--report FILE` exclusively creates a new JSON file (`onggi.binding-report.v1`); an existing file is never
+overwritten. Reports include the level, binding command, provider file SHA-256, and, for each executed case,
+the resolved artifact directories, expected mode, artifact file sizes and SHA-256 hashes, and a SHA-256 of the
+switchplan's canonical JSON (sorted keys, compact separators, UTF-8). Each operation records its full command,
+JSON input, exit code and JSON output, or its execution error. The final `ok`, `failures`, and optional `error`
+also record unsuccessful runs. Hashing the complete artifacts for a report is streamed. Without `--fixtures`,
+reports describe the synthetic cases and omit the provider file field. Reports contain paths, commands, and
+binding output; choose the destination accordingly.
 
 ## What is in here
 
