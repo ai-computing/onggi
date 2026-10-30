@@ -18,6 +18,8 @@ jobs:
         run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
       - run: go vet ./...
       - run: go test -race ./...
+      - name: device binding verification regressions
+        run: python3 -m unittest discover -s conformance/binding -p 'test_*.py' -v
       - name: device binding conformance kit (reference fake binding, B1 and B2)
         run: python3 conformance/binding/conformance.py --level B2 && python3 conformance/binding/conformance.py --level B1
       - name: chunker benchmark (reported, not gated yet)
