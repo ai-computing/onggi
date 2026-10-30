@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-computing/onggi/docs/schemas/switchplan.v1.schema.json",
+  "title": "onggi.switchplan.v1",
+  "description": "What turning a resident base artifact into a target takes, per byte range (ADR-0010). Printed by `onggi diff --ranges --json BASE TARGET`. Fields may be added within v1; consumers ignore unknown fields.",
+  "type": "object",
+  "required": ["schema", "base_manifest", "manifest", "files", "size", "same", "moved", "new"],
+  "properties": {
+    "schema": {"const": "onggi.switchplan.v1"},
+    "base_manifest": {"$ref": "#/$defs/digest", "description": "the artifact the plan applies to"},
+    "manifest": {"$ref": "#/$defs/digest", "description": "the artifact the plan produces"},
+    "size": {"type": "integer", "minimum": 0},
+    "same": {"type": "integer", "minimum": 0, "description": "bytes at the same offset of the paired base file"},
+    "moved": {"type": "integer", "minimum": 0, "description": "bytes the base holds elsewhere"},
+    "new": {"type": "integer", "minimum": 0, "description": "bytes the base does not hold"},
+    "new_stored": {"type": "integer", "minimum": 0, "description": "stored (compressed) bytes of the distinct new chunks"},
+    "same_blocks": {"type": "integer", "minimum": 0},
+    "changed_runs": {"type": "integer", "minimum": 0},
+    "largest_run": {"type": "integer", "minimum": 0},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "size", "same", "moved", "new"],
+        "properties": {
+          "path": {"type": "string", "description": "target file, slash-separated, relative to the artifact root"},
+          "base": {"type": "string", "description": "paired base file; absent when there is none"},
+          "size": {"type": "integer", "minimum": 0},
+          "same": {"type": "integer", "minimum": 0},
+          "moved": {"type": "integer", "minimum": 0},
+          "new": {"type": "integer", "minimum": 0},
+          "same_blocks": {"type": "integer", "minimum": 0},
+          "changed_runs": {"type": "integer", "minimum": 0},
+          "largest_run": {"type": "integer", "minimum": 0},
+          "changed": {
+            "description": "runs that are not same, as [offset, length] (output before v1; kept)",
+            "type": "array",
+            "items": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2}
+          },
+          "ranges": {
+            "description": "with --ranges: runs that cover the file from 0 to size, in order, without gaps",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["offset", "length", "kind"],
+              "properties": {
+                "offset": {"type": "integer", "minimum": 0},
+                "length": {"type": "integer", "minimum": 1},
+                "kind": {"enum": ["same", "elsewhere", "new"]},
+                "source_file": {"type": "string", "description": "elsewhere only: a base file holding the same bytes"},
+                "source_offset": {"type": "integer", "minimum": 0, "description": "elsewhere only"}
+              },
+              "if": {"properties": {"kind": {"const": "elsewhere"}}},
+              "then": {"required": ["source_file", "source_offset"]},
+              "else": {"not": {"anyOf": [{"required": ["source_file"]}, {"required": ["source_offset"]}]}}
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+}

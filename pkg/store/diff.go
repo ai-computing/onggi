@@ -98,9 +98,9 @@ type FileDiff struct {
 	Ranges []Range `json:"ranges,omitempty"`
 }
 
-// RangePlanSchema names the format of DiffStats as JSON (ADR-0010). The range plan (Ranges)
+// SwitchPlanSchema names the format of DiffStats as JSON (ADR-0010). The switch plan
 // is the only interface between onggi and a runtime's device binding.
-const RangePlanSchema = "onggi.rangeplan.v1"
+const SwitchPlanSchema = "onggi.switchplan.v1"
 
 // Range kinds (ADR-0010).
 const (
@@ -126,7 +126,7 @@ type DiffOptions struct {
 
 // DiffStats sums a diff over the files.
 type DiffStats struct {
-	Schema       string     `json:"schema"`        // RangePlanSchema
+	Schema       string     `json:"schema"`        // SwitchPlanSchema
 	BaseManifest string     `json:"base_manifest"` // what the plan applies to
 	Manifest     string     `json:"manifest"`      // what it produces
 	Files        []FileDiff `json:"files"`
@@ -187,7 +187,7 @@ func abs(x int64) int64 {
 
 // Diff compares artifact m against base, both in s.
 func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) (DiffStats, error) {
-	st := DiffStats{Schema: RangePlanSchema, BaseManifest: base.String(), Manifest: m.String()}
+	st := DiffStats{Schema: SwitchPlanSchema, BaseManifest: base.String(), Manifest: m.String()}
 	bm, err := s.ReadManifest(ctx, base)
 	if err != nil {
 		return st, err

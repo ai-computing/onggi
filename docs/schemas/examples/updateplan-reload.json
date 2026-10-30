@@ -1,0 +1,9 @@
+{
+  "base_manifest": "sha256:a11ae743b61036855dc258adeb9ccdc3773affeb97db265e021124894f2c9a14",
+  "bytes": 2097165,
+  "manifest": "sha256:8442a4dc9e4ccb1b606c9ec3a9fde1b57cb02bec0fd06f71f4b6805767c28e2a",
+  "mode": "reload",
+  "reason": "fragmented: 123 changed runs, 2056192 of 2097165 bytes",
+  "schema": "onggi.updateplan.v1",
+  "units": []
+}

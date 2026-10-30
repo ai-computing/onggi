@@ -1,0 +1,23 @@
+{
+  "base_manifest": "sha256:7c6928f0385a257b5ceb9d13ea205a5ab0643a4fcec6b2a421ef5756aea93280",
+  "bytes": 69645,
+  "manifest": "sha256:cb4a0497f3a7c591b276b4526d0e305718fff0e98f35f3104185a6fdb0117a03",
+  "mode": "units",
+  "schema": "onggi.updateplan.v1",
+  "units": [
+    {
+      "file": "config.json",
+      "length": 13,
+      "offset": 0,
+      "source": "target",
+      "unit": "rows:0-0"
+    },
+    {
+      "file": "model.bin",
+      "length": 69632,
+      "offset": 1044480,
+      "source": "target",
+      "unit": "rows:255-271"
+    }
+  ]
+}

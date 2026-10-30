@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-computing/onggi/docs/schemas/updateplan.v1.schema.json",
+  "title": "onggi.updateplan.v1",
+  "description": "A binding's answer to a switch plan (ADR-0010 plan): the device units to rewrite, or a full reload. Produced without device side effects.",
+  "type": "object",
+  "required": ["schema", "base_manifest", "manifest", "mode", "units"],
+  "properties": {
+    "schema": {"const": "onggi.updateplan.v1"},
+    "base_manifest": {"$ref": "switchplan.v1.schema.json#/$defs/digest"},
+    "manifest": {"$ref": "switchplan.v1.schema.json#/$defs/digest"},
+    "mode": {"enum": ["units", "reload"], "description": "units: rewrite only the listed units; reload: load the target whole"},
+    "reason": {"type": "string", "description": "why a reload was chosen (fragmented, base not resident, unmappable, ...)"},
+    "bytes": {"type": "integer", "minimum": 0, "description": "bytes the update writes to the device (an estimate for reload)"},
+    "units": {
+      "type": "array",
+      "description": "mode units: device units (rows, tensors, pages) in artifact byte space; together they cover every byte of the switch plan that is not same. Empty for reload.",
+      "items": {
+        "type": "object",
+        "required": ["file", "offset", "length"],
+        "properties": {
+          "file": {"type": "string"},
+          "offset": {"type": "integer", "minimum": 0},
+          "length": {"type": "integer", "minimum": 1},
+          "unit": {"type": "string", "description": "the name the binding gives the device unit (opaque to onggi)"},
+          "source": {"enum": ["target", "base"], "description": "where the bytes come from: the verified target files, or a device-side copy from the base"},
+          "source_file": {"type": "string"},
+          "source_offset": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  },
+  "if": {"properties": {"mode": {"const": "reload"}}},
+  "then": {"properties": {"units": {"maxItems": 0}}}
+}

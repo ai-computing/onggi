@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-computing/onggi/docs/schemas/verification.v1.schema.json",
+  "title": "onggi.verification.v1",
+  "description": "Result of apply or rollback (ADR-0010): what the device holds now, with a digest per written unit in artifact byte space, so the caller can check it against the artifact.",
+  "type": "object",
+  "required": ["schema", "op", "mode", "manifest", "ok", "units"],
+  "properties": {
+    "schema": {"const": "onggi.verification.v1"},
+    "op": {"enum": ["apply", "rollback"]},
+    "mode": {"enum": ["units", "reload"]},
+    "manifest": {"$ref": "switchplan.v1.schema.json#/$defs/digest", "description": "the artifact resident after the operation"},
+    "ok": {"type": "boolean", "description": "true only when every unit verified; when false the binding has restored the base or unloaded the model"},
+    "bytes_written": {"type": "integer", "minimum": 0},
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "offset", "length", "sha256"],
+        "properties": {
+          "file": {"type": "string"},
+          "offset": {"type": "integer", "minimum": 0},
+          "length": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of the unit as read back from the device, in artifact byte order"}
+        }
+      }
+    }
+  }
+}

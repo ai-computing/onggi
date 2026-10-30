@@ -101,7 +101,7 @@ func TestRangePlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if st.Schema != RangePlanSchema || st.BaseManifest != bm.String() || st.Manifest != nm.String() {
+	if st.Schema != SwitchPlanSchema || st.BaseManifest != bm.String() || st.Manifest != nm.String() {
 		t.Fatalf("plan header: %q %q %q", st.Schema, st.BaseManifest, st.Manifest)
 	}
 	data := map[string][]byte{"decode_B2.rbln": v, "prefill.rbln": r}
@@ -149,7 +149,7 @@ func TestRangePlan(t *testing.T) {
 	}
 	// without --ranges the plan is not listed, and the old fields are unchanged
 	st2, err := s.Diff(ctx, bm, nm, DiffOptions{})
-	if err != nil || st2.Files[0].Ranges != nil || st2.Files[0].Changed != nil || st2.Same != st.Same || st2.Schema != RangePlanSchema {
+	if err != nil || st2.Files[0].Ranges != nil || st2.Files[0].Changed != nil || st2.Same != st.Same || st2.Schema != SwitchPlanSchema {
 		t.Fatalf("without ranges: %+v %v", st2.Files[0], err)
 	}
 }

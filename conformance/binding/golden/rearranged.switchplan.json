@@ -1,0 +1,805 @@
+{
+  "schema": "onggi.switchplan.v1",
+  "base_manifest": "sha256:a11ae743b61036855dc258adeb9ccdc3773affeb97db265e021124894f2c9a14",
+  "manifest": "sha256:8442a4dc9e4ccb1b606c9ec3a9fde1b57cb02bec0fd06f71f4b6805767c28e2a",
+  "files": [
+    {
+      "path": "config.json",
+      "base": "config.json",
+      "size": 13,
+      "same": 13,
+      "moved": 0,
+      "new": 0,
+      "same_blocks": 13,
+      "changed_runs": 0,
+      "largest_run": 0,
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 13,
+          "kind": "same"
+        }
+      ]
+    },
+    {
+      "path": "model.bin",
+      "base": "model.bin",
+      "size": 2097152,
+      "same": 49926,
+      "moved": 1438770,
+      "new": 608456,
+      "same_blocks": 40960,
+      "changed_runs": 3,
+      "largest_run": 1257615,
+      "changed": [
+        [
+          0,
+          689135
+        ],
+        [
+          718479,
+          1257615
+        ],
+        [
+          1996676,
+          100476
+        ]
+      ],
+      "ranges": [
+        {
+          "offset": 0,
+          "length": 7287,
+          "kind": "new"
+        },
+        {
+          "offset": 7287,
+          "length": 22990,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1088631
+        },
+        {
+          "offset": 30277,
+          "length": 5515,
+          "kind": "new"
+        },
+        {
+          "offset": 35792,
+          "length": 24471,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 986064
+        },
+        {
+          "offset": 60263,
+          "length": 10010,
+          "kind": "new"
+        },
+        {
+          "offset": 70273,
+          "length": 17749,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1282689
+        },
+        {
+          "offset": 88022,
+          "length": 23316,
+          "kind": "new"
+        },
+        {
+          "offset": 111338,
+          "length": 15885,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 865002
+        },
+        {
+          "offset": 127223,
+          "length": 5209,
+          "kind": "new"
+        },
+        {
+          "offset": 132432,
+          "length": 25382,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1246544
+        },
+        {
+          "offset": 157814,
+          "length": 7399,
+          "kind": "new"
+        },
+        {
+          "offset": 165213,
+          "length": 26385,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 492893
+        },
+        {
+          "offset": 191598,
+          "length": 9579,
+          "kind": "new"
+        },
+        {
+          "offset": 201177,
+          "length": 25849,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1839577
+        },
+        {
+          "offset": 227026,
+          "length": 5528,
+          "kind": "new"
+        },
+        {
+          "offset": 232554,
+          "length": 27788,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 363626
+        },
+        {
+          "offset": 260342,
+          "length": 4594,
+          "kind": "new"
+        },
+        {
+          "offset": 264936,
+          "length": 26051,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 330472
+        },
+        {
+          "offset": 290987,
+          "length": 14947,
+          "kind": "new"
+        },
+        {
+          "offset": 305934,
+          "length": 15019,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 2075406
+        },
+        {
+          "offset": 320953,
+          "length": 8440,
+          "kind": "new"
+        },
+        {
+          "offset": 329393,
+          "length": 30791,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 394929
+        },
+        {
+          "offset": 360184,
+          "length": 11765,
+          "kind": "new"
+        },
+        {
+          "offset": 371949,
+          "length": 19433,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1158381
+        },
+        {
+          "offset": 391382,
+          "length": 13539,
+          "kind": "new"
+        },
+        {
+          "offset": 404921,
+          "length": 17549,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1420729
+        },
+        {
+          "offset": 422470,
+          "length": 18415,
+          "kind": "new"
+        },
+        {
+          "offset": 440885,
+          "length": 14682,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 211509
+        },
+        {
+          "offset": 455567,
+          "length": 9048,
+          "kind": "new"
+        },
+        {
+          "offset": 464615,
+          "length": 22049,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1316583
+        },
+        {
+          "offset": 486664,
+          "length": 6594,
+          "kind": "new"
+        },
+        {
+          "offset": 493258,
+          "length": 25811,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1443530
+        },
+        {
+          "offset": 519069,
+          "length": 5843,
+          "kind": "new"
+        },
+        {
+          "offset": 524912,
+          "length": 31289,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 918128
+        },
+        {
+          "offset": 556201,
+          "length": 23368,
+          "kind": "new"
+        },
+        {
+          "offset": 579569,
+          "length": 7367,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1234929
+        },
+        {
+          "offset": 586936,
+          "length": 5219,
+          "kind": "new"
+        },
+        {
+          "offset": 592155,
+          "length": 25988,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1345819
+        },
+        {
+          "offset": 618143,
+          "length": 8870,
+          "kind": "new"
+        },
+        {
+          "offset": 627013,
+          "length": 24791,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1773893
+        },
+        {
+          "offset": 651804,
+          "length": 6670,
+          "kind": "new"
+        },
+        {
+          "offset": 658474,
+          "length": 26363,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1641514
+        },
+        {
+          "offset": 684837,
+          "length": 4298,
+          "kind": "new"
+        },
+        {
+          "offset": 689135,
+          "length": 29344,
+          "kind": "same"
+        },
+        {
+          "offset": 718479,
+          "length": 17031,
+          "kind": "new"
+        },
+        {
+          "offset": 735510,
+          "length": 15412,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 637206
+        },
+        {
+          "offset": 750922,
+          "length": 12653,
+          "kind": "new"
+        },
+        {
+          "offset": 763575,
+          "length": 19737,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1517239
+        },
+        {
+          "offset": 783312,
+          "length": 6781,
+          "kind": "new"
+        },
+        {
+          "offset": 790093,
+          "length": 26302,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1674829
+        },
+        {
+          "offset": 816395,
+          "length": 5100,
+          "kind": "new"
+        },
+        {
+          "offset": 821495,
+          "length": 26950,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 35063
+        },
+        {
+          "offset": 848445,
+          "length": 6697,
+          "kind": "new"
+        },
+        {
+          "offset": 855142,
+          "length": 27159,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 298086
+        },
+        {
+          "offset": 882301,
+          "length": 22156,
+          "kind": "new"
+        },
+        {
+          "offset": 904457,
+          "length": 9492,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1494281
+        },
+        {
+          "offset": 913949,
+          "length": 8793,
+          "kind": "new"
+        },
+        {
+          "offset": 922742,
+          "length": 23482,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1184886
+        },
+        {
+          "offset": 946224,
+          "length": 12968,
+          "kind": "new"
+        },
+        {
+          "offset": 959192,
+          "length": 21098,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1909464
+        },
+        {
+          "offset": 980290,
+          "length": 5191,
+          "kind": "new"
+        },
+        {
+          "offset": 985481,
+          "length": 28095,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1018249
+        },
+        {
+          "offset": 1013576,
+          "length": 5078,
+          "kind": "new"
+        },
+        {
+          "offset": 1018654,
+          "length": 26764,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1870622
+        },
+        {
+          "offset": 1045418,
+          "length": 4826,
+          "kind": "new"
+        },
+        {
+          "offset": 1050244,
+          "length": 60588,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1705604
+        },
+        {
+          "offset": 1110832,
+          "length": 3754,
+          "kind": "new"
+        },
+        {
+          "offset": 1114586,
+          "length": 28714,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1376730
+        },
+        {
+          "offset": 1143300,
+          "length": 8874,
+          "kind": "new"
+        },
+        {
+          "offset": 1152174,
+          "length": 26930,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1610926
+        },
+        {
+          "offset": 1179104,
+          "length": 27685,
+          "kind": "new"
+        },
+        {
+          "offset": 1206789,
+          "length": 3585,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 158213
+        },
+        {
+          "offset": 1210374,
+          "length": 14247,
+          "kind": "new"
+        },
+        {
+          "offset": 1224621,
+          "length": 16821,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 896941
+        },
+        {
+          "offset": 1241442,
+          "length": 6229,
+          "kind": "new"
+        },
+        {
+          "offset": 1247671,
+          "length": 22083,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1051063
+        },
+        {
+          "offset": 1269754,
+          "length": 10238,
+          "kind": "new"
+        },
+        {
+          "offset": 1279992,
+          "length": 27342,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 591864
+        },
+        {
+          "offset": 1307334,
+          "length": 9950,
+          "kind": "new"
+        },
+        {
+          "offset": 1317284,
+          "length": 25152,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 825764
+        },
+        {
+          "offset": 1342436,
+          "length": 2962,
+          "kind": "new"
+        },
+        {
+          "offset": 1345398,
+          "length": 27741,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 427894
+        },
+        {
+          "offset": 1373139,
+          "length": 15298,
+          "kind": "new"
+        },
+        {
+          "offset": 1388437,
+          "length": 17316,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 77717
+        },
+        {
+          "offset": 1405753,
+          "length": 20362,
+          "kind": "new"
+        },
+        {
+          "offset": 1426115,
+          "length": 11060,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 770755
+        },
+        {
+          "offset": 1437175,
+          "length": 10904,
+          "kind": "new"
+        },
+        {
+          "offset": 1448079,
+          "length": 26134,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 727183
+        },
+        {
+          "offset": 1474213,
+          "length": 4538,
+          "kind": "new"
+        },
+        {
+          "offset": 1478751,
+          "length": 25776,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 4191
+        },
+        {
+          "offset": 1504527,
+          "length": 3094,
+          "kind": "new"
+        },
+        {
+          "offset": 1507621,
+          "length": 27073,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 229669
+        },
+        {
+          "offset": 1534694,
+          "length": 8676,
+          "kind": "new"
+        },
+        {
+          "offset": 1543370,
+          "length": 28855,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 2034890
+        },
+        {
+          "offset": 1572225,
+          "length": 17061,
+          "kind": "new"
+        },
+        {
+          "offset": 1589286,
+          "length": 15134,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 180262
+        },
+        {
+          "offset": 1604420,
+          "length": 13442,
+          "kind": "new"
+        },
+        {
+          "offset": 1617862,
+          "length": 18250,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1945542
+        },
+        {
+          "offset": 1636112,
+          "length": 9040,
+          "kind": "new"
+        },
+        {
+          "offset": 1645152,
+          "length": 21706,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 105056
+        },
+        {
+          "offset": 1666858,
+          "length": 4529,
+          "kind": "new"
+        },
+        {
+          "offset": 1671387,
+          "length": 27129,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 557275
+        },
+        {
+          "offset": 1698516,
+          "length": 12995,
+          "kind": "new"
+        },
+        {
+          "offset": 1711511,
+          "length": 22271,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 269719
+        },
+        {
+          "offset": 1733782,
+          "length": 24371,
+          "kind": "new"
+        },
+        {
+          "offset": 1758153,
+          "length": 10063,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 545737
+        },
+        {
+          "offset": 1768216,
+          "length": 2609,
+          "kind": "new"
+        },
+        {
+          "offset": 1770825,
+          "length": 27809,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1803593
+        },
+        {
+          "offset": 1798634,
+          "length": 6022,
+          "kind": "new"
+        },
+        {
+          "offset": 1804656,
+          "length": 28243,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1116528
+        },
+        {
+          "offset": 1832899,
+          "length": 5219,
+          "kind": "new"
+        },
+        {
+          "offset": 1838118,
+          "length": 25984,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 658470
+        },
+        {
+          "offset": 1864102,
+          "length": 4103,
+          "kind": "new"
+        },
+        {
+          "offset": 1868205,
+          "length": 31025,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1999277
+        },
+        {
+          "offset": 1899230,
+          "length": 4601,
+          "kind": "new"
+        },
+        {
+          "offset": 1903831,
+          "length": 24971,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 462039
+        },
+        {
+          "offset": 1928802,
+          "length": 5374,
+          "kind": "new"
+        },
+        {
+          "offset": 1934176,
+          "length": 26040,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 787296
+        },
+        {
+          "offset": 1960216,
+          "length": 15878,
+          "kind": "new"
+        },
+        {
+          "offset": 1976094,
+          "length": 20582,
+          "kind": "same"
+        },
+        {
+          "offset": 1996676,
+          "length": 5382,
+          "kind": "new"
+        },
+        {
+          "offset": 2002058,
+          "length": 26930,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 953482
+        },
+        {
+          "offset": 2028988,
+          "length": 4085,
+          "kind": "new"
+        },
+        {
+          "offset": 2033073,
+          "length": 59872,
+          "kind": "elsewhere",
+          "source_file": "model.bin",
+          "source_offset": 1541553
+        },
+        {
+          "offset": 2092945,
+          "length": 4207,
+          "kind": "new"
+        }
+      ]
+    }
+  ],
+  "size": 2097165,
+  "same": 49939,
+  "moved": 1438770,
+  "new": 608456,
+  "new_stored": 608456,
+  "same_blocks": 40973,
+  "changed_runs": 3,
+  "largest_run": 1257615
+}
