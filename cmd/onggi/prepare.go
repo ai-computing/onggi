@@ -141,14 +141,14 @@ func prepareFiles(ctx context.Context, s *store.Store, d digest.Digest, dest str
 		return st, err
 	}
 	defer os.RemoveAll(tmp)
-	if err = os.Chmod(tmp, 0755); err != nil {
-		return st, err
-	}
 	st, err = s.Pull(ctx, d, tmp, o)
 	if err != nil {
 		return st, err
 	}
 	if err = ctx.Err(); err != nil {
+		return st, err
+	}
+	if err = os.Chmod(tmp, 0755); err != nil {
 		return st, err
 	}
 	if _, err = os.Lstat(dest); !errors.Is(err, os.ErrNotExist) {
