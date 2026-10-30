@@ -71,6 +71,33 @@ jobs:
           ./onggi pull demo out
           diff -r src out
           ./onggi ls
+      - name: compatible profile preparation and warm cache
+        run: |
+          python3 - <<'PY'
+          import json
+          profile = dict(schema="onggi.profile.v1", model_source="sha256:"+"1"*64,
+              options="sha256:"+"2"*64, device="synthetic-ci", runtime="test-v1",
+              sdk="1", compiler="1", firmware="1", format="test", layout="test",
+              topology="single", tp=1, batch=4, sequence=256)
+          with open("profile.json", "w") as f:
+              json.dump(profile, f)
+          PY
+          export ONGGI_STORE="${ONGGI_TEST_S3/onggitest?/onggitest/cli?}"
+          ./onggi push --profile profile.json --ref compatible src
+          ./onggi prepare --request profile.json --cache node-cache --dir prepared compatible > prepared.json
+          diff -r src prepared
+          ./onggi prepare --request profile.json --cache node-cache --dir prepared-again compatible > prepared-again.json
+          diff -r src prepared-again
+          python3 - <<'PY'
+          import json
+          with open("prepared.json") as f:
+              assert json.load(f)["ready"] is True
+          with open("prepared-again.json") as f:
+              result = json.load(f)
+          assert result["ready"] is True
+          assert result["stats"]["read_bytes"] == 0
+          assert result["stats"]["cache_bytes"] > 0
+          PY
       - name: server log
         if: failure()
         run: tail -100 "$RUNNER_TEMP/srv/server.log"

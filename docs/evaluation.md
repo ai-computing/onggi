@@ -1,5 +1,9 @@
 # Evaluation
 
+2026-10-30 CPU update: [live diff plan reuse](diff-plan-2026-10-30.md) reduced
+CLI comparison medians by 8–14% on 8B sparse checkpoints. This measures a CPU
+planning stage separately from the device/serving measurements below.
+
 Measured 2026-10-22 on the lab's RNGD + ATOM node with [`bench/baselines.sh`](../bench/baselines.sh) (#51), over one
 Rebellions ATOM Llama-3.1-8B build set: 18 files, 263.9 GB (decode and prefill graphs for several batch sizes and
 sequence buckets, each embedding the weights).
@@ -155,4 +159,13 @@ warm against 118.6 s from the original directory, tokens identical. Its start-up
 With delta apply, switching a node to another variant brings the first token within a few seconds of loading from the
 original directory. The run found two plugin issues, both fixed: a late-exiting plugin removed its successor's socket
 (#61), and files stored with mode 0600 were unreadable for non-root engines (#62).
+
+## Resident NPU checkpoint updates (2026-10-23)
+
+The later [resident-delta experiment](resident-delta.md) measures a running
+rngd-pd engine applying actual Onggi ranges into existing RNGD weight buffers,
+rather than starting a new engine after CSI materialization. It records every
+sample for full-tensor, sparse projection and sparse LM updates, 768 exact fresh
+token comparisons, and the SDK 2026.4 migration boundary. Those update timings
+are separate from the Pod-start/volume-ready measurements above.
 

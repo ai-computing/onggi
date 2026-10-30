@@ -9,6 +9,9 @@ English · [한국어](README.ko.md)
 > ([deploy/csi](deploy/csi/README.md)) serves them as read-only volumes on Kubernetes. The controller (compile farm,
 > prefetch) follows in P3. Measurements against common methods: [docs/evaluation.md](docs/evaluation.md).
 
+Live delta comparison: [reuse target metadata planning](docs/diff-plan-2026-10-30.md)
+reduced measured CLI time by 8–14% on the 8B sparse-update fixtures, with identical range output.
+
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
 RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
 weights, and FuriosaAI RNGD keeps three copies of weights that are byte-identical to the HF checkpoint. Content-defined
@@ -26,6 +29,18 @@ fetches the missing chunks from peers or the durable tier, verifies every hash a
 The Kubernetes Ref API, compile controller and fetches triggered by ai-rm/llm-d placement or scale-up signals are future work.
 
 ## What it does
+
+The first P3 integration is [exact-profile artifact selection and preparation](docs/compatible-prepare.md):
+publish with `push --profile FILE`, then `prepare --request FILE --dir DIR <ref>...`
+chooses a compatible build and atomically prepares verified files through the node cache.
+This establishes file readiness. The runtime can separately prewarm before readiness;
+automatic placement/autoscaler integration remains planned.
+
+The [native RNGD serving proof](docs/native-serving-2026-10-30.md) connects a real
+init-container preparation to startup warmup and 12 HTTP requests on SDK 2026.4.
+All 96 returned tokens match fresh references; repeated batches retain resident
+weights and graphs without recompilation. This covers one B4/S256 profile and
+graph/config delivery with an external checkpoint, with no new speedup claim.
 
 | | |
 |---|---|
@@ -45,8 +60,16 @@ delta does not itself update NPU memory or establish that two compiled graphs ca
 Record the source checkpoint identity, compiler/SDK, device, weight layout and supported batch/sequence shapes
 with each build. Changing batch or sequence length still requires a compatible precompiled graph. RNGD external
 weights and ATOM device-input weights have different runtime capabilities; ATOM graphs with embedded weights
-require their corresponding compiled artifacts. Automated compatibility selection, prewarm and placement hooks
+require their corresponding compiled artifacts. The [prepare CLI](docs/compatible-prepare.md) now selects
+exact-profile matches from supplied candidates. Discovery, native prewarm orchestration and placement hooks
 remain integration work; see [integration](docs/integration.md).
+
+The [resident-delta integration record](docs/resident-delta.md) connects actual
+Onggi ranges to RNGD row updates: 64 projection rows reduced logical upload
+117 MB → 1.84 MB, and eight LM rows reduced 1.05 GB → 64 KiB, with 768 generated
+tokens equal to fresh loads. Those measurements use SDK 2026.2; the record also
+documents the SDK 2026.4 preflight and the separate
+[native cache-loader migration](https://github.com/ai-computing/rngd-pd/pull/31).
 
 ## Quick start
 

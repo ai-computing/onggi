@@ -192,6 +192,9 @@ func (r *reader) count(min int) int {
 	if r.err == nil && uint64(n)*uint64(min) > uint64(len(r.p)) {
 		r.err = errors.New("locator: count exceeds the data")
 	}
+	if r.err != nil {
+		return 0
+	}
 	return int(n)
 }
 
