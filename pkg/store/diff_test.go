@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"reflect"
+	"strings"
 	"path/filepath"
 	"testing"
 
@@ -82,6 +83,27 @@ func TestDiffLegacyAndIdenticalManifests(t *testing.T) {
 		if err != nil || got.Same != got.Size || got.NewStored != 0 || got.ChangedRuns != 0 {
 			t.Fatalf("identical diff: %+v, %v", got, err)
 		}
+	}
+}
+
+func TestDiffRejectsDamagedTargetLocator(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	base := pushDir(t, s, map[string][]byte{"a.bin": random(33, 4096)})
+	newID := pushDir(t, s, map[string][]byte{"a.bin": random(34, 8192)})
+	m, err := s.ReadManifest(ctx, newID)
+	if err != nil || m.Locator == nil {
+		t.Fatalf("target manifest: %v", err)
+	}
+	k := backend.Key{Kind: backend.List, Name: m.Locator.Hex()}
+	if err := s.B.Delete(ctx, k); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.B.Put(ctx, k, bytes.NewReader([]byte("corrupt")), 7); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Diff(ctx, base, newID, DiffOptions{}); err == nil || !strings.Contains(err.Error(), "content does not match") {
+		t.Fatalf("target locator corruption was not rejected: %v", err)
 	}
 }
 
