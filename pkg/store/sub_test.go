@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ai-computing/onggi/pkg/backend"
@@ -260,5 +261,74 @@ func TestCompositesPublishedDuringPush(t *testing.T) {
 	_, st, err := openTwoLevel(t, storeDir).Push(ctx, src, PushOptions{})
 	if err != nil || st.NewBytes != 0 {
 		t.Fatalf("second push: %d new bytes, %v", st.NewBytes, err)
+	}
+}
+
+// Since #74 a new store decides by size alone: a large file gets sub-chunks whatever its name or
+// format, a small one does not.
+func TestSubMinFileIgnoresNames(t *testing.T) {
+	ctx := context.Background()
+	src, storeDir, out := t.TempDir(), t.TempDir(), t.TempDir()
+	w := random(21, 4<<20)
+	write(t, filepath.Join(src, "rank0.engine"), w)
+	write(t, filepath.Join(src, "renamed.bin"), shuffled(w, 22))
+	b, _ := bfs.Open(storeDir, backend.DurabilityNone)
+	sub := DefaultSub
+	s, err := OpenWith(ctx, b, Create{Chunker: chunker.Default, Sub: &sub, SubMinFile: 1 << 20, PackSize: 1 << 20})
+	if err != nil {
+		t.Fatal(err)
+	}
+	md, st, err := s.Push(ctx, src, PushOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Composites() == 0 || st.NewBytes > int64(len(w))*15/10 {
+		t.Fatalf("large files were not sub-chunked: %d composites, %d new bytes", s.Composites(), st.NewBytes)
+	}
+	if !s.subChunks("model.safetensors", 1<<20) || s.subChunks("prefill.rbln", 1<<20-1) {
+		t.Fatal("the decision depends on more than the size")
+	}
+	if _, err := openStore(t, storeDir).Pull(ctx, md, out, PullOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+}
+
+// A store created before #74 keeps its file kinds, whatever a later Open asks for; a new store
+// records its minimum file size; kinds and a size exclude each other.
+func TestSubPolicyIsStoredWithTheStore(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	b, _ := bfs.Open(dir, backend.DurabilityNone)
+	old := `{"schema":"onggi.store.v1","chunker":{"min":16384,"avg":65536,"max":262144},"pack_size":1048576,` +
+		`"sub_chunker":{"min":1024,"avg":4096,"max":16384},"sub_kinds":["atom-prefill","atom-decode","atom-other"],` +
+		`"frame":262144,"created":"2026-10-22T00:00:00Z"}`
+	if err := b.Put(ctx, configKey, strings.NewReader(old), int64(len(old))); err != nil {
+		t.Fatal(err)
+	}
+	sub := DefaultSub
+	s, err := OpenWith(ctx, b, Create{Chunker: chunker.Default, Sub: &sub, SubMinFile: DefaultSubMinFile})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Config.SubMinFile != 0 || len(s.Config.SubKinds) != 3 {
+		t.Fatalf("old store config changed: %+v", s.Config)
+	}
+	if s.subChunks("rank0.engine", 1<<30) || !s.subChunks("prefill_S256_C16.rbln", 1) {
+		t.Fatal("old store no longer decides by kind")
+	}
+
+	b2, _ := bfs.Open(t.TempDir(), backend.DurabilityNone)
+	if _, err := OpenWith(ctx, b2, Create{Chunker: chunker.Default, Sub: &sub, SubMinFile: 8 << 20}); err != nil {
+		t.Fatal(err)
+	}
+	s2, err := OpenWith(ctx, b2, Create{Chunker: chunker.Default, Sub: &sub, SubKinds: DefaultSubKinds})
+	if err != nil || s2.Config.SubMinFile != 8<<20 || len(s2.Config.SubKinds) != 0 {
+		t.Fatalf("new store lost its minimum file size: %+v %v", s2.Config, err)
+	}
+
+	b3, _ := bfs.Open(t.TempDir(), backend.DurabilityNone)
+	if _, err := OpenWith(ctx, b3, Create{Chunker: chunker.Default, Sub: &sub, SubKinds: DefaultSubKinds, SubMinFile: 1}); err == nil {
+		t.Fatal("kinds and a minimum file size were both accepted")
 	}
 }

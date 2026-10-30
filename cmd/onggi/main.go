@@ -13,6 +13,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/ai-computing/onggi/pkg/chunker"
 	"github.com/ai-computing/onggi/pkg/dedup"
 )
 
@@ -95,6 +96,16 @@ func dedupReport(args []string, stdout, stderr io.Writer) int {
 	fixed := fs.String("fixed-block", "", "also measure fixed-size blocks of this size (e.g. 1MiB)")
 	asJSON := fs.Bool("json", false, "print JSON instead of tables")
 	quiet := fs.Bool("quiet", false, "no progress on stderr")
+	classify := fs.Bool("classify", false, "report each file's weight-placement class from its bytes: referenced, embedded-rearranged, embedded-shifted, new (#74)")
+	var refs []string
+	fs.Func("reference", "with --classify: a file or directory the set may reference, such as the source checkpoint (repeatable; links are followed)", func(v string) error {
+		refs = append(refs, v)
+		return nil
+	})
+	fine := fs.String("fine", "4KiB", "with --classify: average fine chunk size; min and max are a quarter and four times it")
+	refShare := fs.Float64("ref-share", dedup.DefaultRefShare, "with --classify: referenced when at least this share of a file is in the references")
+	gap := fs.Float64("rearranged-gap", dedup.DefaultRearrangeGap, "with --classify: embedded-rearranged when fine chunks find at least this much more of a file elsewhere than coarse chunks")
+	shifted := fs.Float64("shifted-share", dedup.DefaultShiftedShare, "with --classify: embedded-shifted when coarse chunks find at least this share of a file elsewhere")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: onggi dedup-report [flags] <path>...")
 		fs.PrintDefaults()
@@ -124,6 +135,16 @@ func dedupReport(args []string, stdout, stderr io.Writer) int {
 	}
 	if err == nil {
 		err = o.Params.Validate()
+	}
+	if err == nil && (*classify || len(refs) > 0) {
+		var avg int
+		if avg, err = size(*fine); err == nil {
+			o.Classify = &dedup.Classify{Fine: chunker.Params{Min: avg / 4, Avg: avg, Max: avg * 4}, References: refs,
+				RefShare: *refShare, RearrangedGap: *gap, ShiftedShare: *shifted}
+			if err = o.Classify.Fine.Validate(); err == nil && o.Classify.Fine.Max > o.Params.Min {
+				err = fmt.Errorf("fine chunk max %d exceeds chunk min %d", o.Classify.Fine.Max, o.Params.Min)
+			}
+		}
 	}
 	if err != nil {
 		fmt.Fprintln(stderr, "onggi:", err)
@@ -187,6 +208,19 @@ func printReport(w io.Writer, r *dedup.Report, took time.Duration) {
 		tw = tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 		for _, p := range r.Pairs {
 			fmt.Fprintf(tw, "  %s\t→ %s\t%5.1f %%\n", filepath.Base(p.A), filepath.Base(p.B), 100*p.Share)
+		}
+		tw.Flush()
+	}
+	if c := r.Classify; c != nil {
+		fmt.Fprintf(w, "\nplacement (fine chunks %s; referenced >= %.2f in %d reference files, rearranged: fine - coarse >= %.2f, shifted: coarse >= %.2f):\n",
+			human(int64(c.Fine.Avg)), c.RefShare, c.RefFiles, c.RearrangedGap, c.ShiftedShare)
+		tw = tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(tw, "  CLASS\tBYTES\tREF\tCOARSE\tFINE\tPATH")
+		for _, f := range r.Files {
+			if f.Shares != nil {
+				fmt.Fprintf(tw, "  %s\t%s\t%.1f %%\t%.1f %%\t%.1f %%\t%s\n", f.Class, human(f.Bytes), 100*f.Shares.Ref,
+					100*f.Shares.Coarse, 100*f.Shares.Fine, f.Path)
+			}
 		}
 		tw.Flush()
 	}

@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"sync"
 	"time"
 
@@ -49,13 +50,23 @@ var DefaultSub = chunker.Params{Min: 1 << 10, Avg: 4 << 10, Max: 16 << 10}
 type Create struct {
 	Chunker  chunker.Params
 	Sub      *chunker.Params // nil: one level of chunks
-	SubKinds []layout.Kind   // file kinds that get sub-chunks; empty: all
-	PackSize int64
-	Frame    int64 // compression frames for sub-chunked files (#52); used only with Sub
+	SubKinds []layout.Kind   // file kinds that get sub-chunks (by name, before #74); excludes SubMinFile
+	// SubMinFile sub-chunks the new chunks of every file of at least this many bytes (#74); used
+	// only with Sub. With neither SubKinds nor SubMinFile, every file gets sub-chunks.
+	SubMinFile int64
+	SubProbe   *SubProbe // experiment (#74): stop sub-chunking a file whose first new chunks find nothing
+	PackSize   int64
+	Frame      int64 // compression frames for sub-chunked files (#52); used only with Sub
 }
 
-// DefaultSubKinds are the kinds whose compile variants rearrange the same bytes (#15).
+// DefaultSubKinds are the kinds whose compile variants rearrange the same bytes (#15). Stores
+// created before #74 recorded them; new stores use DefaultSubMinFile instead.
 var DefaultSubKinds = []layout.Kind{layout.ATOMPrefill, layout.ATOMDecode, layout.ATOMOther}
+
+// DefaultSubMinFile is the file size from which new stores sub-chunk new chunks (#74). It looks
+// at no name or format: weight-bearing files are large, and below it the second level only adds
+// metadata.
+const DefaultSubMinFile = 1 << 20
 
 // Open reads the store's config, creating it with p and packSize (one level of chunks) if the
 // store is empty, and loads the chunk index.
@@ -75,6 +86,9 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 			if err := c.Sub.Validate(); err != nil {
 				return nil, fmt.Errorf("sub-chunks: %v", err)
 			}
+			if len(c.SubKinds) > 0 && c.SubMinFile > 0 {
+				return nil, errors.New("sub-chunks: choose file kinds or a minimum file size, not both")
+			}
 			if c.Sub.Max > p.Min {
 				return nil, fmt.Errorf("sub-chunk max %d exceeds chunk min %d", c.Sub.Max, p.Min)
 			}
@@ -84,7 +98,7 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 		}
 		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Sub: c.Sub, Created: time.Now().UTC()}
 		if c.Sub != nil {
-			cfg.SubKinds, cfg.Frame = c.SubKinds, c.Frame
+			cfg.SubKinds, cfg.SubMinFile, cfg.SubProbe, cfg.Frame = c.SubKinds, c.SubMinFile, c.SubProbe, c.Frame
 		}
 		data, _ := json.MarshalIndent(cfg, "", "  ")
 		if err := b.Put(ctx, configKey, bytes.NewReader(data), int64(len(data))); err != nil {
@@ -209,21 +223,18 @@ func (s *Store) addComposites(cs []composite) {
 	}
 }
 
-// subChunks reports whether files of this path get sub-chunks.
-func (s *Store) subChunks(rel string) bool {
-	if s.Config.Sub == nil {
+// subChunks reports whether the new chunks of a file get sub-chunks. Stores created since #74
+// decide by size alone; stores that recorded file kinds keep deciding by name.
+func (s *Store) subChunks(rel string, size int64) bool {
+	switch {
+	case s.Config.Sub == nil:
 		return false
+	case len(s.Config.SubKinds) > 0:
+		return slices.Contains(s.Config.SubKinds, layout.Of(rel))
+	case s.Config.SubMinFile > 0:
+		return size >= s.Config.SubMinFile
 	}
-	if len(s.Config.SubKinds) == 0 {
-		return true
-	}
-	k := layout.Of(rel)
-	for _, x := range s.Config.SubKinds {
-		if x == k {
-			return true
-		}
-	}
-	return false
+	return true
 }
 
 // has reports whether the store can produce chunk d, as bytes or as sub-chunks.

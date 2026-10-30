@@ -269,7 +269,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 				if ctx.Err() != nil {
 					continue
 				}
-				list, nb, err := s.chunkFile(ctx, files[i].abs, s.subChunks(files[i].rel), o.Compress, claim, addComp, chunks)
+				list, nb, err := s.chunkFile(ctx, files[i].abs, s.subChunks(files[i].rel, files[i].Size), o.Compress, claim, addComp, chunks)
 				if err != nil {
 					fail(fmt.Errorf("%s: %w", files[i].rel, err))
 					continue
@@ -411,6 +411,9 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 	if twoLevel && s.Config.Frame > 0 {
 		fb = &frameBuilder{limit: int(s.Config.Frame), mode: mode}
 	}
+	probe := s.Config.SubProbe // experiment (#74)
+	var probed int
+	var probeBytes, probeFound int64
 	for {
 		ch, err := c.Next()
 		if errors.Is(err, io.EOF) {
@@ -442,7 +445,11 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 		err = s.Config.Sub.Split(ch, func(sub []byte) error {
 			sd := digest.Of(sub)
 			subs = append(subs, ChunkRef{Digest: sd, Length: uint32(len(sub))})
-			if sd == d || claim(sd) { // sd == d: the whole chunk is one sub-chunk; this push owns d already
+			fresh := sd == d || claim(sd)
+			if !fresh {
+				probeFound += int64(len(sub))
+			}
+			if fresh { // sd == d: the whole chunk is one sub-chunk; this push owns d already
 				if fb != nil {
 					n, err := fb.add(ctx, sub, sd, out)
 					nb += n
@@ -458,6 +465,13 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 		})
 		if err != nil {
 			return nil, 0, err
+		}
+		if probe != nil && probed < probe.Chunks {
+			probed++
+			probeBytes += int64(len(ch))
+			if probed == probe.Chunks && float64(probeFound) < probe.MinShare*float64(probeBytes) {
+				twoLevel = false // the rest of the file goes out as whole chunks
+			}
 		}
 		if len(subs) == 1 && subs[0].Digest == d {
 			continue // one sub-chunk equal to the chunk: it is stored as bytes under d
