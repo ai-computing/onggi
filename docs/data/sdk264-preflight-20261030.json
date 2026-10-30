@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "utc": "2026-10-30T00:25:48.547832+00:00",
+  "method": "Read-only CPU imports, package metadata, API presence and source hash checks; no device allocations, inference, installation or host changes.",
+  "packages": {
+    "furiosa-torch": "2026.4.0",
+    "furiosa-llm": "2026.4.0",
+    "furiosa-llm-native": "2026.4.0",
+    "furiosa-native-llm-common": "2026.4.0",
+    "torch": "2.10.0+cpu",
+    "safetensors": "0.8.0"
+  },
+  "driver_packages": [
+    "furiosa-driver-rngd 2026.4.0",
+    "furiosa-firmware-image-rngd 2026.4.0",
+    "furiosa-smi 2026.4.0-3"
+  ],
+  "torch_furiosa_import": true,
+  "rngdpd_fsdk_import": true,
+  "rngdpd_fsdk_sdk": "2026.4.0",
+  "device_string": "furiosa:0",
+  "legacy_native_module_available": false,
+  "legacy_edf_class_available": false,
+  "rngdpd_edf_wrapper_available": false,
+  "new_api": {
+    "CompileModule": true,
+    "DfgModule": true,
+    "TclModule": true,
+    "set_fusion": true,
+    "set_mesh_kind": true,
+    "MeshKind": true,
+    "current_stream": true
+  },
+  "source_sha256": {
+    "rngd_pd/engines/fsdk.py": "2cf093e93fbc2a98c1ce242563e65d7feaaabff468a91654392412c74df98bb6",
+    "rngd_pd/engines/artifact_cache.py": "81c30ddfa1d5d50ea8cb86b821cefe5deb00933586aa77418560d572b4e668ed"
+  },
+  "loaded_driver_version": "not independently resolved by this preflight; package version only",
+  "inference_or_token_parity_tested": false,
+  "legacy_edf_cache_load_supported": false,
+  "limitation": "Existing rngd-pd artifact_cache.load imports furiosa.native_torch.ir and constructs EdfModule. Those interfaces are unavailable here. General fsdk imports succeeding does not validate cache loading or resident updates on 2026.4.",
+  "rngdpd_code_revision": "719c09b0f105782ffbf75ed3451ec9337d7545f2"
+}

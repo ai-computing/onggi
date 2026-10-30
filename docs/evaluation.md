@@ -156,3 +156,12 @@ With delta apply, switching a node to another variant brings the first token wit
 original directory. The run found two plugin issues, both fixed: a late-exiting plugin removed its successor's socket
 (#61), and files stored with mode 0600 were unreadable for non-root engines (#62).
 
+## Resident NPU checkpoint updates (2026-10-23)
+
+The later [resident-delta experiment](resident-delta.md) measures a running
+rngd-pd engine applying actual Onggi ranges into existing RNGD weight buffers,
+rather than starting a new engine after CSI materialization. It records every
+sample for full-tensor, sparse projection and sparse LM updates, 768 exact fresh
+token comparisons, and the SDK 2026.4 migration boundary. Those update timings
+are separate from the Pod-start/volume-ready measurements above.
+
