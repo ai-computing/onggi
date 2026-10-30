@@ -10,6 +10,7 @@ Without a command it tests the reference fake binding. The binding command is ru
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -61,11 +62,42 @@ def covers(update, switch):
     return True
 
 
-def verify_units(ver, files, what):
-    ok = ver.get("schema") == "onggi.verification.v1" and ver.get("ok") is True
-    for u in ver.get("units", []):
-        want = files.get(u["file"], b"")[u["offset"]:u["offset"] + u["length"]]
-        ok = ok and len(want) == u["length"] and u["sha256"] == sha(want)
+def verify_units(ver, files, what, update, op):
+    """Verify every planned/restored interval; bytes_written is a nonnegative device counter."""
+    mode = update["mode"]
+    manifest = update["manifest" if op == "apply" else "base_manifest"]
+    if not (isinstance(ver, dict) and ver.get("schema") == "onggi.verification.v1"
+            and ver.get("ok") is True and ver.get("op") == op
+            and mode in ("units", "reload") and ver.get("mode") == mode
+            and isinstance(manifest, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", manifest)
+            and ver.get("manifest") == manifest and isinstance(ver.get("units"), list)):
+        return check(False, what)
+
+    def interval(unit):
+        if not isinstance(unit, dict):
+            return None
+        path, off, length = unit.get("file"), unit.get("offset"), unit.get("length")
+        if (not isinstance(path, str) or path not in files
+                or type(off) is not int or type(length) is not int
+                or off < 0 or length < 0 or off + length > len(files[path])
+                or (length == 0 and not (mode == "reload" and off == 0 and len(files[path]) == 0))):
+            return None
+        return path, off, length
+
+    # Reload rollback restores the base files, whose paths and sizes may differ from the target.
+    required = update["units"] if mode == "units" else [
+        {"file": path, "offset": 0, "length": len(data)} for path, data in files.items()]
+    expected = [interval(u) for u in required]
+    actual = [interval(u) for u in ver["units"]]
+    ok = (None not in expected and None not in actual
+          and len(set(expected)) == len(expected) and len(set(actual)) == len(actual)
+          and set(actual) == set(expected))
+    if ok:
+        for unit, (path, off, length) in zip(ver["units"], actual):
+            ok = ok and unit.get("sha256") == sha(files[path][off:off + length])
+        if "bytes_written" in ver:
+            ok = (ok and type(ver["bytes_written"]) is int
+                  and ver["bytes_written"] >= 0)
     return check(ok, what)
 
 
@@ -121,15 +153,12 @@ def main(argv):
         if level == "B1":
             continue
         _, ver = run(cmd, "apply", "--target", tdir, stdin=up1)
-        verify_units(ver, target, "apply verifies: unit digests equal the target bytes")
-        if up1["mode"] == "reload":
-            check(sorted(u["file"] for u in ver["units"]) == sorted(target), "reload writes every target file")
+        verify_units(ver, target, "apply verifies: every planned unit matches the target bytes", up1, "apply")
         _, res3 = run(cmd, "resident")
         check(res3.get("manifest") == sp["manifest"], "after apply the target is resident")
 
         _, rb = run(cmd, "rollback")
-        check(rb.get("op") == "rollback", "rollback returns a verification")
-        verify_units(rb, base, "rollback restores: unit digests equal the base bytes")
+        verify_units(rb, base, "rollback restores: every planned unit matches the base bytes", up1, "rollback")
         _, res4 = run(cmd, "resident")
         check(res4.get("manifest") == sp["base_manifest"], "after rollback the base is resident")
         rc, _ = run(cmd, "rollback", expect_ok=False)
