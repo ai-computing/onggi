@@ -16,8 +16,10 @@ base reuse, node cache/peer transfer, lease-protected GC and read-only CSI
 materialization have code and validation. The current main also bounds
 concurrent materialization and preserves lease ownership across failures.
 
-P3's Kubernetes artifact/ref APIs, compile farm and compatibility planner are
-still planned. P4's placement/autoscaling-driven prefetch and prewarm are also
+Initial P3 support is available in the [prepare CLI](compatible-prepare.md):
+exact-profile selection from explicit candidates, followed by verified file
+preparation. Kubernetes artifact/ref APIs, discovery and compile farm are still
+planned. P4's placement/autoscaling-driven prefetch and prewarm are also
 planned. Reconciliation of leases conservatively left by crashed processes
 remains a limitation. See the [integration phases](integration.md#order) and
 [CSI safety evidence](validation-2026-10-23.md).
@@ -120,8 +122,13 @@ resident runs now pass: both projection-row and LM-row updates preserve
 allocations/modules, match fresh tokens, and restore base output after an
 interrupted native copy. Group8 currently fails native compilation with a
 memory-explosion error, so it is not a validated 2026.4 configuration.
-Initial full-model loading remains about 19–21 seconds; partial replacement
-does not establish faster cold loading or a speedup over the old SDK.
+Those loader-migration runs measured initial full-model loading at about
+19–21 seconds; partial replacement does not establish faster cold loading or
+a speedup over the old SDK. A separate optional CPU-staging change later
+measured constructor medians 18.68 -> 13.09 seconds at the same SDK2026.4
+B4/S256/group2 configuration, at additional CPU/RAM cost and with prepared
+graphs/uncontrolled warm filesystem state. It does not speed up DMA itself.
+[Separate host-staging protocol and all samples](https://github.com/ai-computing/rngd-pd/blob/52507e49e57fb9ddf2b8936d76672dc609cdc48c/experiments/2026-10-30-rngd-host-staging.md).
 [2026.4 protocol and all measured runs](https://github.com/ai-computing/rngd-pd/blob/0bc244db0239bddfdda005454809aee0812877d8/experiments/2026-10-30-rngd-sdk264.md).
 The earlier preflight record above describes the baseline loader.
 

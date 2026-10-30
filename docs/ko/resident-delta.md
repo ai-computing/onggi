@@ -13,8 +13,10 @@ POSIX/S3 저장·복원, 해시 검증, 변경 범위 diff, 기존 파일 재사
 lease로 보호하는 GC, 읽기 전용 CSI volume이 동작하며 검증 기록이 있습니다.
 main에는 복원 동시성 제한과 실패 시 lease 소유권 보존 수정도 반영돼 있습니다.
 
-P3의 Kubernetes artifact/ref API, 컴파일 팜·호환성 planner와 P4의 배치·자동 확장에 따른
-prefetch·prewarm은 아직 계획 단계입니다. 프로세스가 비정상 종료하며 보수적으로 남긴 lease의
+P3의 첫 단계인 [prepare CLI](compatible-prepare.md)는 명시한 후보에서 프로필이 일치하는
+결과물을 골라 파일을 준비합니다. Kubernetes artifact/ref API·후보 탐색·컴파일 팜과
+P4의 배치·자동 확장에 따른 prefetch·prewarm은 아직 계획 단계입니다.
+프로세스가 비정상 종료하며 보수적으로 남긴 lease의
 자동 정리도 남은 과제입니다. [연계 단계](../integration.md#order)와
 [CSI 안전성 검증](../validation-2026-10-23.md)을 참고하세요.
 
@@ -73,7 +75,11 @@ SDK 2026.4는 DMA·스트림 오버헤드 개선을 포함하므로 다음 검�
 비연속 입력 view를 정확히 복원하는 native 검증이 통과했습니다. Llama-3.1-8B의 B4/S256/**group2**에서
 projection·LM 행 갱신 후 새 전체 로딩과 토큰이 일치하고, 버퍼·컴파일 모듈 유지와 native 복사 중단 후 복구도
 확인했습니다. group8은 현재 컴파일러의 memory explosion 오류로 검증되지 않은 설정입니다.
-최초 전체 로딩은 약 19~21초이며, 부분 갱신 검증이 최초 적재나 이전 SDK 대비 속도 향상을 뜻하지는 않습니다.
+당시 로더 이식 검증의 최초 전체 로딩은 약 19~21초였으며, 부분 갱신 검증이 최초 적재나 이전 SDK 대비
+속도 향상을 뜻하지는 않습니다. 후속 선택 옵션인 CPU 변환 병렬화에서는 같은 SDK2026.4·B4/S256/group2의
+생성자 중앙값 18.68초 → 13.09초를 확인했습니다. CPU·RAM을 더 사용하고 준비된 그래프·따뜻한 파일 캐시를
+사용한 별도 실험이며, NPU DMA 자체의 개선은 아닙니다.
+[별도 CPU 준비 실험과 모든 측정값](https://github.com/ai-computing/rngd-pd/blob/52507e49e57fb9ddf2b8936d76672dc609cdc48c/experiments/2026-10-30-rngd-host-staging.md).
 [2026.4 재현 조건과 전체 측정 결과](https://github.com/ai-computing/rngd-pd/blob/0bc244db0239bddfdda005454809aee0812877d8/experiments/2026-10-30-rngd-sdk264.md).
 이 캐시는 Furiosa-LLM의 FXB 로더와 별개이며, 앞의 preflight는 이식 전 기준 로더에 대한 기록입니다.
 

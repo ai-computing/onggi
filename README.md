@@ -33,7 +33,14 @@ The Kubernetes Ref API, compile controller and fetches triggered by ai-rm/llm-d 
 The first P3 integration is [exact-profile artifact selection and preparation](docs/compatible-prepare.md):
 publish with `push --profile FILE`, then `prepare --request FILE --dir DIR <ref>...`
 chooses a compatible build and atomically prepares verified files through the node cache.
-This is file readiness; native NPU prewarming and placement/autoscaler integration remain planned.
+This establishes file readiness. The runtime can separately prewarm before readiness;
+automatic placement/autoscaler integration remains planned.
+
+The [native RNGD serving proof](docs/native-serving-2026-10-30.md) connects a real
+init-container preparation to startup warmup and 12 HTTP requests on SDK 2026.4.
+All 96 returned tokens match fresh references; repeated batches retain resident
+weights and graphs without recompilation. This covers one B4/S256 profile and
+graph/config delivery with an external checkpoint, with no new speedup claim.
 
 | | |
 |---|---|
@@ -53,7 +60,8 @@ delta does not itself update NPU memory or establish that two compiled graphs ca
 Record the source checkpoint identity, compiler/SDK, device, weight layout and supported batch/sequence shapes
 with each build. Changing batch or sequence length still requires a compatible precompiled graph. RNGD external
 weights and ATOM device-input weights have different runtime capabilities; ATOM graphs with embedded weights
-require their corresponding compiled artifacts. Automated compatibility selection, prewarm and placement hooks
+require their corresponding compiled artifacts. The [prepare CLI](docs/compatible-prepare.md) now selects
+exact-profile matches from supplied candidates. Discovery, native prewarm orchestration and placement hooks
 remain integration work; see [integration](docs/integration.md).
 
 The [resident-delta integration record](docs/resident-delta.md) connects actual
