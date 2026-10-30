@@ -8,6 +8,23 @@ RNGD row-update implementation is in
 [rngd-pd PR #29](https://github.com/ai-computing/rngd-pd/pull/29), not in Onggi's
 Go storage engine. That PR remains unmerged at the time of this record.
 
+## Where Onggi stands
+
+Onggi is at P2: the content-addressed store and node delivery/CSI path are
+implemented. POSIX/S3 push/pull, hash verification, changed-range diff, local
+base reuse, node cache/peer transfer, lease-protected GC and read-only CSI
+materialization have code and validation. The current main also bounds
+concurrent materialization and preserves lease ownership across failures.
+
+P3's Kubernetes artifact/ref APIs, compile farm and compatibility planner are
+still planned. P4's placement/autoscaling-driven prefetch and prewarm are also
+planned. Reconciliation of leases conservatively left by crashed processes
+remains a limitation. See the [integration phases](integration.md#order) and
+[CSI safety evidence](validation-2026-10-23.md).
+
+Prepared B/S graph selection and native resident weight updates belong to the
+serving runtime; they are not automated by Onggi's storage layer.
+
 ## The implemented path
 
 1. Publish matching immutable checkpoint directories as Onggi refs.
@@ -94,9 +111,16 @@ successful model loading. The loaded kernel-driver version was not independently
 resolved by this check; installed package versions alone do not prove it.
 [Preflight record](data/sdk264-preflight-20261030.json).
 
-Migration therefore requires a compatible new cache/executable loader in
-rngd-pd, separately versioned artifacts, stream-completion/rollback checks, and
-fresh-token parity plus before/after timing on an allocated card. Do not relabel
+The subsequent [loader migration PR #31](https://github.com/ai-computing/rngd-pd/pull/31)
+adds atomic SDK/Torch-checked native Runnable caches to rngd-pd. Fresh-process
+native tests preserve duplicate, passthrough and empty outputs, including a
+nonzero-offset/noncontiguous passthrough. That custom cache is separate from
+Furiosa-LLM's FXB loader; full-model configuration limits and validation are
+tracked in that PR. The earlier preflight record above describes the baseline,
+not the later migrated loader.
+
+Migration also requires separately versioned artifacts, stream-completion/
+rollback checks, and fresh-token parity plus timing on an allocated card. Do not relabel
 the 2026.2 results as 2026.4 results or reuse the old EDF cache by renaming its
 directory. The SDK preflight did not allocate an NPU, run inference, install
 packages, replace the working SDK, or change the shared host.

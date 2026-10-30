@@ -52,7 +52,8 @@ The [resident-delta integration record](docs/resident-delta.md) connects actual
 Onggi ranges to RNGD row updates: 64 projection rows reduced logical upload
 117 MB → 1.84 MB, and eight LM rows reduced 1.05 GB → 64 KiB, with 768 generated
 tokens equal to fresh loads. Those measurements use SDK 2026.2; the record also
-documents the SDK 2026.4 preflight and the remaining executable-loader migration.
+documents the SDK 2026.4 preflight and the separate
+[native cache-loader migration](https://github.com/ai-computing/rngd-pd/pull/31).
 
 ## Quick start
 
