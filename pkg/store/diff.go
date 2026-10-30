@@ -173,14 +173,11 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 	if err != nil {
 		return st, err
 	}
-	ne, err := s.Extents(ctx, nm)
-	if err != nil {
-		return st, err
-	}
 	nodes, _, err := s.plan(ctx, nm)
 	if err != nil {
 		return st, err
 	}
+	ne := extentsOf(nodes, len(nm.Files), true)
 	// every chunk the base holds, sorted, for "somewhere in the base"
 	var held []digest.Digest
 	for _, es := range be {
