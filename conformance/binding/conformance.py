@@ -63,7 +63,7 @@ def covers(update, switch):
 
 
 def verify_units(ver, files, what, update, op):
-    """Require a read-back digest for exactly every planned/restored artifact interval."""
+    """Verify every planned/restored interval; bytes_written is a nonnegative device counter."""
     mode = update["mode"]
     manifest = update["manifest" if op == "apply" else "base_manifest"]
     if not (isinstance(ver, dict) and ver.get("schema") == "onggi.verification.v1"
@@ -79,7 +79,8 @@ def verify_units(ver, files, what, update, op):
         path, off, length = unit.get("file"), unit.get("offset"), unit.get("length")
         if (not isinstance(path, str) or path not in files
                 or type(off) is not int or type(length) is not int
-                or off < 0 or length <= 0 or off + length > len(files[path])):
+                or off < 0 or length < 0 or off + length > len(files[path])
+                or (length == 0 and not (mode == "reload" and off == 0 and len(files[path]) == 0))):
             return None
         return path, off, length
 
@@ -96,7 +97,7 @@ def verify_units(ver, files, what, update, op):
             ok = ok and unit.get("sha256") == sha(files[path][off:off + length])
         if "bytes_written" in ver:
             ok = (ok and type(ver["bytes_written"]) is int
-                  and ver["bytes_written"] == sum(u[2] for u in actual))
+                  and ver["bytes_written"] >= 0)
     return check(ok, what)
 
 

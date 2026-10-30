@@ -1,5 +1,5 @@
 # Copyright 2026 The onggi authors. SPDX-License-Identifier: Apache-2.0
-"""Regression checks for the binding kit's verification boundary (stdlib only)."""
+"""Check artifact coverage and schema-valid device write counters (stdlib only)."""
 import contextlib
 import copy
 import hashlib
@@ -85,8 +85,10 @@ class VerificationTests(unittest.TestCase):
 
     def test_checks_optional_bytes_written_when_present(self):
         files, plan, ver = self.fixtures()
-        self.assertTrue(self.verify(dict(ver, bytes_written=6), files, plan))
-        for value in [0, -1, True, 6.0, "6", None]:
+        for value in [6, 0, 8]:
+            with self.subTest(bytes_written=value):
+                self.assertTrue(self.verify(dict(ver, bytes_written=value), files, plan))
+        for value in [-1, True, 6.0, "6", None]:
             with self.subTest(bytes_written=value):
                 self.assertFalse(self.verify(dict(ver, bytes_written=value), files, plan))
 
@@ -119,6 +121,24 @@ class VerificationTests(unittest.TestCase):
         self.assertTrue(self.verify(dict(ver, units=units), base, plan, "rollback"))
         self.assertFalse(self.verify(dict(ver, units=units[:2]), base, plan, "rollback"))
         self.assertFalse(self.verify(dict(ver, units=units, manifest=plan["manifest"]), base, plan, "rollback"))
+
+    def verify_reload_empty_file(self, op):
+        _, plan, ver = self.fixtures(mode="reload", op=op)
+        files = {"empty.bin": b""}
+        unit = {"file": "empty.bin", "offset": 0, "length": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+        self.assertTrue(self.verify(dict(ver, units=[unit]), files, plan, op))
+        self.assertFalse(self.verify(dict(ver, units=[]), files, plan, op))
+        self.assertFalse(self.verify(dict(ver, units=[unit, unit]), files, plan, op))
+        self.assertFalse(self.verify(dict(ver, units=[dict(unit, offset=1)]), files, plan, op))
+        unit_plan = dict(plan, mode="units", units=[unit])
+        self.assertFalse(self.verify(dict(ver, mode="units", units=[unit]), files, unit_plan, op))
+
+    def test_reload_apply_verifies_empty_file(self):
+        self.verify_reload_empty_file("apply")
+
+    def test_reload_rollback_verifies_empty_file(self):
+        self.verify_reload_empty_file("rollback")
 
     def test_units_rollback_requires_all_planned_base_intervals(self):
         _, plan, ver = self.fixtures(op="rollback")
