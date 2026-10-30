@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"reflect"
 	"path/filepath"
 	"testing"
 
@@ -53,6 +54,33 @@ func TestDiffReadsEachLocatorOnce(t *testing.T) {
 		key := backend.Key{Kind: backend.List, Name: d.Hex()}
 		if got := b.gets[key]; got != 1 {
 			t.Errorf("locator read %d times, want 1", got)
+		}
+	}
+}
+
+func TestDiffLegacyAndIdenticalManifests(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(31, 2<<20)
+	base := pushDir(t, s, map[string][]byte{"weights.rbln": w, "empty": nil})
+	v := append([]byte(nil), w...)
+	copy(v[1<<20:], random(32, 64<<10))
+	newID := pushDir(t, s, map[string][]byte{"weights.rbln": v, "empty": nil})
+	want, err := s.Diff(ctx, base, newID, DiffOptions{Ranges: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyBase, legacyNew := withoutLocator(t, s, base), withoutLocator(t, s, newID)
+	for _, pair := range [][2]digest.Digest{{legacyBase, newID}, {base, legacyNew}, {legacyBase, legacyNew}} {
+		got, err := s.Diff(ctx, pair[0], pair[1], DiffOptions{Ranges: true})
+		if err != nil || !reflect.DeepEqual(got, want) {
+			t.Fatalf("legacy diff differs: %+v, %v; want %+v", got, err, want)
+		}
+	}
+	for _, id := range []digest.Digest{base, legacyBase} {
+		got, err := s.Diff(ctx, id, id, DiffOptions{Ranges: true})
+		if err != nil || got.Same != got.Size || got.NewStored != 0 || got.ChangedRuns != 0 {
+			t.Fatalf("identical diff: %+v, %v", got, err)
 		}
 	}
 }
