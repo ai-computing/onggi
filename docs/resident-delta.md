@@ -115,15 +115,22 @@ The subsequent [loader migration PR #31](https://github.com/ai-computing/rngd-pd
 adds atomic SDK/Torch-checked native Runnable caches to rngd-pd. Fresh-process
 native tests preserve duplicate, passthrough and empty outputs, including a
 nonzero-offset/noncontiguous passthrough. That custom cache is separate from
-Furiosa-LLM's FXB loader; full-model configuration limits and validation are
-tracked in that PR. The earlier preflight record above describes the baseline,
-not the later migrated loader.
+Furiosa-LLM's FXB loader. Native Llama-3.1-8B B4/S256/**group2** fresh and
+resident runs now pass: both projection-row and LM-row updates preserve
+allocations/modules, match fresh tokens, and restore base output after an
+interrupted native copy. Group8 currently fails native compilation with a
+memory-explosion error, so it is not a validated 2026.4 configuration.
+Initial full-model loading remains about 19–21 seconds; partial replacement
+does not establish faster cold loading or a speedup over the old SDK.
+[2026.4 protocol and all measured runs](https://github.com/ai-computing/rngd-pd/blob/feat/rngd-sdk264-resident/experiments/2026-10-30-rngd-sdk264.md).
+The earlier preflight record above describes the baseline loader.
 
-Migration also requires separately versioned artifacts, stream-completion/
-rollback checks, and fresh-token parity plus timing on an allocated card. Do not relabel
-the 2026.2 results as 2026.4 results or reuse the old EDF cache by renaming its
-directory. The SDK preflight did not allocate an NPU, run inference, install
-packages, replace the working SDK, or change the shared host.
+The migrated cache uses separately versioned artifacts and checks SDK/Torch
+compatibility before restoring trusted payloads. Do not relabel 2026.2 results
+as 2026.4 or reuse an EDF cache by renaming its directory. The read-only preflight
+and subsequent allocated-card validation are separate records. Shared SDK and
+driver installations were unchanged; loaded-driver srcversion was subsequently
+checked against the installed running-kernel module.
 
 Onggi stores FXB files as opaque content like other artifacts; it does not need
 to decode their vendor format. Runtime compatibility selection and live FXB
