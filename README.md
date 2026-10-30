@@ -30,6 +30,11 @@ The Kubernetes Ref API, compile controller and fetches triggered by ai-rm/llm-d 
 
 ## What it does
 
+The first P3 integration is [exact-profile artifact selection and preparation](docs/compatible-prepare.md):
+publish with `push --profile FILE`, then `prepare --request FILE --dir DIR <ref>...`
+chooses a compatible build and atomically prepares verified files through the node cache.
+This is file readiness; native NPU prewarming and placement/autoscaler integration remain planned.
+
 | | |
 |---|---|
 | **Store once** | content-defined chunks, manifests per artifact, weights stored once per weight layout |
