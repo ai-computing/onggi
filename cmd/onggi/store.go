@@ -375,7 +375,7 @@ func diff(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	sf := addStoreFlags(fs)
 	asJSON := fs.Bool("json", false, "print the diff as JSON")
-	ranges := fs.Bool("ranges", false, "list the changed byte ranges of each file (with --json: [offset, length] pairs)")
+	ranges := fs.Bool("ranges", false, "list the changed byte ranges of each file; with --json also the range plan of each file, schema onggi.rangeplan.v1 (ADR-0010)")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
 		fmt.Fprintln(stderr, "usage: onggi diff --store S [--json] [--ranges] <base ref|sha256:...> <ref|sha256:...>")
 		return 2

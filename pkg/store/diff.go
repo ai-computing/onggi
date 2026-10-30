@@ -93,6 +93,30 @@ type FileDiff struct {
 	// every other byte is at the same offset in Base. A runtime that holds Base can update only
 	// these ranges.
 	Changed [][2]int64 `json:"changed,omitempty"`
+	// Ranges is the range plan of the file when DiffOptions.Ranges is set (ADR-0010): runs that
+	// cover the file in order, each the same, elsewhere in the base, or new.
+	Ranges []Range `json:"ranges,omitempty"`
+}
+
+// RangePlanSchema names the format of DiffStats as JSON (ADR-0010). The range plan (Ranges)
+// is the only interface between onggi and a runtime's device binding.
+const RangePlanSchema = "onggi.rangeplan.v1"
+
+// Range kinds (ADR-0010).
+const (
+	RangeSame      = "same"      // at the same offset in the paired base file
+	RangeElsewhere = "elsewhere" // in the base at SourceFile, SourceOffset
+	RangeNew       = "new"       // not in the base
+)
+
+// Range is one run of a file of the new artifact whose bytes are all of one kind.
+type Range struct {
+	Offset int64  `json:"offset"`
+	Length int64  `json:"length"`
+	Kind   string `json:"kind"`
+	// for elsewhere: a base file and offset that hold the same bytes
+	SourceFile   string `json:"source_file,omitempty"`
+	SourceOffset *int64 `json:"source_offset,omitempty"`
 }
 
 // DiffOptions controls a diff.
@@ -102,15 +126,18 @@ type DiffOptions struct {
 
 // DiffStats sums a diff over the files.
 type DiffStats struct {
-	Files       []FileDiff `json:"files"`
-	Size        int64      `json:"size"`
-	Same        int64      `json:"same"`
-	Moved       int64      `json:"moved"`
-	New         int64      `json:"new"`
-	NewStored   int64      `json:"new_stored"` // stored (compressed) bytes of the distinct new chunks
-	SameBlocks  int64      `json:"same_blocks"`
-	ChangedRuns int        `json:"changed_runs"`
-	LargestRun  int64      `json:"largest_run"`
+	Schema       string     `json:"schema"`        // RangePlanSchema
+	BaseManifest string     `json:"base_manifest"` // what the plan applies to
+	Manifest     string     `json:"manifest"`      // what it produces
+	Files        []FileDiff `json:"files"`
+	Size         int64      `json:"size"`
+	Same         int64      `json:"same"`
+	Moved        int64      `json:"moved"`
+	New          int64      `json:"new"`
+	NewStored    int64      `json:"new_stored"` // stored (compressed) bytes of the distinct new chunks
+	SameBlocks   int64      `json:"same_blocks"`
+	ChangedRuns  int        `json:"changed_runs"`
+	LargestRun   int64      `json:"largest_run"`
 }
 
 // pairFiles pairs each file of m with a file of base: the same path, else an unpaired base file of
@@ -160,7 +187,7 @@ func abs(x int64) int64 {
 
 // Diff compares artifact m against base, both in s.
 func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) (DiffStats, error) {
-	var st DiffStats
+	st := DiffStats{Schema: RangePlanSchema, BaseManifest: base.String(), Manifest: m.String()}
 	bm, err := s.ReadManifest(ctx, base)
 	if err != nil {
 		return st, err
@@ -192,6 +219,21 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 	slices.SortFunc(held, cmp)
 	held = slices.Compact(held)
 	inBase := func(d digest.Digest) bool { _, ok := slices.BinarySearchFunc(held, d, cmp); return ok }
+	type place struct {
+		file int
+		off  int64
+	}
+	var where map[digest.Digest]place // the first place in the base of each chunk, for the range plan
+	if o.Ranges {
+		where = make(map[digest.Digest]place, len(held))
+		for j, es := range be {
+			for _, e := range es {
+				if _, ok := where[e.Chunk]; !ok {
+					where[e.Chunk] = place{j, e.Off}
+				}
+			}
+		}
+	}
 
 	pair := pairFiles(bm, nm)
 	for i, f := range nm.Files {
@@ -218,6 +260,25 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 			}
 			sameFrom = -1
 		}
+		addRange := func(e Extent, kind string) {
+			if !o.Ranges {
+				return
+			}
+			r := Range{Offset: e.Off, Length: int64(e.Len), Kind: kind}
+			if kind == RangeElsewhere {
+				p := where[e.Chunk]
+				r.SourceFile, r.SourceOffset = bm.Files[p.file].Path, &p.off
+			}
+			if n := len(fd.Ranges); n > 0 {
+				last := &fd.Ranges[n-1]
+				if last.Kind == kind && last.Offset+last.Length == r.Offset && (kind != RangeElsewhere ||
+					last.SourceFile == r.SourceFile && *last.SourceOffset+last.Length == *r.SourceOffset) {
+					last.Length += r.Length
+					return
+				}
+			}
+			fd.Ranges = append(fd.Ranges, r)
+		}
 		closeChanged := func(end int64) {
 			if changedFrom < 0 {
 				return
@@ -235,6 +296,7 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 			}
 			end := e.Off + int64(e.Len)
 			if k < len(bes) && bes[k].Off == e.Off && bes[k].Chunk == e.Chunk {
+				addRange(e, RangeSame)
 				fd.Same += int64(e.Len)
 				closeChanged(e.Off)
 				if sameFrom < 0 {
@@ -248,8 +310,10 @@ func (s *Store) Diff(ctx context.Context, base, m digest.Digest, o DiffOptions) 
 				changedFrom = e.Off
 			}
 			if inBase(e.Chunk) {
+				addRange(e, RangeElsewhere)
 				fd.Moved += int64(e.Len)
 			} else {
+				addRange(e, RangeNew)
 				fd.New += int64(e.Len)
 			}
 		}
