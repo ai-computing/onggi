@@ -102,7 +102,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_ready_cache_placement_is_verified(self):
         cfg=dict(path='config/st/store',bytes=3,sha256='config')
-        inputs=dict(store_config=[cfg])
+        inputs=dict(store_config=[dict(path='config/st/store',base64='YWJj',sha256='config')])
         ready={n:dict(cache_before=[cfg]) for n in ['a','b','c']}
         c=dict(nodes=['a','b','c'],ready=ready,stratum='empty')
         validate_ready(c,inputs,[cfg,dict(path='packs/x',bytes=5,sha256='seed')])

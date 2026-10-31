@@ -1,5 +1,6 @@
 """Payload accounting and fail-closed aggregation; Python stdlib only."""
 import copy
+import base64
 import hashlib
 import json
 import pathlib
@@ -88,7 +89,8 @@ def distribution(values):
 
 def validate_ready(c, inputs, seed_inventory):
     def canonical(rows):
-        return sorted([dict(path=r['path'],bytes=r['bytes'],sha256=r['sha256']) for r in rows],key=lambda x:x['path'])
+        return sorted([dict(path=r['path'],bytes=r['bytes'] if 'bytes' in r else len(base64.b64decode(r['base64'])),
+                            sha256=r['sha256']) for r in rows],key=lambda x:x['path'])
     if set(c['ready']) != set(c['nodes']):
         raise ValueError('missing ready nodes')
     for node in c['nodes']:
