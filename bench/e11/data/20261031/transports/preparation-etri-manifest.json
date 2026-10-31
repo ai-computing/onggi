@@ -1,0 +1,57 @@
+{
+  "path": "/home/gspark/workspace/codex_e11_20261031/export-preparation-etri.tar.gz",
+  "bytes": 147668,
+  "sha256": "780c8771b06cbe5ba1fe01bd5c7bef8b4f4b9e8e4410e5787a8d2cfcf714e888",
+  "files": [
+    {
+      "path": "common.py",
+      "bytes": 4666,
+      "sha256": "b50b51dabc2d3db435ded4eaab9618b325bdba56522218d152129ed77d906114"
+    },
+    {
+      "path": "gateway.log",
+      "bytes": 464506,
+      "sha256": "4ca5db008b5b751f7d038d0ce7d0a27d05838b323ccbd47cb2994eb66bf75783"
+    },
+    {
+      "path": "inputs.json",
+      "bytes": 24667,
+      "sha256": "8d9e92b2493570f60a60cc7a915c68bc6efe46eb24c12801ea3878cc86b12bdc"
+    },
+    {
+      "path": "origin-requests.jsonl",
+      "bytes": 700524,
+      "sha256": "c17bd13014cca47db8c9b66e540df84fc559a425ccccc6c5c4ac88a0e16f2d27"
+    },
+    {
+      "path": "prepare-inputs.log",
+      "bytes": 27,
+      "sha256": "9645fafc07df08fb9ab3299153f795d1bb73c9c9be7d914cfb41ca504162110b"
+    },
+    {
+      "path": "prepare-tools.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "prepare-tools.log",
+      "bytes": 477,
+      "sha256": "4a8e088ba77ce4f075c748a195f771e174d0815f7c0fcb6e732d21d15f99c09e"
+    },
+    {
+      "path": "prepare-tools.sh",
+      "bytes": 880,
+      "sha256": "be3740f73c3d13b52339c680f01ddc26f355560173dd17bafb6ac9a07e953100"
+    },
+    {
+      "path": "prepare_inputs.py",
+      "bytes": 2081,
+      "sha256": "2b334c4573ffd8be593434805bb9b0480dd5eed7d1a4442e9041ceb12f3bb77e"
+    },
+    {
+      "path": "workers.json",
+      "bytes": 32427,
+      "sha256": "10c9ffc829bb08469dfb429f6860dec65fc25f1afb11225942dbf695a3eb7f1b"
+    }
+  ]
+}

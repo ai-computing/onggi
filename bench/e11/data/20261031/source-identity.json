@@ -1,0 +1,27 @@
+{
+  "executed_harness_commit": "7870cef872e201a6a4dca87ed1bb998da9c3109f",
+  "runtime_source_commit": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+  "source_files": {
+    "common.py": {
+      "canonical_lf_sha256": "5237dc8ddf2d2ef753d3805523784260f3b43923eae27f634d0b4a8b9719a1d8",
+      "bytes": 6117
+    },
+    "origin.py": {
+      "canonical_lf_sha256": "9d484a6fac804803e848b0f8bae33b3a367a54ee2ea2e5acb600c6dc96f539ec",
+      "bytes": 10333
+    },
+    "worker.py": {
+      "canonical_lf_sha256": "39d0b3dbcbf6227bfb88a30e2f7fcabe8b4821b50db92a0289dc1c1908fce94a",
+      "bytes": 9749
+    },
+    "run_matrix.py": {
+      "canonical_lf_sha256": "6c33cc06c555d385ae1bcf86a7a7f8fa4882f4e45fd8122eecbf51f387310079",
+      "bytes": 2932
+    },
+    "deploy.py": {
+      "canonical_lf_sha256": "efbe06613abde971f05e0e6c7ac352be671785defd3f431645e21f566a64f09e",
+      "bytes": 5460
+    }
+  },
+  "source_scope": "CPU origin/worker/controller; public Go runtime unchanged; off-card preparation helper separately retained"
+}

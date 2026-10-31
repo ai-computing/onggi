@@ -1,0 +1,2469 @@
+{
+  "trial": "main-empty-store-04",
+  "stratum": "empty",
+  "arm": "store",
+  "stage": "main",
+  "repetition": 4,
+  "target_manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+  "base_manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+  "nodes": [
+    "cpu-1",
+    "cpu-2",
+    "etri-001"
+  ],
+  "status": "completed",
+  "ready": {
+    "etri-001": {
+      "node": "etri-001",
+      "trial": "main-empty-store-04",
+      "copy_s": 27.456235917052254,
+      "cache_before": [
+        {
+          "path": "config/st/store",
+          "bytes": 350,
+          "sha256": "f88423c6ddc52fe357c5e6f8d82e916b94d6988c69bd952a4aa125cffd38bc66"
+        }
+      ],
+      "nics": {
+        "lxc8cea27b799f8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "696195324",
+          "statistics/tx_bytes": "3621352276"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "22341373006",
+          "statistics/tx_bytes": "22341373006"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "210927493",
+          "statistics/tx_bytes": "2171528"
+        },
+        "lxca4c504fdae74": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "481009065",
+          "statistics/tx_bytes": "1380708410"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "37786593013",
+          "statistics/tx_bytes": "120925967186"
+        },
+        "lxcfbc1232fdf7b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "375225701",
+          "statistics/tx_bytes": "45893369"
+        },
+        "lxc106ffa9b0813": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "785921120",
+          "statistics/tx_bytes": "3776905315"
+        },
+        "lxc27069c365d4d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "190965860",
+          "statistics/tx_bytes": "222005564"
+        },
+        "lxc30ee449a046b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "33576799181",
+          "statistics/tx_bytes": "552627679"
+        },
+        "lxc96aa8aefcbca": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "999728104",
+          "statistics/tx_bytes": "978827842"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "64808351",
+          "statistics/tx_bytes": "77040763"
+        },
+        "lxcc213ede532ad": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "10286447891",
+          "statistics/tx_bytes": "120871859582"
+        },
+        "lxcefe2359fd1b1": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "43759269",
+          "statistics/tx_bytes": "1107246699"
+        },
+        "lxc579a5d104725": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "365566665",
+          "statistics/tx_bytes": "46653910"
+        },
+        "ens238f0np0": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "ens4013f0": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1499124189933",
+          "statistics/tx_bytes": "364800383563"
+        },
+        "lxc91d6b1a5d81c": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "133606980",
+          "statistics/tx_bytes": "397179510"
+        },
+        "lxcc7e7a26cbf9e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1636445026",
+          "statistics/tx_bytes": "2293789220"
+        },
+        "lxc6d24c23cde1b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "180511573",
+          "statistics/tx_bytes": "217036275"
+        },
+        "lxc2de1f52051ea": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "44155975",
+          "statistics/tx_bytes": "44695463"
+        },
+        "ens238f1np1": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxccf40ed31b9d8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "55205982",
+          "statistics/tx_bytes": "11194398947"
+        },
+        "lxc25749b455c1b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "620209965",
+          "statistics/tx_bytes": "1729761320"
+        },
+        "lxccbc914cbea48": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "857821838",
+          "statistics/tx_bytes": "939913557"
+        },
+        "lxcdbb4c1ed8a0f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27256",
+          "statistics/tx_bytes": "72996"
+        },
+        "lxc8204a0dab41e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27256",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxc890c3daba746": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "156148079",
+          "statistics/tx_bytes": "1245262112"
+        },
+        "enxbe3af2b6059f": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxca2726d0bcfac": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27186",
+          "statistics/tx_bytes": "73049"
+        },
+        "lxca8003c47926a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27116",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxc9305d2b07e6b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27186",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxcf03aec07a5b7": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "3874107049",
+          "statistics/tx_bytes": "4869332595"
+        },
+        "lxcab76df4fc84e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "475505600",
+          "statistics/tx_bytes": "640551776"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2171528",
+          "statistics/tx_bytes": "210927493"
+        },
+        "ens4013f1": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        }
+      },
+      "ready_utc": 1793412914.5383854
+    },
+    "cpu-1": {
+      "node": "cpu-1",
+      "trial": "main-empty-store-04",
+      "copy_s": 64.0755659211427,
+      "cache_before": [
+        {
+          "path": "config/st/store",
+          "bytes": 350,
+          "sha256": "f88423c6ddc52fe357c5e6f8d82e916b94d6988c69bd952a4aa125cffd38bc66"
+        }
+      ],
+      "nics": {
+        "lxce3f25e13d92d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "120868992",
+          "statistics/tx_bytes": "908939661"
+        },
+        "eno34np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcfa0bc167fe4e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246780166",
+          "statistics/tx_bytes": "218889587"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "933574",
+          "statistics/tx_bytes": "260019641"
+        },
+        "lxcea76f6de5cb6": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246774752",
+          "statistics/tx_bytes": "218442397"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "4853213637",
+          "statistics/tx_bytes": "4853213637"
+        },
+        "lxc1df8555ff956": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "251667081",
+          "statistics/tx_bytes": "11602024202"
+        },
+        "eno1": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1383904298342",
+          "statistics/tx_bytes": "479015996354"
+        },
+        "lxc39262db28b11": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "884868",
+          "statistics/tx_bytes": "52779453"
+        },
+        "ens3f0np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc2997dc2fa2d7": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1489305680",
+          "statistics/tx_bytes": "15332068487"
+        },
+        "ens3f1np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "286765560",
+          "statistics/tx_bytes": "346453298"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "260019641",
+          "statistics/tx_bytes": "933574"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "107552223767",
+          "statistics/tx_bytes": "285805997835"
+        },
+        "eno2": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcb5f3160ce11b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "42220843",
+          "statistics/tx_bytes": "42894166"
+        },
+        "lxcc2839edcdbbb": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2126161167",
+          "statistics/tx_bytes": "2895666520"
+        },
+        "eno33np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc3fd40f58f343": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "3620119943",
+          "statistics/tx_bytes": "15440375959"
+        }
+      },
+      "ready_utc": 1793412951.1182468
+    },
+    "cpu-2": {
+      "node": "cpu-2",
+      "trial": "main-empty-store-04",
+      "copy_s": 70.38938953191973,
+      "cache_before": [
+        {
+          "path": "config/st/store",
+          "bytes": 350,
+          "sha256": "f88423c6ddc52fe357c5e6f8d82e916b94d6988c69bd952a4aa125cffd38bc66"
+        }
+      ],
+      "nics": {
+        "eno34np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc9f3de42a528a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "65639569",
+          "statistics/tx_bytes": "154155072"
+        },
+        "lxc64dc38ea1267": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "13230107",
+          "statistics/tx_bytes": "26423593"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "128567",
+          "statistics/tx_bytes": "54136138"
+        },
+        "lxce26ff4b0adf1": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "312887608",
+          "statistics/tx_bytes": "138066218"
+        },
+        "lxc4f5eafec82bd": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "108312630",
+          "statistics/tx_bytes": "142183247"
+        },
+        "lxccd42ecdf84bb": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2431104359",
+          "statistics/tx_bytes": "13816227959"
+        },
+        "lxc2fe0cb80f69f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "122876410",
+          "statistics/tx_bytes": "229518196"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "1256833836",
+          "statistics/tx_bytes": "1256833836"
+        },
+        "lxce81a5ea1fe9a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "61855619917",
+          "statistics/tx_bytes": "278795130928"
+        },
+        "eno1": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "478285560628",
+          "statistics/tx_bytes": "78199054522"
+        },
+        "ens3f0np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc0335350f111f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "214308510",
+          "statistics/tx_bytes": "307355221"
+        },
+        "lxc6cf657d79ce9": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "907778819",
+          "statistics/tx_bytes": "1044031606"
+        },
+        "lxc4ecb6ed8be3f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "125398068",
+          "statistics/tx_bytes": "965054915"
+        },
+        "lxccb77ff572f18": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1795373996",
+          "statistics/tx_bytes": "1354378206"
+        },
+        "lxce54fc1c29827": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "762186709",
+          "statistics/tx_bytes": "2188010038"
+        },
+        "ens3f1np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc4baccdde17f8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246257855",
+          "statistics/tx_bytes": "11575800677"
+        },
+        "lxcb1976cb58935": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "658360182",
+          "statistics/tx_bytes": "1150607076"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "67670389",
+          "statistics/tx_bytes": "80237928"
+        },
+        "lxc91ca565293cf": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "400977985",
+          "statistics/tx_bytes": "3972652023"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "54136138",
+          "statistics/tx_bytes": "128567"
+        },
+        "lxc859913ccab0d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "797693204",
+          "statistics/tx_bytes": "1947009515"
+        },
+        "lxcd185e9b9206b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "103713753251",
+          "statistics/tx_bytes": "10511643312"
+        },
+        "lxc4a241fff7d85": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1959429788",
+          "statistics/tx_bytes": "948355989"
+        },
+        "lxcc6505997d0a9": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1420535217",
+          "statistics/tx_bytes": "153553474"
+        },
+        "lxca78edf6e1e5c": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "318983888",
+          "statistics/tx_bytes": "301918146"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "58402275925",
+          "statistics/tx_bytes": "51419295419"
+        },
+        "lxc47a5bd663d11": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1137295289",
+          "statistics/tx_bytes": "1924268487"
+        },
+        "eno2": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc7d39988d148d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "653633046",
+          "statistics/tx_bytes": "1148144595"
+        },
+        "lxcbd39d6d4f3bd": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "302037254",
+          "statistics/tx_bytes": "3808957308"
+        },
+        "lxcd3bd0c75831f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "133283792",
+          "statistics/tx_bytes": "360327007"
+        },
+        "eno33np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcd8d604260717": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "657220986",
+          "statistics/tx_bytes": "1152255072"
+        }
+      },
+      "ready_utc": 1793412957.4934592
+    }
+  },
+  "results": {
+    "etri-001": {
+      "node": "etri-001",
+      "trial": "main-empty-store-04",
+      "status": "completed",
+      "hashes_match": true,
+      "command": {
+        "trial": "main-empty-store-04",
+        "stratum": "empty",
+        "arm": "store",
+        "stage": "main",
+        "repetition": 4,
+        "target_manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "base_manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "peers": [
+          "http://10.0.3.12:7071",
+          "http://10.0.4.126:7071"
+        ],
+        "seed": false
+      },
+      "utc": 1793412887.068334,
+      "pod_uid": "64659289-fe6d-4814-9921-9a0ceec5cbb3",
+      "returncode": 0,
+      "wall_s": 2.6645211540162563,
+      "argv": [
+        "pull",
+        "--store",
+        "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1",
+        "--workers",
+        "2",
+        "--json",
+        "--cache",
+        "/work/runs/main-empty-store-04/cache",
+        "--base",
+        "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "--base-dir",
+        "/work/runs/main-empty-store-04/base",
+        "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "/work/runs/main-empty-store-04/out"
+      ],
+      "stdout": "{\n  \"manifest\": \"sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52\",\n  \"stats\": {\n    \"files\": 9,\n    \"bytes\": 16061585097,\n    \"read_bytes\": 197911,\n    \"cache_bytes\": 0,\n    \"peer_bytes\": 0,\n    \"peer_chunks\": 0,\n    \"cached\": 197911,\n    \"base\": \"sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526\",\n    \"reused\": 16060805278,\n    \"base_best\": 16060805278,\n    \"local_bytes\": 0,\n    \"ranges\": 2,\n    \"duration_ns\": 2635335812\n  }\n}\n",
+      "stderr": "",
+      "pull_s": 2.6645211540162563,
+      "nics_after": {
+        "lxc8cea27b799f8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "696199551",
+          "statistics/tx_bytes": "3621357511"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "22341424339",
+          "statistics/tx_bytes": "22341424339"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "210929683",
+          "statistics/tx_bytes": "2171528"
+        },
+        "lxca4c504fdae74": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "481022351",
+          "statistics/tx_bytes": "1380748300"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "37787981431",
+          "statistics/tx_bytes": "120974314605"
+        },
+        "lxcfbc1232fdf7b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "375237905",
+          "statistics/tx_bytes": "45894857"
+        },
+        "lxc106ffa9b0813": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "785935297",
+          "statistics/tx_bytes": "3777061238"
+        },
+        "lxc27069c365d4d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "190972018",
+          "statistics/tx_bytes": "222012882"
+        },
+        "lxc30ee449a046b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "33651009966",
+          "statistics/tx_bytes": "556640285"
+        },
+        "lxc96aa8aefcbca": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "999767877",
+          "statistics/tx_bytes": "978883718"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "64810617",
+          "statistics/tx_bytes": "77043647"
+        },
+        "lxcc213ede532ad": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "10286689036",
+          "statistics/tx_bytes": "120873971121"
+        },
+        "lxcefe2359fd1b1": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "43759737",
+          "statistics/tx_bytes": "1107259295"
+        },
+        "lxc579a5d104725": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "365577629",
+          "statistics/tx_bytes": "46655398"
+        },
+        "ens238f0np0": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "ens4013f0": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1499129698087",
+          "statistics/tx_bytes": "364854463344"
+        },
+        "lxc91d6b1a5d81c": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "133610903",
+          "statistics/tx_bytes": "397195474"
+        },
+        "lxcc7e7a26cbf9e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1636499292",
+          "statistics/tx_bytes": "2293859925"
+        },
+        "lxc6d24c23cde1b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "180517294",
+          "statistics/tx_bytes": "217042909"
+        },
+        "lxc2de1f52051ea": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "44155975",
+          "statistics/tx_bytes": "44695463"
+        },
+        "ens238f1np1": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxccf40ed31b9d8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "57730564",
+          "statistics/tx_bytes": "11220346963"
+        },
+        "lxc25749b455c1b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "620214087",
+          "statistics/tx_bytes": "1729763621"
+        },
+        "lxccbc914cbea48": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "857849649",
+          "statistics/tx_bytes": "939941778"
+        },
+        "lxcdbb4c1ed8a0f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27256",
+          "statistics/tx_bytes": "72996"
+        },
+        "lxc8204a0dab41e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27256",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxc890c3daba746": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "156151868",
+          "statistics/tx_bytes": "1245278875"
+        },
+        "enxbe3af2b6059f": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxca2726d0bcfac": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27186",
+          "statistics/tx_bytes": "73049"
+        },
+        "lxca8003c47926a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27116",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxc9305d2b07e6b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "27186",
+          "statistics/tx_bytes": "73066"
+        },
+        "lxcf03aec07a5b7": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "3874235226",
+          "statistics/tx_bytes": "4869482654"
+        },
+        "lxcab76df4fc84e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "475521338",
+          "statistics/tx_bytes": "640572726"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2171528",
+          "statistics/tx_bytes": "210929683"
+        },
+        "ens4013f1": {
+          "operstate": "down",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        }
+      },
+      "manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+      "stats": {
+        "files": 9,
+        "bytes": 16061585097,
+        "read_bytes": 197911,
+        "cache_bytes": 0,
+        "peer_bytes": 0,
+        "peer_chunks": 0,
+        "cached": 197911,
+        "base": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "reused": 16060805278,
+        "base_best": 16060805278,
+        "local_bytes": 0,
+        "ranges": 2,
+        "duration_ns": 2635335812
+      },
+      "files": [
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+          "bytes": 224097,
+          "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+          "bytes": 778900,
+          "sha256": "f06c3bf73e93e964a9a2f575e6a73c0960aea0cae02b63f43b5cce5182f0f756"
+        },
+        {
+          "path": "checkpoint/config.json",
+          "bytes": 855,
+          "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+        },
+        {
+          "path": "checkpoint/model-00001-of-00004.safetensors",
+          "bytes": 4976698672,
+          "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+        },
+        {
+          "path": "checkpoint/model-00002-of-00004.safetensors",
+          "bytes": 4999802720,
+          "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+        },
+        {
+          "path": "checkpoint/model-00003-of-00004.safetensors",
+          "bytes": 4915916176,
+          "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+        },
+        {
+          "path": "checkpoint/model-00004-of-00004.safetensors",
+          "bytes": 1168138808,
+          "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+        },
+        {
+          "path": "checkpoint/model.safetensors.index.json",
+          "bytes": 23950,
+          "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+        },
+        {
+          "path": "variant.json",
+          "bytes": 919,
+          "sha256": "951365e6659a39ad9e143202034e2bf986ff5863f9bd0638b211604a82b08fcd"
+        }
+      ],
+      "hash_validation_s": 22.25770729407668,
+      "trial_payloads_absent": true,
+      "cleanup_s": 0.67177365696989
+    },
+    "cpu-1": {
+      "node": "cpu-1",
+      "trial": "main-empty-store-04",
+      "status": "completed",
+      "hashes_match": true,
+      "command": {
+        "trial": "main-empty-store-04",
+        "stratum": "empty",
+        "arm": "store",
+        "stage": "main",
+        "repetition": 4,
+        "target_manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "base_manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "peers": [
+          "http://10.0.4.126:7071",
+          "http://10.0.1.82:7071"
+        ],
+        "seed": true
+      },
+      "utc": 1793412887.037243,
+      "pod_uid": "5d796e04-1680-4601-a1b2-1f122f718fa9",
+      "returncode": 0,
+      "wall_s": 3.0442902874201536,
+      "argv": [
+        "pull",
+        "--store",
+        "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1",
+        "--workers",
+        "2",
+        "--json",
+        "--cache",
+        "/work/runs/main-empty-store-04/cache",
+        "--base",
+        "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "--base-dir",
+        "/work/runs/main-empty-store-04/base",
+        "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "/work/runs/main-empty-store-04/out"
+      ],
+      "stdout": "{\n  \"manifest\": \"sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52\",\n  \"stats\": {\n    \"files\": 9,\n    \"bytes\": 16061585097,\n    \"read_bytes\": 197911,\n    \"cache_bytes\": 0,\n    \"peer_bytes\": 0,\n    \"peer_chunks\": 0,\n    \"cached\": 197911,\n    \"base\": \"sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526\",\n    \"reused\": 16060805278,\n    \"base_best\": 16060805278,\n    \"local_bytes\": 0,\n    \"ranges\": 2,\n    \"duration_ns\": 2940079488\n  }\n}\n",
+      "stderr": "",
+      "pull_s": 3.0442902874201536,
+      "nics_after": {
+        "lxce3f25e13d92d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "120868992",
+          "statistics/tx_bytes": "908939661"
+        },
+        "eno34np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcfa0bc167fe4e": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246780744",
+          "statistics/tx_bytes": "218890100"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "933574",
+          "statistics/tx_bytes": "260019971"
+        },
+        "lxcea76f6de5cb6": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246775330",
+          "statistics/tx_bytes": "218442910"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "4853221560",
+          "statistics/tx_bytes": "4853221560"
+        },
+        "lxc1df8555ff956": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "252558743",
+          "statistics/tx_bytes": "11626517074"
+        },
+        "eno1": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1383930514216",
+          "statistics/tx_bytes": "479017423721"
+        },
+        "lxc39262db28b11": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "884868",
+          "statistics/tx_bytes": "52779453"
+        },
+        "ens3f0np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc2997dc2fa2d7": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1489307104",
+          "statistics/tx_bytes": "15332070631"
+        },
+        "ens3f1np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "286766039",
+          "statistics/tx_bytes": "346453934"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "260019971",
+          "statistics/tx_bytes": "933574"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "107576565879",
+          "statistics/tx_bytes": "285806767436"
+        },
+        "eno2": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcb5f3160ce11b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "42220843",
+          "statistics/tx_bytes": "42894166"
+        },
+        "lxcc2839edcdbbb": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2126170981",
+          "statistics/tx_bytes": "2895681924"
+        },
+        "eno33np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc3fd40f58f343": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "3620120741",
+          "statistics/tx_bytes": "15440376983"
+        }
+      },
+      "manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+      "stats": {
+        "files": 9,
+        "bytes": 16061585097,
+        "read_bytes": 197911,
+        "cache_bytes": 0,
+        "peer_bytes": 0,
+        "peer_chunks": 0,
+        "cached": 197911,
+        "base": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "reused": 16060805278,
+        "base_best": 16060805278,
+        "local_bytes": 0,
+        "ranges": 2,
+        "duration_ns": 2940079488
+      },
+      "files": [
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+          "bytes": 224097,
+          "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+          "bytes": 778900,
+          "sha256": "f06c3bf73e93e964a9a2f575e6a73c0960aea0cae02b63f43b5cce5182f0f756"
+        },
+        {
+          "path": "checkpoint/config.json",
+          "bytes": 855,
+          "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+        },
+        {
+          "path": "checkpoint/model-00001-of-00004.safetensors",
+          "bytes": 4976698672,
+          "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+        },
+        {
+          "path": "checkpoint/model-00002-of-00004.safetensors",
+          "bytes": 4999802720,
+          "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+        },
+        {
+          "path": "checkpoint/model-00003-of-00004.safetensors",
+          "bytes": 4915916176,
+          "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+        },
+        {
+          "path": "checkpoint/model-00004-of-00004.safetensors",
+          "bytes": 1168138808,
+          "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+        },
+        {
+          "path": "checkpoint/model.safetensors.index.json",
+          "bytes": 23950,
+          "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+        },
+        {
+          "path": "variant.json",
+          "bytes": 919,
+          "sha256": "951365e6659a39ad9e143202034e2bf986ff5863f9bd0638b211604a82b08fcd"
+        }
+      ],
+      "hash_validation_s": 36.23021197319031,
+      "trial_payloads_absent": true,
+      "cleanup_s": 0.017615990713238716
+    },
+    "cpu-2": {
+      "node": "cpu-2",
+      "trial": "main-empty-store-04",
+      "status": "completed",
+      "hashes_match": true,
+      "command": {
+        "trial": "main-empty-store-04",
+        "stratum": "empty",
+        "arm": "store",
+        "stage": "main",
+        "repetition": 4,
+        "target_manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "base_manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "peers": [
+          "http://10.0.3.12:7071",
+          "http://10.0.1.82:7071"
+        ],
+        "seed": false
+      },
+      "utc": 1793412887.0943472,
+      "pod_uid": "1bf2c42d-30c2-4d87-9900-ef368df9746f",
+      "returncode": 0,
+      "wall_s": 2.845677509205416,
+      "argv": [
+        "pull",
+        "--store",
+        "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1",
+        "--workers",
+        "2",
+        "--json",
+        "--cache",
+        "/work/runs/main-empty-store-04/cache",
+        "--base",
+        "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "--base-dir",
+        "/work/runs/main-empty-store-04/base",
+        "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "/work/runs/main-empty-store-04/out"
+      ],
+      "stdout": "{\n  \"manifest\": \"sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52\",\n  \"stats\": {\n    \"files\": 9,\n    \"bytes\": 16061585097,\n    \"read_bytes\": 197911,\n    \"cache_bytes\": 0,\n    \"peer_bytes\": 0,\n    \"peer_chunks\": 0,\n    \"cached\": 197911,\n    \"base\": \"sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526\",\n    \"reused\": 16060805278,\n    \"base_best\": 16060805278,\n    \"local_bytes\": 0,\n    \"ranges\": 2,\n    \"duration_ns\": 2746790505\n  }\n}\n",
+      "stderr": "",
+      "pull_s": 2.845677509205416,
+      "nics_after": {
+        "eno34np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc9f3de42a528a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "65639569",
+          "statistics/tx_bytes": "154155072"
+        },
+        "lxc64dc38ea1267": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "13230107",
+          "statistics/tx_bytes": "26423593"
+        },
+        "cilium_net": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "128567",
+          "statistics/tx_bytes": "54136700"
+        },
+        "lxce26ff4b0adf1": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "312887608",
+          "statistics/tx_bytes": "138066218"
+        },
+        "lxc4f5eafec82bd": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "108312630",
+          "statistics/tx_bytes": "142183247"
+        },
+        "lxccd42ecdf84bb": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "2431104359",
+          "statistics/tx_bytes": "13816227959"
+        },
+        "lxc2fe0cb80f69f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "122876410",
+          "statistics/tx_bytes": "229518196"
+        },
+        "lo": {
+          "operstate": "unknown",
+          "speed": "OSError",
+          "duplex": "OSError",
+          "mtu": "65536",
+          "statistics/rx_bytes": "1256834706",
+          "statistics/tx_bytes": "1256834706"
+        },
+        "lxce81a5ea1fe9a": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "61855654588",
+          "statistics/tx_bytes": "278797724351"
+        },
+        "eno1": {
+          "operstate": "up",
+          "speed": "1000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "478311263211",
+          "statistics/tx_bytes": "78199977088"
+        },
+        "ens3f0np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc0335350f111f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "214308510",
+          "statistics/tx_bytes": "307355221"
+        },
+        "lxc6cf657d79ce9": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "907785043",
+          "statistics/tx_bytes": "1044032168"
+        },
+        "lxc4ecb6ed8be3f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "125398068",
+          "statistics/tx_bytes": "965054915"
+        },
+        "lxccb77ff572f18": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1795375420",
+          "statistics/tx_bytes": "1354380259"
+        },
+        "lxce54fc1c29827": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "762187583",
+          "statistics/tx_bytes": "2188011041"
+        },
+        "ens3f1np1": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc4baccdde17f8": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "246847633",
+          "statistics/tx_bytes": "11599999060"
+        },
+        "lxcb1976cb58935": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "658362400",
+          "statistics/tx_bytes": "1150610344"
+        },
+        "lxc_health": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "67670455",
+          "statistics/tx_bytes": "80237994"
+        },
+        "lxc91ca565293cf": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "400977985",
+          "statistics/tx_bytes": "3972652023"
+        },
+        "cilium_host": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "54136700",
+          "statistics/tx_bytes": "128567"
+        },
+        "lxc859913ccab0d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "797694138",
+          "statistics/tx_bytes": "1947010781"
+        },
+        "lxcd185e9b9206b": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "103716027603",
+          "statistics/tx_bytes": "10511670823"
+        },
+        "lxc4a241fff7d85": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1959432748",
+          "statistics/tx_bytes": "948357335"
+        },
+        "lxcc6505997d0a9": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1420535217",
+          "statistics/tx_bytes": "153553474"
+        },
+        "lxca78edf6e1e5c": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "318984396",
+          "statistics/tx_bytes": "301918592"
+        },
+        "cilium_vxlan": {
+          "operstate": "unknown",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "58426363101",
+          "statistics/tx_bytes": "51419800546"
+        },
+        "lxc47a5bd663d11": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "1137296779",
+          "statistics/tx_bytes": "1924270950"
+        },
+        "eno2": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxc7d39988d148d": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "653635413",
+          "statistics/tx_bytes": "1148147841"
+        },
+        "lxcbd39d6d4f3bd": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "302037620",
+          "statistics/tx_bytes": "3808957821"
+        },
+        "lxcd3bd0c75831f": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "133283792",
+          "statistics/tx_bytes": "360327007"
+        },
+        "eno33np0": {
+          "operstate": "down",
+          "speed": "-1",
+          "duplex": "unknown",
+          "mtu": "1500",
+          "statistics/rx_bytes": "0",
+          "statistics/tx_bytes": "0"
+        },
+        "lxcd8d604260717": {
+          "operstate": "up",
+          "speed": "10000",
+          "duplex": "full",
+          "mtu": "1500",
+          "statistics/rx_bytes": "657222344",
+          "statistics/tx_bytes": "1152257179"
+        }
+      },
+      "manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+      "stats": {
+        "files": 9,
+        "bytes": 16061585097,
+        "read_bytes": 197911,
+        "cache_bytes": 0,
+        "peer_bytes": 0,
+        "peer_chunks": 0,
+        "cached": 197911,
+        "base": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "reused": 16060805278,
+        "base_best": 16060805278,
+        "local_bytes": 0,
+        "ranges": 2,
+        "duration_ns": 2746790505
+      },
+      "files": [
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+          "bytes": 224097,
+          "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+          "bytes": 778900,
+          "sha256": "f06c3bf73e93e964a9a2f575e6a73c0960aea0cae02b63f43b5cce5182f0f756"
+        },
+        {
+          "path": "checkpoint/config.json",
+          "bytes": 855,
+          "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+        },
+        {
+          "path": "checkpoint/model-00001-of-00004.safetensors",
+          "bytes": 4976698672,
+          "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+        },
+        {
+          "path": "checkpoint/model-00002-of-00004.safetensors",
+          "bytes": 4999802720,
+          "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+        },
+        {
+          "path": "checkpoint/model-00003-of-00004.safetensors",
+          "bytes": 4915916176,
+          "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+        },
+        {
+          "path": "checkpoint/model-00004-of-00004.safetensors",
+          "bytes": 1168138808,
+          "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+        },
+        {
+          "path": "checkpoint/model.safetensors.index.json",
+          "bytes": 23950,
+          "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+        },
+        {
+          "path": "variant.json",
+          "bytes": 919,
+          "sha256": "951365e6659a39ad9e143202034e2bf986ff5863f9bd0638b211604a82b08fcd"
+        }
+      ],
+      "hash_validation_s": 42.43515110411681,
+      "trial_payloads_absent": true,
+      "cleanup_s": 0.01617642305791378
+    }
+  },
+  "started": {
+    "etri-001": 1387932.390192513,
+    "cpu-1": 1387932.390557006,
+    "cpu-2": 1387932.390903189
+  },
+  "pulled": {
+    "etri-001": 1387935.056613562,
+    "cpu-2": 1387935.239079796,
+    "cpu-1": 1387935.436888216
+  },
+  "created_utc": 1793412886.950374,
+  "preparation_origin": {
+    "successful_body_bytes": 0,
+    "pack_body_bytes": 0,
+    "metadata_body_bytes": 0,
+    "error_body_bytes": 0,
+    "requests": 0,
+    "transfer_errors": 0,
+    "by_status": {}
+  },
+  "release_mono": 1387932.376060985,
+  "release_utc": 1793412957.5008817,
+  "origin_nics_before": {
+    "lxc8cea27b799f8": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "696199119",
+      "statistics/tx_bytes": "3621356998"
+    },
+    "lo": {
+      "operstate": "unknown",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "65536",
+      "statistics/rx_bytes": "22341420985",
+      "statistics/tx_bytes": "22341420985"
+    },
+    "cilium_host": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "210929683",
+      "statistics/tx_bytes": "2171528"
+    },
+    "lxca4c504fdae74": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "481022087",
+      "statistics/tx_bytes": "1380747442"
+    },
+    "cilium_vxlan": {
+      "operstate": "unknown",
+      "speed": "-1",
+      "duplex": "unknown",
+      "mtu": "1500",
+      "statistics/rx_bytes": "37786993196",
+      "statistics/tx_bytes": "120927242396"
+    },
+    "lxcfbc1232fdf7b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "375237905",
+      "statistics/tx_bytes": "45894857"
+    },
+    "lxc106ffa9b0813": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "785933873",
+      "statistics/tx_bytes": "3777059052"
+    },
+    "lxc27069c365d4d": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "190971036",
+      "statistics/tx_bytes": "222011791"
+    },
+    "lxc30ee449a046b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "33580149367",
+      "statistics/tx_bytes": "555160332"
+    },
+    "lxc96aa8aefcbca": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "999766702",
+      "statistics/tx_bytes": "978881722"
+    },
+    "lxc_health": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "64810551",
+      "statistics/tx_bytes": "77043581"
+    },
+    "lxcc213ede532ad": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "10286670530",
+      "statistics/tx_bytes": "120873846336"
+    },
+    "lxcefe2359fd1b1": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "43759737",
+      "statistics/tx_bytes": "1107259295"
+    },
+    "lxc579a5d104725": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "365577629",
+      "statistics/tx_bytes": "46655398"
+    },
+    "ens238f0np0": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "ens4013f0": {
+      "operstate": "up",
+      "speed": "1000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "1499127757862",
+      "statistics/tx_bytes": "364803387604"
+    },
+    "lxc91d6b1a5d81c": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "133610837",
+      "statistics/tx_bytes": "397195236"
+    },
+    "lxcc7e7a26cbf9e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "1636496936",
+      "statistics/tx_bytes": "2293857055"
+    },
+    "lxc6d24c23cde1b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "180517294",
+      "statistics/tx_bytes": "217042909"
+    },
+    "lxc2de1f52051ea": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "44155975",
+      "statistics/tx_bytes": "44695463"
+    },
+    "ens238f1np1": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "lxccf40ed31b9d8": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "57412046",
+      "statistics/tx_bytes": "11196608080"
+    },
+    "lxc25749b455c1b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "620214087",
+      "statistics/tx_bytes": "1729763621"
+    },
+    "lxccbc914cbea48": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "857848720",
+      "statistics/tx_bytes": "939940741"
+    },
+    "lxcdbb4c1ed8a0f": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27256",
+      "statistics/tx_bytes": "72996"
+    },
+    "lxc8204a0dab41e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27256",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxc890c3daba746": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "156151868",
+      "statistics/tx_bytes": "1245278875"
+    },
+    "enxbe3af2b6059f": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "lxca2726d0bcfac": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27186",
+      "statistics/tx_bytes": "73049"
+    },
+    "lxca8003c47926a": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27116",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxc9305d2b07e6b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27186",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxcf03aec07a5b7": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "3874235226",
+      "statistics/tx_bytes": "4869482654"
+    },
+    "lxcab76df4fc84e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "475519900",
+      "statistics/tx_bytes": "640570626"
+    },
+    "cilium_net": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "2171528",
+      "statistics/tx_bytes": "210929683"
+    },
+    "ens4013f1": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    }
+  },
+  "origin": {
+    "successful_body_bytes": 70287027,
+    "pack_body_bytes": 593733,
+    "metadata_body_bytes": 69693294,
+    "error_body_bytes": 0,
+    "requests": 990,
+    "transfer_errors": 0,
+    "by_status": {
+      "200": 984,
+      "206": 6
+    }
+  },
+  "origin_nics_after": {
+    "lxc8cea27b799f8": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "696209289",
+      "statistics/tx_bytes": "3621505903"
+    },
+    "lo": {
+      "operstate": "unknown",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "65536",
+      "statistics/rx_bytes": "22341466283",
+      "statistics/tx_bytes": "22341466283"
+    },
+    "cilium_host": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "210931293",
+      "statistics/tx_bytes": "2171528"
+    },
+    "lxca4c504fdae74": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "481035442",
+      "statistics/tx_bytes": "1380766672"
+    },
+    "cilium_vxlan": {
+      "operstate": "unknown",
+      "speed": "-1",
+      "duplex": "unknown",
+      "mtu": "1500",
+      "statistics/rx_bytes": "37788152588",
+      "statistics/tx_bytes": "120976177963"
+    },
+    "lxcfbc1232fdf7b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "375250134",
+      "statistics/tx_bytes": "45896345"
+    },
+    "lxc106ffa9b0813": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "785941411",
+      "statistics/tx_bytes": "3777069889"
+    },
+    "lxc27069c365d4d": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "190977669",
+      "statistics/tx_bytes": "222019508"
+    },
+    "lxc30ee449a046b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "33652821647",
+      "statistics/tx_bytes": "556781104"
+    },
+    "lxc96aa8aefcbca": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "999794419",
+      "statistics/tx_bytes": "978899940"
+    },
+    "lxc_health": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "64812815",
+      "statistics/tx_bytes": "77046213"
+    },
+    "lxcc213ede532ad": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "10286984529",
+      "statistics/tx_bytes": "120877317240"
+    },
+    "lxcefe2359fd1b1": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "43760820",
+      "statistics/tx_bytes": "1107283203"
+    },
+    "lxc579a5d104725": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "365588597",
+      "statistics/tx_bytes": "46656886"
+    },
+    "ens238f0np0": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "ens4013f0": {
+      "operstate": "up",
+      "speed": "1000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "1499134346417",
+      "statistics/tx_bytes": "364858291314"
+    },
+    "lxc91d6b1a5d81c": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "133615361",
+      "statistics/tx_bytes": "397199507"
+    },
+    "lxcc7e7a26cbf9e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "1636549867",
+      "statistics/tx_bytes": "2293925333"
+    },
+    "lxc6d24c23cde1b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "180523552",
+      "statistics/tx_bytes": "217050459"
+    },
+    "lxc2de1f52051ea": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "44157674",
+      "statistics/tx_bytes": "44697315"
+    },
+    "ens238f1np1": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "lxccf40ed31b9d8": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "57795806",
+      "statistics/tx_bytes": "11220436411"
+    },
+    "lxc25749b455c1b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "620251854",
+      "statistics/tx_bytes": "1729869122"
+    },
+    "lxccbc914cbea48": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "857875587",
+      "statistics/tx_bytes": "939968775"
+    },
+    "lxcdbb4c1ed8a0f": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27256",
+      "statistics/tx_bytes": "72996"
+    },
+    "lxc8204a0dab41e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27256",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxc890c3daba746": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "156156653",
+      "statistics/tx_bytes": "1245307810"
+    },
+    "enxbe3af2b6059f": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    },
+    "lxca2726d0bcfac": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27186",
+      "statistics/tx_bytes": "73049"
+    },
+    "lxca8003c47926a": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27116",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxc9305d2b07e6b": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "27186",
+      "statistics/tx_bytes": "73066"
+    },
+    "lxcf03aec07a5b7": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "3874353030",
+      "statistics/tx_bytes": "4869622890"
+    },
+    "lxcab76df4fc84e": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "475535170",
+      "statistics/tx_bytes": "640591361"
+    },
+    "cilium_net": {
+      "operstate": "up",
+      "speed": "10000",
+      "duplex": "full",
+      "mtu": "1500",
+      "statistics/rx_bytes": "2171528",
+      "statistics/tx_bytes": "210931293"
+    },
+    "ens4013f1": {
+      "operstate": "down",
+      "speed": "OSError",
+      "duplex": "OSError",
+      "mtu": "1500",
+      "statistics/rx_bytes": "0",
+      "statistics/tx_bytes": "0"
+    }
+  },
+  "metrics": {
+    "cohort_completion_s": 3.0608272310346365,
+    "received_start_skew_s": 0.0007106761913746595,
+    "store_read_bytes": 593733,
+    "peer_bytes": 0,
+    "cache_bytes": 0,
+    "successful_body_bytes": 70287027,
+    "pack_body_bytes": 593733,
+    "metadata_body_bytes": 69693294,
+    "error_body_bytes": 0,
+    "requests": 990,
+    "transfer_errors": 0,
+    "by_status": {
+      "200": 984,
+      "206": 6
+    }
+  },
+  "finished_utc": 1793413002.8364275
+}

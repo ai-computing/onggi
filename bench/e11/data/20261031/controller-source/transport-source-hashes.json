@@ -1,0 +1,17 @@
+[
+  {
+    "path": "C:\\Users\\USER\\orca\\scratch\\ccgrid-npu-20261030\\e6_controller.py",
+    "bytes": 15268,
+    "sha256": "1099ba7c4ba68311a2df9d18962ca7c8a592cf0067d3f4464505e68238339893"
+  },
+  {
+    "path": "C:\\Users\\USER\\orca\\scratch\\ecosystem-hardware-20261023\\run_remote.py",
+    "bytes": 676,
+    "sha256": "61646371bc6ada7a6a88f7dc2581296b1e942cc32568ea81fc6e7c0fa6284ba0"
+  },
+  {
+    "path": "C:\\Users\\USER\\orca\\workspaces\\Plane\\pollock\\hub\\orca.py",
+    "bytes": 5375,
+    "sha256": "8f3a3057021414cdc7ae553a48b92254d7882659535f2a6a782405cda6f74b7c"
+  }
+]

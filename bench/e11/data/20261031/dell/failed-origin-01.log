@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/scripts/origin.py", line 236, in <module>
+    main()
+  File "/scripts/origin.py", line 226, in main
+    stdout=open(ROOT/'gateway.log','ab'), stderr=subprocess.STDOUT)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: '/e11/gateway.log'

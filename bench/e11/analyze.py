@@ -10,6 +10,7 @@ from common import BodyCounter, aggregate, distribution, file_sha, save, validat
 def verify(root):
     root=pathlib.Path(root).resolve()
     package=json.loads((root/'package-manifest.json').read_text())
+    assert {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file() and p.name!='package-manifest.json'}=={i['path'] for i in package['files']}
     for item in package['files']:
         path=(root/item['path']).resolve()
         assert path.is_relative_to(root) and path.is_file()
@@ -62,6 +63,10 @@ def verify(root):
     job_uids={j['metadata']['uid'] for j in terminal['jobs']}
     pod_uids={p['metadata']['uid'] for p in terminal['pods']}
     assert {w['pod_uid'] for w in workers.values()} < pod_uids
+    by_uid={p['metadata']['uid']:p for p in terminal['pods']}
+    assert {by_uid[w['pod_uid']]['spec']['nodeName'] for w in workers.values()}==set(workers)
+    for node,worker in workers.items():
+        assert by_uid[worker['pod_uid']]['spec']['nodeName']==node
     for job in terminal['jobs']:
         assert job['metadata']['name'].startswith('cdx-e11-')
         assert job['spec']['backoffLimit']==0 and job['spec']['activeDeadlineSeconds']==14400
@@ -84,6 +89,8 @@ def verify(root):
     cleanup=json.loads((root/'dell/final-cleanup.json').read_text())
     assert cleanup['jobs_absent'] and cleanup['pods_absent']
     assert set(cleanup['job_uids'])==job_uids and set(cleanup['pod_uids'])==pod_uids
+    final=json.loads((root/'dell/final-owned-inventory.json').read_text())
+    assert final['namespace_absent'] and not final['cdx_jobs'] and not final['cdx_pods']
     summary=aggregate(cohorts)
     assert len(summary['groups'])==4 and all(g['cohort_completion_s']['n']==5 for g in summary['groups'])
     for group in summary['groups']:
@@ -96,6 +103,10 @@ def verify(root):
             group['per_node_'+field]={n:distribution([c['results'][n][field] for c in selected])
                                       for n in group['nodes']}
     summary['runtime_source']=inputs['source_commit']
+    summary['statistical_unit']='one simultaneously released three-node cohort; n=5 per condition'
+    summary['node_count']=3
+    summary['main_cohorts']=20
+    summary['node_samples']=60
     summary['owned_uid_cleanup_verified']=True
     summary['tools']=inputs['tools']
     summary['seed']={k:v for k,v in seed.items() if k not in ['files','stdout','stderr']}
@@ -111,6 +122,7 @@ def verify(root):
         'OS page cache and unrelated host/network load uncontrolled.',
         'Application response body/range/chunk payload counts, not physical NIC or disk bytes.',
         'Central completion includes marker HTTP receipt; post-pull hashes validated separately.',
+        'Payloads absent from Git: offline verification compares worker-recorded full-file hashes with frozen inventories.',
         'No NPU/GPU allocation, inference, CSI mount-latency or cross-vendor comparison.']
     return summary
 

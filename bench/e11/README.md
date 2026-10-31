@@ -51,9 +51,15 @@ delete unrelated workloads or modify the original artifact/store paths.
 
 ## Independent verification
 
+Published results: [report](REPORT-E11-20261031.md),
+[verified summary](summary-20261031.json), and [figure](figures/e11-cohort.pdf).
+The complete raw package is [data/20261031](data/20261031), preserved by tag
+`ccgrid-e11-20261031-raw-v1`. Python 3.9+ is required for offline analysis.
+
 ```sh
 python3 -m unittest discover -s bench/e11 -p test_e11.py -v
-python3 bench/e11/analyze.py --root DATA_ROOT --out reproduced-summary.json
+python3 bench/e11/analyze.py --root bench/e11/data/20261031 --out reproduced-summary.json
+diff -u bench/e11/summary-20261031.json reproduced-summary.json
 # Optional figure; requires Matplotlib only on the analysis machine:
 python3 bench/e11/plot.py reproduced-summary.json --out figures
 ```
@@ -63,6 +69,9 @@ inventories, recomputes origin response counters from original request rows,
 requires controller/origin cohort copies to agree, verifies output hashes and
 cleanup acknowledgements, and aggregates all four n5 groups with inclusive
 quartiles. Any failed main cohort is an error, never a latency exclusion.
+The worker hashes actual complete output files during every run. Artifact
+payloads are absent from Git: the offline verifier compares those recorded
+hashes with the frozen input inventory; it does not rehash model payloads.
 
 `read_bytes` counts stored-form range payload from the origin; `peer_bytes`
 and `cache_bytes` count their respective stored chunk payloads and can use

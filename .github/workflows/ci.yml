@@ -20,6 +20,10 @@ jobs:
       - run: go test -race ./...
       - name: E11 payload accounting and validity regressions
         run: python3 -m unittest discover -s bench/e11 -p test_e11.py -v
+      - name: E11 published raw integrity and summary reproduction
+        run: |
+          python3 bench/e11/analyze.py --root bench/e11/data/20261031 --out "$RUNNER_TEMP/e11-summary.json"
+          diff -u bench/e11/summary-20261031.json "$RUNNER_TEMP/e11-summary.json"
       - name: chunker benchmark (reported, not gated yet)
         run: go test -run xxx -bench . -benchtime 3x ./pkg/chunker
       - name: build linux/amd64 CLI

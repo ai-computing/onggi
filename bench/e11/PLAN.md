@@ -62,10 +62,10 @@ errors, pin exact manifests/variants, verify every ready cache inventory, requir
 all four groups, preserve timeout output/peer logs, and acknowledge cleanup
 before reporting each result. Setup repetition is excluded from headline data.
 
-- [ ] Pin source, graph/file inventories and tool hashes; inspect NICs.
-- [ ] Implement the small CPU-only controller, origin accounting and worker.
-- [ ] Assert/test accounting, barrier/failed-node aggregation, hash checks.
-- [ ] Commit/freeze harness before smoke and main; preserve every attempt.
-- [ ] Complete four smoke cohorts, then twenty main cohorts (60 node samples).
+- [x] Pin source, graph/file inventories and tool hashes; inspect NICs.
+- [x] Implement the small CPU-only controller, origin accounting and worker.
+- [x] Assert/test accounting, barrier/failed-node aggregation, hash checks.
+- [x] Commit/freeze harness before smoke and main; preserve every attempt.
+- [x] Complete four smoke cohorts, then twenty main cohorts (60 node samples).
 - [ ] Recompute all summaries from raw; independent review; green/read CI;
       PR/merge and shared board milestones. Clean owned Jobs/Pods by UID.

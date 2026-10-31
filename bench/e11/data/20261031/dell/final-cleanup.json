@@ -1,0 +1,19 @@
+{
+  "namespace_uid": "320dcf20-454b-4fdb-8f6a-14f3aaa992c8",
+  "jobs_absent": true,
+  "pods_absent": true,
+  "job_uids": [
+    "47a800d6-fbe3-4197-8577-fecb3e10c81f",
+    "3a79c763-755e-4a7d-af67-c0b4deccdfed",
+    "78dc785c-7817-4b54-8a90-6eb40c4bc40d",
+    "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21"
+  ],
+  "pod_uids": [
+    "fca304f1-ae4f-49a2-8300-aec465006063",
+    "5d796e04-1680-4601-a1b2-1f122f718fa9",
+    "1bf2c42d-30c2-4d87-9900-ef368df9746f",
+    "64659289-fe6d-4814-9921-9a0ceec5cbb3"
+  ],
+  "uid_guarded": true,
+  "utc": 1793413753.5101478
+}

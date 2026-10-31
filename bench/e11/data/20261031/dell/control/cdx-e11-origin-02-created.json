@@ -1,0 +1,153 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "annotations": {
+      "e11.source-sha": "929438ef4c515e5a7b9edf4a78ac20962a3ab012"
+    },
+    "creationTimestamp": "2026-10-31T01:27:33Z",
+    "generation": 1,
+    "labels": {
+      "app": "cdx-e11"
+    },
+    "name": "cdx-e11-origin-02",
+    "namespace": "codex-e11-20261031",
+    "resourceVersion": "114028652",
+    "uid": "e56c7c05-c095-424e-86b2-fbd8ea72bb04"
+  },
+  "spec": {
+    "activeDeadlineSeconds": 14400,
+    "backoffLimit": 0,
+    "completionMode": "NonIndexed",
+    "completions": 1,
+    "manualSelector": false,
+    "parallelism": 1,
+    "podReplacementPolicy": "TerminatingOrFailed",
+    "selector": {
+      "matchLabels": {
+        "batch.kubernetes.io/controller-uid": "e56c7c05-c095-424e-86b2-fbd8ea72bb04"
+      }
+    },
+    "suspend": false,
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "e56c7c05-c095-424e-86b2-fbd8ea72bb04",
+          "batch.kubernetes.io/job-name": "cdx-e11-origin-02",
+          "controller-uid": "e56c7c05-c095-424e-86b2-fbd8ea72bb04",
+          "job-name": "cdx-e11-origin-02"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/origin.py"
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              },
+              "requests": {
+                "cpu": "1",
+                "memory": "1Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/e11",
+                "name": "work"
+              },
+              {
+                "mountPath": "/data",
+                "name": "data"
+              },
+              {
+                "mountPath": "/data/e11",
+                "name": "store",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1002,
+          "runAsUser": 1002
+        },
+        "terminationGracePeriodSeconds": 30,
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-02"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_e11_20261031",
+              "type": "Directory"
+            },
+            "name": "work"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/store/e6-posix",
+              "type": "Directory"
+            },
+            "name": "store"
+          },
+          {
+            "emptyDir": {},
+            "name": "data"
+          }
+        ]
+      }
+    },
+    "ttlSecondsAfterFinished": 600
+  },
+  "status": {}
+}

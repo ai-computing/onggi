@@ -30,12 +30,12 @@ def main():
         bars=ax.bar(range(4),values,color=colors,yerr=[low,high],capsize=3,width=.65)
         ax.set_xticks(range(4),labels)
         ax.set_title(title)
-        ax.set_ylim(0,max(values)*1.25+.01)
+        ax.set_ylim(0,max(v+h for v,h in zip(values,high))*1.2+.01)
         ax.spines[['top','right']].set_visible(False)
         ax.set_axisbelow(True)
         ax.grid(axis='y',alpha=.2)
-        for bar,v in zip(bars,values):
-            ax.annotate(f'{v:.2f}',(bar.get_x()+bar.get_width()/2,v),xytext=(0,5),
+        for bar,v,h in zip(bars,values,high):
+            ax.annotate(f'{v:.2f}',(bar.get_x()+bar.get_width()/2,v+h),xytext=(0,5),
                         textcoords='offset points',ha='center',fontsize=8)
     fig.suptitle('Three-node file switch: median and Q1–Q3, n=5 per condition',fontsize=11)
     args.out.mkdir(parents=True,exist_ok=True)

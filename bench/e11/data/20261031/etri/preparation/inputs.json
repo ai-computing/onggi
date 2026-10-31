@@ -1,0 +1,448 @@
+{
+  "schema": "onggi.e11.inputs.v1",
+  "utc": 1793409784.9818857,
+  "source_commit": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+  "artifacts": {
+    "base": {
+      "manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+      "files": [
+        {
+          "path": "checkpoint/config.json",
+          "bytes": 855,
+          "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+        },
+        {
+          "path": "checkpoint/model-00001-of-00004.safetensors",
+          "bytes": 4976698672,
+          "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+        },
+        {
+          "path": "checkpoint/model-00002-of-00004.safetensors",
+          "bytes": 4999802720,
+          "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+        },
+        {
+          "path": "checkpoint/model-00003-of-00004.safetensors",
+          "bytes": 4915916176,
+          "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+        },
+        {
+          "path": "checkpoint/model-00004-of-00004.safetensors",
+          "bytes": 1168138808,
+          "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+        },
+        {
+          "path": "checkpoint/model.safetensors.index.json",
+          "bytes": 23950,
+          "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/42100dcbf68bbc6aa86e92b0.runnable",
+          "bytes": 760632,
+          "sha256": "5e8aaff08c16606163a52e9d517dc2e1fc0b58aabb03740559af38ca4bba7bb1"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+          "bytes": 224097,
+          "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70"
+        },
+        {
+          "path": "variant.json",
+          "bytes": 919,
+          "sha256": "cdc74a5ae3eda7e24736b3d0268dc68c54dca92ed277d4217b5906f1cf46d6dc"
+        }
+      ],
+      "manifest_json": {
+        "schema": "onggi.manifest.v1",
+        "created": "2026-10-30T06:45:01.518254125Z",
+        "chunker": {
+          "Min": 16384,
+          "Avg": 65536,
+          "Max": 262144
+        },
+        "bytes": 16061566829,
+        "files": [
+          {
+            "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+            "size": 224097,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:658e22f6309f383e41adc1b7dda95750a87b6dbbe2ab0e7054605bfd790b3cfe"
+          },
+          {
+            "path": "cache/graphs/2026.4.0/2.10.0+cpu/42100dcbf68bbc6aa86e92b0.runnable",
+            "size": 760632,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:15a8af62e8c59c09718195b60d9b25d325ee463b7deccbd7e6818ab9fdae2d9b"
+          },
+          {
+            "path": "checkpoint/config.json",
+            "size": 855,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:d424c703f6486dfa5e92e57a663ceec478c9a9c798a8342a682fae7408960230"
+          },
+          {
+            "path": "checkpoint/model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:cd979dbe2a838d9f94ab096b8533565cd6ae7e1f3b723be3b297b4c511f045fe"
+          },
+          {
+            "path": "checkpoint/model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:bfd8b5fa3b8270180053e753a91c7d1cf5b847acbeb29929a9be510d26273ec0"
+          },
+          {
+            "path": "checkpoint/model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:f798ab81a68803086c95ab5a7301346d5621336776738284ec994c1bf1afc8f8"
+          },
+          {
+            "path": "checkpoint/model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:1927ad118aa5fd6ae472771eae9d9d8a36aa42952f8f69c1ab06fd8d4f6107c2"
+          },
+          {
+            "path": "checkpoint/model.safetensors.index.json",
+            "size": 23950,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:34070b0f152f4b179370ae451a3bbaed21266f7069221fa96ddf0ba6d708a600"
+          },
+          {
+            "path": "variant.json",
+            "size": 919,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:036ecf2935316b0b2ee1f57b2dd50361cfaad0c5ce291bb40ed7162741aae704"
+          }
+        ],
+        "locator": "sha256:9c034526d6ce5377b4c81eb4167571c37b93af4215d72bf0272ed61cd871b3e8"
+      }
+    },
+    "target": {
+      "manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+      "files": [
+        {
+          "path": "checkpoint/config.json",
+          "bytes": 855,
+          "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+        },
+        {
+          "path": "checkpoint/model-00001-of-00004.safetensors",
+          "bytes": 4976698672,
+          "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+        },
+        {
+          "path": "checkpoint/model-00002-of-00004.safetensors",
+          "bytes": 4999802720,
+          "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+        },
+        {
+          "path": "checkpoint/model-00003-of-00004.safetensors",
+          "bytes": 4915916176,
+          "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+        },
+        {
+          "path": "checkpoint/model-00004-of-00004.safetensors",
+          "bytes": 1168138808,
+          "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+        },
+        {
+          "path": "checkpoint/model.safetensors.index.json",
+          "bytes": 23950,
+          "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+          "bytes": 778900,
+          "sha256": "f06c3bf73e93e964a9a2f575e6a73c0960aea0cae02b63f43b5cce5182f0f756"
+        },
+        {
+          "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+          "bytes": 224097,
+          "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70"
+        },
+        {
+          "path": "variant.json",
+          "bytes": 919,
+          "sha256": "951365e6659a39ad9e143202034e2bf986ff5863f9bd0638b211604a82b08fcd"
+        }
+      ],
+      "manifest_json": {
+        "schema": "onggi.manifest.v1",
+        "created": "2026-10-30T06:45:06.728360601Z",
+        "chunker": {
+          "Min": 16384,
+          "Avg": 65536,
+          "Max": 262144
+        },
+        "bytes": 16061585097,
+        "files": [
+          {
+            "path": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+            "size": 224097,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:658e22f6309f383e41adc1b7dda95750a87b6dbbe2ab0e7054605bfd790b3cfe"
+          },
+          {
+            "path": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+            "size": 778900,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:79a34a6a889bdeb8609d5c04c579ab5e95abf70d576b29e145c057ee11aea673"
+          },
+          {
+            "path": "checkpoint/config.json",
+            "size": 855,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:d424c703f6486dfa5e92e57a663ceec478c9a9c798a8342a682fae7408960230"
+          },
+          {
+            "path": "checkpoint/model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:cd979dbe2a838d9f94ab096b8533565cd6ae7e1f3b723be3b297b4c511f045fe"
+          },
+          {
+            "path": "checkpoint/model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:bfd8b5fa3b8270180053e753a91c7d1cf5b847acbeb29929a9be510d26273ec0"
+          },
+          {
+            "path": "checkpoint/model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:f798ab81a68803086c95ab5a7301346d5621336776738284ec994c1bf1afc8f8"
+          },
+          {
+            "path": "checkpoint/model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "mode": 436,
+            "kind": "hf",
+            "list": "sha256:1927ad118aa5fd6ae472771eae9d9d8a36aa42952f8f69c1ab06fd8d4f6107c2"
+          },
+          {
+            "path": "checkpoint/model.safetensors.index.json",
+            "size": 23950,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:34070b0f152f4b179370ae451a3bbaed21266f7069221fa96ddf0ba6d708a600"
+          },
+          {
+            "path": "variant.json",
+            "size": 919,
+            "mode": 384,
+            "kind": "other",
+            "list": "sha256:82008241ca54eeaae6cee8e209ef2f1071001415ae38f22983db02bfdda2464c"
+          }
+        ],
+        "locator": "sha256:e13675aa250673d36941256d8866b56b9a61f0525f795ac64734bab03a9c90da"
+      }
+    }
+  },
+  "store_config": [
+    {
+      "path": "config/st/store",
+      "base64": "ewogICJzY2hlbWEiOiAib25nZ2kuc3RvcmUudjEiLAogICJjaHVua2VyIjogewogICAgIk1pbiI6IDE2Mzg0LAogICAgIkF2ZyI6IDY1NTM2LAogICAgIk1heCI6IDI2MjE0NAogIH0sCiAgInBhY2tfc2l6ZSI6IDY3MTA4ODY0LAogICJzdWJfY2h1bmtlciI6IHsKICAgICJNaW4iOiAxMDI0LAogICAgIkF2ZyI6IDQwOTYsCiAgICAiTWF4IjogMTYzODQKICB9LAogICJzdWJfa2luZHMiOiBbCiAgICAiYXRvbS1wcmVmaWxsIiwKICAgICJhdG9tLWRlY29kZSIsCiAgICAiYXRvbS1vdGhlciIKICBdLAogICJmcmFtZSI6IDI2MjE0NCwKICAiY3JlYXRlZCI6ICIyMDI2LTEwLTMwVDA2OjM4OjUyLjg5Mzc2MjM5MVoiCn0=",
+      "sha256": "f88423c6ddc52fe357c5e6f8d82e916b94d6988c69bd952a4aa125cffd38bc66"
+    }
+  ],
+  "prior_proof_sha256": "acbed10bac744f16cab09e863d86ca2c67621bdaf58bcf9b1ad588c73db544d7",
+  "prior_proof": {
+    "utc": 1793343002.10534,
+    "status": "completed",
+    "scope": "independent full input hashes after corrected v2 publication; off-card preparation only",
+    "binary_sha256": "6f906b54bdec214957e2b46fa4ff7d737934c7d433f3f465d86bab12d9d972e0",
+    "artifacts": [
+      {
+        "role": "base-B4-S256-g2",
+        "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2/base-B4-S256-g2",
+        "manifest": "sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526",
+        "manifest_canonical_bytes": "{\n \"schema\": \"onggi.manifest.v1\",\n \"created\": \"2026-10-30T06:45:01.518254125Z\",\n \"chunker\": {\n  \"Min\": 16384,\n  \"Avg\": 65536,\n  \"Max\": 262144\n },\n \"bytes\": 16061566829,\n \"files\": [\n  {\n   \"path\": \"cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable\",\n   \"size\": 224097,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:658e22f6309f383e41adc1b7dda95750a87b6dbbe2ab0e7054605bfd790b3cfe\"\n  },\n  {\n   \"path\": \"cache/graphs/2026.4.0/2.10.0+cpu/42100dcbf68bbc6aa86e92b0.runnable\",\n   \"size\": 760632,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:15a8af62e8c59c09718195b60d9b25d325ee463b7deccbd7e6818ab9fdae2d9b\"\n  },\n  {\n   \"path\": \"checkpoint/config.json\",\n   \"size\": 855,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:d424c703f6486dfa5e92e57a663ceec478c9a9c798a8342a682fae7408960230\"\n  },\n  {\n   \"path\": \"checkpoint/model-00001-of-00004.safetensors\",\n   \"size\": 4976698672,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:cd979dbe2a838d9f94ab096b8533565cd6ae7e1f3b723be3b297b4c511f045fe\"\n  },\n  {\n   \"path\": \"checkpoint/model-00002-of-00004.safetensors\",\n   \"size\": 4999802720,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:bfd8b5fa3b8270180053e753a91c7d1cf5b847acbeb29929a9be510d26273ec0\"\n  },\n  {\n   \"path\": \"checkpoint/model-00003-of-00004.safetensors\",\n   \"size\": 4915916176,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:f798ab81a68803086c95ab5a7301346d5621336776738284ec994c1bf1afc8f8\"\n  },\n  {\n   \"path\": \"checkpoint/model-00004-of-00004.safetensors\",\n   \"size\": 1168138808,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:1927ad118aa5fd6ae472771eae9d9d8a36aa42952f8f69c1ab06fd8d4f6107c2\"\n  },\n  {\n   \"path\": \"checkpoint/model.safetensors.index.json\",\n   \"size\": 23950,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:34070b0f152f4b179370ae451a3bbaed21266f7069221fa96ddf0ba6d708a600\"\n  },\n  {\n   \"path\": \"variant.json\",\n   \"size\": 919,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:036ecf2935316b0b2ee1f57b2dd50361cfaad0c5ce291bb40ed7162741aae704\"\n  }\n ],\n \"locator\": \"sha256:9c034526d6ce5377b4c81eb4167571c37b93af4215d72bf0272ed61cd871b3e8\"\n}",
+        "variant_json": "{\n  \"checkpoint_binding\": \"identical six canonical HF files; full hashes retained in external immutable manifest\",\n  \"checkpoint_manifest_sha256\": \"2b6e92c792503258f3d9f13633a0d94a69387b31964cd54f17f857d52965c6c8\",\n  \"decode_key\": \"42100dcbf68bbc6aa86e92b0\",\n  \"graph_compile_source_commits\": {\n    \"33a051dfeb83c1a051b7599b\": \"9c6e89293907beafff99d0951032156e667fe72a\",\n    \"42100dcbf68bbc6aa86e92b0\": \"9c6e89293907beafff99d0951032156e667fe72a\"\n  },\n  \"graph_spec_source_commit\": \"f5fa13377a3d967ba3d4022fb73ae59b1c87441c\",\n  \"group\": 2,\n  \"lmhead_key\": \"33a051dfeb83c1a051b7599b\",\n  \"max_num_unique_shapes\": 8,\n  \"schema\": \"rngd-pd.ccgrid.variant.v1\",\n  \"scope\": \"complete checkpoint plus runnable graphs; source artifact immutable to publishers and trial source mounted readonly; consumable trial base must use independent file-copy inodes\",\n  \"sdk\": \"2026.4.0\",\n  \"torch\": \"2.10.0+cpu\",\n  \"variant\": \"B4-S256-g2\"\n}\n",
+        "files": [
+          {
+            "name": "checkpoint/config.json",
+            "bytes": 855,
+            "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00001-of-00004.safetensors",
+            "bytes": 4976698672,
+            "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00002-of-00004.safetensors",
+            "bytes": 4999802720,
+            "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00003-of-00004.safetensors",
+            "bytes": 4915916176,
+            "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00004-of-00004.safetensors",
+            "bytes": 1168138808,
+            "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model.safetensors.index.json",
+            "bytes": 23950,
+            "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "cache/graphs/2026.4.0/2.10.0+cpu/42100dcbf68bbc6aa86e92b0.runnable",
+            "bytes": 760632,
+            "sha256": "5e8aaff08c16606163a52e9d517dc2e1fc0b58aabb03740559af38ca4bba7bb1",
+            "verification": "full file bytes hashed"
+          },
+          {
+            "name": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+            "bytes": 224097,
+            "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70",
+            "verification": "full file bytes hashed"
+          },
+          {
+            "name": "variant.json",
+            "bytes": 919,
+            "sha256": "cdc74a5ae3eda7e24736b3d0268dc68c54dca92ed277d4217b5906f1cf46d6dc",
+            "verification": "full file bytes hashed"
+          }
+        ]
+      },
+      {
+        "role": "target-B4-S512-g2",
+        "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2/target-B4-S512-g2",
+        "manifest": "sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52",
+        "manifest_canonical_bytes": "{\n \"schema\": \"onggi.manifest.v1\",\n \"created\": \"2026-10-30T06:45:06.728360601Z\",\n \"chunker\": {\n  \"Min\": 16384,\n  \"Avg\": 65536,\n  \"Max\": 262144\n },\n \"bytes\": 16061585097,\n \"files\": [\n  {\n   \"path\": \"cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable\",\n   \"size\": 224097,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:658e22f6309f383e41adc1b7dda95750a87b6dbbe2ab0e7054605bfd790b3cfe\"\n  },\n  {\n   \"path\": \"cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable\",\n   \"size\": 778900,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:79a34a6a889bdeb8609d5c04c579ab5e95abf70d576b29e145c057ee11aea673\"\n  },\n  {\n   \"path\": \"checkpoint/config.json\",\n   \"size\": 855,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:d424c703f6486dfa5e92e57a663ceec478c9a9c798a8342a682fae7408960230\"\n  },\n  {\n   \"path\": \"checkpoint/model-00001-of-00004.safetensors\",\n   \"size\": 4976698672,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:cd979dbe2a838d9f94ab096b8533565cd6ae7e1f3b723be3b297b4c511f045fe\"\n  },\n  {\n   \"path\": \"checkpoint/model-00002-of-00004.safetensors\",\n   \"size\": 4999802720,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:bfd8b5fa3b8270180053e753a91c7d1cf5b847acbeb29929a9be510d26273ec0\"\n  },\n  {\n   \"path\": \"checkpoint/model-00003-of-00004.safetensors\",\n   \"size\": 4915916176,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:f798ab81a68803086c95ab5a7301346d5621336776738284ec994c1bf1afc8f8\"\n  },\n  {\n   \"path\": \"checkpoint/model-00004-of-00004.safetensors\",\n   \"size\": 1168138808,\n   \"mode\": 436,\n   \"kind\": \"hf\",\n   \"list\": \"sha256:1927ad118aa5fd6ae472771eae9d9d8a36aa42952f8f69c1ab06fd8d4f6107c2\"\n  },\n  {\n   \"path\": \"checkpoint/model.safetensors.index.json\",\n   \"size\": 23950,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:34070b0f152f4b179370ae451a3bbaed21266f7069221fa96ddf0ba6d708a600\"\n  },\n  {\n   \"path\": \"variant.json\",\n   \"size\": 919,\n   \"mode\": 384,\n   \"kind\": \"other\",\n   \"list\": \"sha256:82008241ca54eeaae6cee8e209ef2f1071001415ae38f22983db02bfdda2464c\"\n  }\n ],\n \"locator\": \"sha256:e13675aa250673d36941256d8866b56b9a61f0525f795ac64734bab03a9c90da\"\n}",
+        "variant_json": "{\n  \"checkpoint_binding\": \"identical six canonical HF files; full hashes retained in external immutable manifest\",\n  \"checkpoint_manifest_sha256\": \"2b6e92c792503258f3d9f13633a0d94a69387b31964cd54f17f857d52965c6c8\",\n  \"decode_key\": \"b780eaf18aaa12c360feb891\",\n  \"graph_compile_source_commits\": {\n    \"33a051dfeb83c1a051b7599b\": \"9c6e89293907beafff99d0951032156e667fe72a\",\n    \"b780eaf18aaa12c360feb891\": \"f5fa13377a3d967ba3d4022fb73ae59b1c87441c\"\n  },\n  \"graph_spec_source_commit\": \"f5fa13377a3d967ba3d4022fb73ae59b1c87441c\",\n  \"group\": 2,\n  \"lmhead_key\": \"33a051dfeb83c1a051b7599b\",\n  \"max_num_unique_shapes\": 8,\n  \"schema\": \"rngd-pd.ccgrid.variant.v1\",\n  \"scope\": \"complete checkpoint plus runnable graphs; source artifact immutable to publishers and trial source mounted readonly; consumable trial base must use independent file-copy inodes\",\n  \"sdk\": \"2026.4.0\",\n  \"torch\": \"2.10.0+cpu\",\n  \"variant\": \"B4-S512-g2\"\n}\n",
+        "files": [
+          {
+            "name": "checkpoint/config.json",
+            "bytes": 855,
+            "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00001-of-00004.safetensors",
+            "bytes": 4976698672,
+            "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00002-of-00004.safetensors",
+            "bytes": 4999802720,
+            "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00003-of-00004.safetensors",
+            "bytes": 4915916176,
+            "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model-00004-of-00004.safetensors",
+            "bytes": 1168138808,
+            "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "checkpoint/model.safetensors.index.json",
+            "bytes": 23950,
+            "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b",
+            "verification": "full bytes hashed on same canonical hardlink inode"
+          },
+          {
+            "name": "cache/graphs/2026.4.0/2.10.0+cpu/b780eaf18aaa12c360feb891.runnable",
+            "bytes": 778900,
+            "sha256": "f06c3bf73e93e964a9a2f575e6a73c0960aea0cae02b63f43b5cce5182f0f756",
+            "verification": "full file bytes hashed"
+          },
+          {
+            "name": "cache/graphs/2026.4.0/2.10.0+cpu/33a051dfeb83c1a051b7599b.runnable",
+            "bytes": 224097,
+            "sha256": "405001f45f4676a134738a2d340dd453f17e9ccc60ba026e05ab285b39261c70",
+            "verification": "full file bytes hashed"
+          },
+          {
+            "name": "variant.json",
+            "bytes": 919,
+            "sha256": "951365e6659a39ad9e143202034e2bf986ff5863f9bd0638b211604a82b08fcd",
+            "verification": "full file bytes hashed"
+          }
+        ]
+      }
+    ],
+    "canonical_checkpoint": [
+      {
+        "name": "config.json",
+        "bytes": 855,
+        "sha256": "29e4c210b0d6ac178b16b2a255a568bdb23b581e50ca1ef6a6d071dd85704e6e"
+      },
+      {
+        "name": "model-00001-of-00004.safetensors",
+        "bytes": 4976698672,
+        "sha256": "2b1879f356aed350030bb40eb45ad362c89d9891096f79a3ab323d3ba5607668"
+      },
+      {
+        "name": "model-00002-of-00004.safetensors",
+        "bytes": 4999802720,
+        "sha256": "09d433f650646834a83c580877bd60c6d1f88f7755305c12576b5c7058f9af15"
+      },
+      {
+        "name": "model-00003-of-00004.safetensors",
+        "bytes": 4915916176,
+        "sha256": "fc1cdddd6bfa91128d6e94ee73d0ce62bfcdb7af29e978ddcab30c66ae9ea7fa"
+      },
+      {
+        "name": "model-00004-of-00004.safetensors",
+        "bytes": 1168138808,
+        "sha256": "92ecfe1a2414458b4821ac8c13cf8cb70aed66b5eea8dc5ad9eeb4ff309d6d7b"
+      },
+      {
+        "name": "model.safetensors.index.json",
+        "bytes": 23950,
+        "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b"
+      }
+    ]
+  },
+  "tools": {
+    "onggi": {
+      "bytes": 17555640,
+      "sha256": "43620e9c668fc022a561982460ea9ec99f70403e2383e95ae139feb6ccf5bc84"
+    },
+    "versitygw": {
+      "bytes": 59996057,
+      "sha256": "80d34e246449ec45056686513dd81fad20fcc6f2ff4a8fd1e29f5d2d663e1f1f"
+    },
+    "gateway.tar.gz": {
+      "bytes": 27542985,
+      "sha256": "2ba2c734d10d2c4e651d03182cb4b246656bc735a2f282db7b0b73fba6073467"
+    }
+  },
+  "go_version": "go version go1.25.1 linux/amd64"
+}
