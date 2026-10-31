@@ -54,6 +54,8 @@ delete unrelated workloads or modify the original artifact/store paths.
 ```sh
 python3 -m unittest discover -s bench/e11 -p test_e11.py -v
 python3 bench/e11/analyze.py --root DATA_ROOT --out reproduced-summary.json
+# Optional figure; requires Matplotlib only on the analysis machine:
+python3 bench/e11/plot.py reproduced-summary.json --out figures
 ```
 
 The analyzer rehashes the package, checks exact target and ready-cache

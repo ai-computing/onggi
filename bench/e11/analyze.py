@@ -47,9 +47,32 @@ def verify(root):
             assert result['pod_uid']==workers[node]['pod_uid']
         cohorts.append(c)
     assert len(cohorts)==24 and sum(c['stage']=='smoke' for c in cohorts)==4
+    terminal=json.loads((root/'dell/final-terminal-api.json').read_text())
+    assert len(terminal['jobs'])==4 and len(terminal['pods'])==4
+    job_uids={j['metadata']['uid'] for j in terminal['jobs']}
+    pod_uids={p['metadata']['uid'] for p in terminal['pods']}
+    assert {w['pod_uid'] for w in workers.values()} < pod_uids
+    for job in terminal['jobs']:
+        assert job['metadata']['name'].startswith('cdx-e11-')
+        assert job['spec']['backoffLimit']==0 and job['spec']['activeDeadlineSeconds']==14400
+        assert job['spec']['ttlSecondsAfterFinished']==600
+    for pod in terminal['pods']:
+        assert pod['status']['phase']=='Succeeded'
+        assert any(o['uid'] in job_uids for o in pod['metadata']['ownerReferences'])
+        assert not pod['spec'].get('hostNetwork',False)
+        for c in pod['spec']['containers']:
+            assert set(c['resources']['limits']) <= {'cpu','memory','ephemeral-storage'}
+            assert set(c['resources']['requests']) <= {'cpu','memory','ephemeral-storage'}
+            assert not c.get('securityContext',{}).get('privileged',False)
+        for v in pod['spec']['volumes']:
+            assert not v.get('hostPath',{}).get('path','').startswith('/dev')
+    cleanup=json.loads((root/'dell/final-cleanup.json').read_text())
+    assert cleanup['jobs_absent'] and cleanup['pods_absent']
+    assert set(cleanup['job_uids'])==job_uids and set(cleanup['pod_uids'])==pod_uids
     summary=aggregate(cohorts)
     assert len(summary['groups'])==4 and all(g['cohort_completion_s']['n']==5 for g in summary['groups'])
     summary['runtime_source']=inputs['source_commit']
+    summary['owned_uid_cleanup_verified']=True
     summary['tools']=inputs['tools']
     summary['seed']={k:v for k,v in seed.items() if k not in ['files','stdout','stderr']}
     summary['seed']['report']=json.loads(seed['stdout'])
