@@ -1,9 +1,10 @@
 """Verify the published E11 package and reproduce summaries from original raw data."""
 import argparse
+import hashlib
 import json
 import pathlib
 
-from common import BodyCounter, aggregate, file_sha, save, validate_cohort, validate_ready
+from common import BodyCounter, aggregate, distribution, file_sha, save, validate_cohort, validate_ready
 
 
 def verify(root):
@@ -13,6 +14,15 @@ def verify(root):
         path=(root/item['path']).resolve()
         assert path.is_relative_to(root) and path.is_file()
         assert path.stat().st_size==item['bytes'] and file_sha(path)==item['sha256'],item['path']
+    identity=json.loads((root/'source-identity.json').read_text())
+    assert identity['executed_harness_commit']=='7870cef872e201a6a4dca87ed1bb998da9c3109f'
+    configmap=json.loads((root/'dell/control/cdx-e11-scripts-03-created.json').read_text())['data']
+    for name,item in identity['source_files'].items():
+        for path in [pathlib.Path(__file__).parent/name,root/'dell'/name]:
+            raw=path.read_bytes().replace(b'\r\n',b'\n')
+            assert len(raw)==item['bytes'] and hashlib.sha256(raw).hexdigest()==item['canonical_lf_sha256'],str(path)
+        if name in configmap:
+            assert hashlib.sha256(configmap[name].encode()).hexdigest()==item['canonical_lf_sha256']
     origin=root/'etri/attempt03'
     inputs=json.loads((origin/'inputs.json').read_text())
     workers=json.loads((origin/'workers.json').read_text())
@@ -56,6 +66,8 @@ def verify(root):
         assert job['metadata']['name'].startswith('cdx-e11-')
         assert job['spec']['backoffLimit']==0 and job['spec']['activeDeadlineSeconds']==14400
         assert job['spec']['ttlSecondsAfterFinished']==600
+        source=job['metadata']['annotations']['e11.source-sha']
+        assert len(source)>=7 and identity['executed_harness_commit'].startswith(source)
     for pod in terminal['pods']:
         assert pod['status']['phase']=='Succeeded'
         assert any(o['uid'] in job_uids for o in pod['metadata']['ownerReferences'])
@@ -64,13 +76,25 @@ def verify(root):
             assert set(c['resources']['limits']) <= {'cpu','memory','ephemeral-storage'}
             assert set(c['resources']['requests']) <= {'cpu','memory','ephemeral-storage'}
             assert not c.get('securityContext',{}).get('privileged',False)
+            assert all(m['readOnly'] for m in c['volumeMounts'] if m['name']=='store')
         for v in pod['spec']['volumes']:
             assert not v.get('hostPath',{}).get('path','').startswith('/dev')
+            if v['name']=='scripts':
+                assert v['configMap']['name']=='cdx-e11-scripts-03'
     cleanup=json.loads((root/'dell/final-cleanup.json').read_text())
     assert cleanup['jobs_absent'] and cleanup['pods_absent']
     assert set(cleanup['job_uids'])==job_uids and set(cleanup['pod_uids'])==pod_uids
     summary=aggregate(cohorts)
     assert len(summary['groups'])==4 and all(g['cohort_completion_s']['n']==5 for g in summary['groups'])
+    for group in summary['groups']:
+        selected=[c for c in cohorts if c['trial'] in group['trials']]
+        group['per_node_completion_s']={n:distribution([c['pulled'][n]-c['release_mono'] for c in selected])
+                                        for n in group['nodes']}
+        group['per_node_base_copy_s']={n:distribution([c['ready'][n]['copy_s'] for c in selected])
+                                       for n in group['nodes']}
+        for field in ['hash_validation_s','cleanup_s']:
+            group['per_node_'+field]={n:distribution([c['results'][n][field] for c in selected])
+                                      for n in group['nodes']}
     summary['runtime_source']=inputs['source_commit']
     summary['owned_uid_cleanup_verified']=True
     summary['tools']=inputs['tools']
