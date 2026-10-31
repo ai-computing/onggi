@@ -2,9 +2,19 @@ import io
 import unittest
 
 from common import BodyCounter, aggregate, validate_cohort
+from deploy import template
 
 
 class EvidenceTests(unittest.TestCase):
+    def test_origin_uses_actual_host_owner_and_readonly_source(self):
+        origin = template('cdx-test','etri-001',False,'frozen')
+        spec = origin['spec']['template']['spec']
+        self.assertEqual(spec['securityContext']['runAsUser'],1002)
+        mounts = spec['containers'][0]['volumeMounts']
+        self.assertTrue(next(m for m in mounts if m['name']=='store')['readOnly'])
+        self.assertFalse(spec['automountServiceAccountToken'])
+        for c in spec['containers']:
+            self.assertEqual(set(c['resources']['limits']),{'cpu','memory'})
     def test_actual_successful_body_accounting_includes_metadata(self):
         c = BodyCounter()
         c.record('/e11/packs/ab/abcdef', 123, 206)

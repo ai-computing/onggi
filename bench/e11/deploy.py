@@ -10,6 +10,8 @@ from common import save
 
 ROOT=pathlib.Path('/home/gspark/workspace/codex_e11_20261031')
 NS='codex-e11-20261031'
+ORIGIN='cdx-e11-origin-02'
+SCRIPTS='cdx-e11-scripts-02'
 NODES=['cpu-1','cpu-2','etri-001']
 IMAGE='python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce'
 K=['/usr/bin/kubectl','--kubeconfig=/home/gspark/.kube/config','--context=kubernetes-admin@kubernetes']
@@ -28,7 +30,7 @@ def pod_for(job):
 
 
 def template(name,node,worker,source,origin=None):
-    common=dict(name='scripts',configMap=dict(name='cdx-e11-scripts'))
+    common=dict(name='scripts',configMap=dict(name=SCRIPTS))
     sysvol=dict(name='host-sys',hostPath=dict(path='/sys',type='Directory'))
     mounts=[dict(name='scripts',mountPath='/scripts',readOnly=True),dict(name='host-sys',mountPath='/host-sys',readOnly=True)]
     env=[]
@@ -56,7 +58,8 @@ def template(name,node,worker,source,origin=None):
         securityContext=dict(allowPrivilegeEscalation=False,capabilities=dict(drop=['ALL'])))
     spec=dict(restartPolicy='Never',automountServiceAccountToken=False,
               nodeSelector={'kubernetes.io/hostname':node},containers=[container],volumes=volumes,
-              securityContext=dict(runAsUser=1000,runAsGroup=1000,fsGroup=1000),terminationGracePeriodSeconds=30)
+              securityContext=dict(runAsUser=1000 if worker else 1002,
+                                   runAsGroup=1000 if worker else 1002,fsGroup=1000),terminationGracePeriodSeconds=30)
     # No tolerations, host networking, privileged container, or accelerator resources.
     assert not any('/' in key for key in limits)
     return dict(apiVersion='batch/v1',kind='Job',metadata=dict(name=name,namespace=NS,
@@ -72,14 +75,19 @@ def main():
     args=parser.parse_args()
     ROOT.mkdir(parents=True,exist_ok=True)
     if not args.workers:
-        namespace=create(dict(apiVersion='v1',kind='Namespace',metadata=dict(name=NS,labels={'app':'cdx-e11'})))
-        save(ROOT/'namespace.json',dict(name=NS,uid=namespace['metadata']['uid']))
-        create(dict(apiVersion='v1',kind='ConfigMap',metadata=dict(name='cdx-e11-scripts',namespace=NS),
+        if (ROOT/'namespace.json').exists():
+            receipt=json.loads((ROOT/'namespace.json').read_text())
+            existing=json.loads(subprocess.check_output(K+['get','namespace',NS,'-o','json']))
+            assert existing['metadata']['uid']==receipt['uid']
+        else:
+            namespace=create(dict(apiVersion='v1',kind='Namespace',metadata=dict(name=NS,labels={'app':'cdx-e11'})))
+            save(ROOT/'namespace.json',dict(name=NS,uid=namespace['metadata']['uid']))
+        create(dict(apiVersion='v1',kind='ConfigMap',metadata=dict(name=SCRIPTS,namespace=NS),
                     data={name:(ROOT/name).read_text() for name in ['common.py','origin.py','worker.py']}))
-        create(template('cdx-e11-origin','etri-001',False,args.source))
+        create(template(ORIGIN,'etri-001',False,args.source))
         print(json.dumps(dict(status='origin-created')))
         return
-    p=pod_for('cdx-e11-origin')
+    p=pod_for(ORIGIN)
     assert p and p['status'].get('podIP') and p['status']['phase']=='Running'
     origin=p['status']['podIP']
     with urllib.request.urlopen('http://'+origin+':9010/status',timeout=10) as r:

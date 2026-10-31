@@ -49,6 +49,11 @@ NIC counter deltas include unrelated traffic and are contextual only.
 
 ## Execution ledger
 
+Ruling: first origin Job failed before serving because the prepared host root is
+owned by gspark UID/GID1002, not1000. Preserve its terminal logs/API and retry
+as origin-02 using1002; worker emptyDirs remain1000. No source data or node
+permissions changed. Added a failing-then-passing owner/mount regression.
+
 - [ ] Pin source, graph/file inventories and tool hashes; inspect NICs.
 - [ ] Implement the small CPU-only controller, origin accounting and worker.
 - [ ] Assert/test accounting, barrier/failed-node aggregation, hash checks.
