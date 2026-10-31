@@ -10,8 +10,8 @@ from common import save
 
 ROOT=pathlib.Path('/home/gspark/workspace/codex_e11_20261031')
 NS='codex-e11-20261031'
-ORIGIN='cdx-e11-origin-02'
-SCRIPTS='cdx-e11-scripts-02'
+ORIGIN='cdx-e11-origin-03'
+SCRIPTS='cdx-e11-scripts-03'
 NODES=['cpu-1','cpu-2','etri-001']
 IMAGE='python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce'
 K=['/usr/bin/kubectl','--kubeconfig=/home/gspark/.kube/config','--context=kubernetes-admin@kubernetes']
@@ -45,7 +45,7 @@ def template(name,node,worker,source,origin=None):
         limits=dict(cpu='2',memory='4Gi',**{'ephemeral-storage':'60Gi'})
         requests=dict(cpu='2',memory='4Gi',**{'ephemeral-storage':'40Gi'})
     else:
-        volumes.extend([dict(name='work',hostPath=dict(path=str(ROOT),type='Directory')),
+        volumes.extend([dict(name='work',hostPath=dict(path=str(ROOT/'attempt03'),type='Directory')),
                         dict(name='store',hostPath=dict(path='/home/gspark/workspace/codex_ccgrid_npu_20261030/store/e6-posix',type='Directory')),
                         dict(name='data',emptyDir={})])
         mounts.extend([dict(name='work',mountPath='/e11'),dict(name='data',mountPath='/data'),
@@ -94,7 +94,7 @@ def main():
         assert 'workers' in json.load(r)
     save(ROOT/'origin-assignment.json',dict(ip=origin,uid=p['metadata']['uid'],node=p['spec']['nodeName']))
     for i,node in enumerate(NODES):
-        create(template('cdx-e11-worker-'+str(i),node,True,args.source,origin))
+        create(template('cdx-e11-worker-03-'+str(i),node,True,args.source,origin))
     print(json.dumps(dict(status='workers-created',origin=origin)))
 
 

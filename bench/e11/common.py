@@ -12,14 +12,15 @@ class BodyCounter:
         self.lock = threading.Lock()
         self.data = dict(successful_body_bytes=0, pack_body_bytes=0,
                          metadata_body_bytes=0, error_body_bytes=0,
-                         requests=0, by_status={})
+                         requests=0, transfer_errors=0, by_status={})
 
-    def record(self, path, count, status):
+    def record(self, path, count, status, transfer_error=False):
         if count < 0:
             raise ValueError('negative response body count')
         with self.lock:
             d = self.data
             d['requests'] += 1
+            d['transfer_errors'] += int(transfer_error)
             key = str(status)
             d['by_status'][key] = d['by_status'].get(key, 0) + 1
             if 200 <= status < 300:
@@ -64,8 +65,13 @@ def validate_cohort(c):
             raise ValueError('node process/hash/time quality gate failed')
         if any(r['stats'][key] < 0 for key in ['read_bytes', 'peer_bytes', 'cache_bytes']):
             raise ValueError('negative source payload')
-    if len({r['manifest'] for r in c['results'].values()}) != 1:
-        raise ValueError('nodes materialized different manifests')
+    if any(r['manifest'] != c['target_manifest'] for r in c['results'].values()):
+        raise ValueError('unexpected target manifest')
+    if c['arm']=='store' and any(r['stats']['peer_bytes'] for r in c['results'].values()):
+        raise ValueError('store-only arm used peers')
+    store_bytes=sum(r['stats']['read_bytes'] for r in c['results'].values())
+    if c['origin']['transfer_errors'] or c['origin']['pack_body_bytes'] != store_bytes:
+        raise ValueError('origin transfer failed or range accounting differs from CLI')
     return dict(cohort_completion_s=max(c['pulled'].values()) - c['release_mono'],
                 received_start_skew_s=max(c['started'].values()) - min(c['started'].values()),
                 store_read_bytes=sum(r['stats']['read_bytes'] for r in c['results'].values()),
@@ -80,7 +86,18 @@ def distribution(values):
                 samples=values)
 
 
-def aggregate(cohorts):
+def validate_ready(c, inputs, seed_inventory):
+    def canonical(rows):
+        return sorted([dict(path=r['path'],bytes=r['bytes'],sha256=r['sha256']) for r in rows],key=lambda x:x['path'])
+    if set(c['ready']) != set(c['nodes']):
+        raise ValueError('missing ready nodes')
+    for node in c['nodes']:
+        expected=seed_inventory if c['stratum']=='one-seed' and node==c['nodes'][0] else inputs['store_config']
+        if canonical(c['ready'][node]['cache_before']) != canonical(expected):
+            raise ValueError('initial cache placement differs: '+node)
+
+
+def aggregate(cohorts, required_conditions=None):
     groups = {}
     seen = set()
     smokes = []
@@ -97,6 +114,9 @@ def aggregate(cohorts):
         key = (c['stratum'], c['arm'], tuple(c['nodes']))
         groups.setdefault(key, []).append((c, metrics))
     out = []
+    required_conditions = required_conditions or {(s,a) for s in ['empty','one-seed'] for a in ['store','peer']}
+    if {(s,a) for s,a,_ in groups} != required_conditions:
+        raise ValueError('missing or unexpected experimental condition groups')
     for (stratum, arm, nodes), rows in sorted(groups.items()):
         if len(rows) < 5:
             raise ValueError('incomplete n>=5 group')

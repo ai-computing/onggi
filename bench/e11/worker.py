@@ -32,7 +32,12 @@ def api(path, data=None):
 def run(args, folder, stem):
     folder.mkdir(parents=True, exist_ok=True)
     begin = time.monotonic()
-    p = subprocess.run([str(BIN)]+args, env=ENV, capture_output=True, timeout=1200)
+    try:
+        p = subprocess.run([str(BIN)]+args, env=ENV, capture_output=True, timeout=1200)
+    except subprocess.TimeoutExpired as exc:
+        (folder/(stem+'.stdout')).write_bytes(exc.stdout or b'')
+        (folder/(stem+'.stderr')).write_bytes(exc.stderr or b'')
+        raise
     elapsed = time.monotonic()-begin
     (folder/(stem+'.stdout')).write_bytes(p.stdout)
     (folder/(stem+'.stderr')).write_bytes(p.stderr)
@@ -138,14 +143,27 @@ def trial(command, inputs):
         if peer:
             peer.terminate()
             peer.wait(timeout=20)
+        if (work/'peer.log').exists():
+            result['peer_log']=(work/'peer.log').read_text()
+        if (work/'pull.stdout').exists():
+            result.setdefault('stdout',(work/'pull.stdout').read_text(errors='replace'))
+            result.setdefault('stderr',(work/'pull.stderr').read_text(errors='replace'))
+        save(work/'result.json',result)
+        # Delete only owned trial bulk payloads AFTER evidence is written and acknowledged.
+        cleanup_start=time.monotonic()
+        try:
+            for label in ['base','out','cache']:
+                target=(work/label).resolve()
+                assert target.is_relative_to((ROOT/'runs').resolve()) and target != ROOT/'runs'
+                if target.exists():
+                    shutil.rmtree(target)
+            result['trial_payloads_absent']=True
+        except BaseException:
+            result['status']='failed'
+            result['cleanup_error']=traceback.format_exc()
+        result['cleanup_s']=time.monotonic()-cleanup_start
         save(work/'result.json',result)
         api('/result',result)
-        # Delete only owned trial bulk payloads AFTER evidence is written and acknowledged.
-        for label in ['base','out','cache']:
-            target=(work/label).resolve()
-            assert target.is_relative_to((ROOT/'runs').resolve()) and target != ROOT/'runs'
-            if target.exists():
-                shutil.rmtree(target)
     if result['status'] != 'completed':
         raise RuntimeError(result.get('error','trial failed'))
 
@@ -178,7 +196,8 @@ def main():
     registration=dict(node=NODE,ip=os.environ['POD_IP'],pod_uid=os.environ['POD_UID'],
         bootstrap=bootstrap,seed=seed,nics=nic_info(),python=os.sys.version,
         device_files=[p.name for p in pathlib.Path('/dev').iterdir() if any(x in p.name.lower() for x in ['rbln','furiosa','rngd','nvidia'])],
-        binary_sha256=file_sha(BIN))
+        binary_sha256=file_sha(BIN),seed_cache_inventory=[dict(path=p.relative_to(ROOT/'seed-cache').as_posix(),
+            bytes=p.stat().st_size,sha256=file_sha(p)) for p in (ROOT/'seed-cache').rglob('*') if p.is_file()])
     assert not registration['device_files']
     save(ROOT/'registration.json',registration)
     api('/register',registration)

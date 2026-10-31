@@ -21,6 +21,12 @@ def main():
         with urllib.request.urlopen(req,timeout=30) as r:
             return json.load(r)
     before=api('/status')
+    inputs=api('/inputs.json')
+    expected={'base':'sha256:04b45065cea8408e08043c1cbd13bdc4aa230c9683a9d85ed97f5fb1e5567526',
+              'target':'sha256:66cedc7b2a1389394c7ca5275d171625993c23742d7c7834bcb7e93a2be52e52'}
+    for role,manifest in expected.items():
+        assert inputs['artifacts'][role]['manifest']==manifest
+    assert [json.loads(a['variant_json'])['variant'] for a in inputs['prior_proof']['artifacts']]==['B4-S256-g2','B4-S512-g2']
     assert set(before['workers'])=={'cpu-1','cpu-2','etri-001'}
     save(ROOT/('workers-'+args.stage+'.json'),before['workers'])
     cohorts=[]
@@ -30,7 +36,8 @@ def main():
             order=['store','peer'] if repetition%2==0 else ['peer','store']
             for arm in order:
                 name=f'{args.stage}-{stratum}-{arm}-{repetition+1:02d}'
-                api('/cohort/start',dict(trial=name,stratum=stratum,arm=arm,stage=args.stage,repetition=repetition+1))
+                api('/cohort/start',dict(trial=name,stratum=stratum,arm=arm,stage=args.stage,repetition=repetition+1,
+                                        target_manifest=expected['target'],base_manifest=expected['base']))
                 print('START '+name,flush=True)
                 deadline=time.monotonic()+2000
                 while True:

@@ -11,7 +11,7 @@ import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
-from common import BodyCounter, file_sha, save, validate_cohort
+from common import BodyCounter, file_sha, save, validate_cohort, validate_ready
 
 ROOT = pathlib.Path('/e11')
 LOCK = threading.RLock()
@@ -46,6 +46,10 @@ def finish_trial(trial):
         while True:
             with LOCK:
                 if set(trial['ready']) == set(NODES) and not STATE['active_proxy']:
+                    if trial['results']:
+                        raise RuntimeError('worker failed before barrier')
+                    inputs=json.loads((ROOT/'inputs.json').read_text())
+                    validate_ready(trial,inputs,STATE['workers'][NODES[0]]['seed_cache_inventory'])
                     trial['preparation_origin'] = STATE['counters'].snapshot()
                     STATE['counters'] = BodyCounter()
                     trial['release_mono'] = time.monotonic()
@@ -185,6 +189,8 @@ class Proxy(BaseHTTPRequestHandler):
         # Workers only READ the immutable source. Reject mutation at the proxy.
         conn = http.client.HTTPConnection('127.0.0.1', 7070, timeout=180)
         count = 0
+        written = 0
+        transfer_error = None
         status = 502
         with LOCK:
             STATE['active_proxy'] += 1
@@ -204,13 +210,17 @@ class Proxy(BaseHTTPRequestHandler):
             self.end_headers()
             if self.command != 'HEAD':
                 while b := response.read(1 << 20):
-                    self.wfile.write(b)
                     count += len(b)
+                    self.wfile.write(b)
+                    written += len(b)
+        except BaseException:
+            transfer_error = traceback.format_exc()
         finally:
             conn.close()
-            counter.record(self.path, count, status)
+            counter.record(self.path, count, status, bool(transfer_error))
             record = dict(utc=time.time(), trial=trial_id, method=self.command,
-                          path=self.path, status=status, body_bytes=count, client=self.client_address[0])
+                          path=self.path, status=status, body_bytes=count, written_body_bytes=written,
+                          transfer_error=transfer_error, client=self.client_address[0])
             with LOCK:
                 with (ROOT/'origin-requests.jsonl').open('a') as f:
                     f.write(json.dumps(record)+'\n')

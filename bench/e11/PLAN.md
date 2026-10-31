@@ -54,6 +54,14 @@ owned by gspark UID/GID1002, not1000. Preserve its terminal logs/API and retry
 as origin-02 using1002; worker emptyDirs remain1000. No source data or node
 permissions changed. Added a failing-then-passing owner/mount regression.
 
+Ruling: independent pre-main review found missing cache/expected-variant gates
+and an interrupted-response undercount risk. No smoke/main had run. Preserve
+attempt02 bootstrap and replace it with attempt03 BEFORE any measurement.
+Count upstream response bytes before client writes, flag/invalidate transfer
+errors, pin exact manifests/variants, verify every ready cache inventory, require
+all four groups, preserve timeout output/peer logs, and acknowledge cleanup
+before reporting each result. Setup repetition is excluded from headline data.
+
 - [ ] Pin source, graph/file inventories and tool hashes; inspect NICs.
 - [ ] Implement the small CPU-only controller, origin accounting and worker.
 - [ ] Assert/test accounting, barrier/failed-node aggregation, hash checks.
