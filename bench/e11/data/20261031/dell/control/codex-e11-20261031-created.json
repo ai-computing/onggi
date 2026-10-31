@@ -1,0 +1,22 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "creationTimestamp": "2026-10-31T01:25:56Z",
+    "labels": {
+      "app": "cdx-e11",
+      "kubernetes.io/metadata.name": "codex-e11-20261031"
+    },
+    "name": "codex-e11-20261031",
+    "resourceVersion": "114027786",
+    "uid": "320dcf20-454b-4fdb-8f6a-14f3aaa992c8"
+  },
+  "spec": {
+    "finalizers": [
+      "kubernetes"
+    ]
+  },
+  "status": {
+    "phase": "Active"
+  }
+}

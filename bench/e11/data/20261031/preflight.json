@@ -1,0 +1,474 @@
+{
+  "nodes": [
+    {
+      "name": "cpu-1",
+      "arch": "amd64",
+      "taints": [],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.184.178",
+          "type": "InternalIP"
+        },
+        {
+          "address": "cpu-1",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "128",
+        "ephemeral-storage": "422794468676",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "391221808Ki",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "6645af6b-8bcf-4fbf-b912-662db7db97a8",
+        "containerRuntimeVersion": "containerd://2.2.2",
+        "kernelVersion": "7.0.0-30-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "7cc22a637b304c58b972fa828f79f311",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 26.04 LTS",
+        "systemUUID": "4c4c4544-0036-3710-8039-b4c04f513533"
+      },
+      "images": []
+    },
+    {
+      "name": "cpu-2",
+      "arch": "amd64",
+      "taints": [],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.184.179",
+          "type": "InternalIP"
+        },
+        {
+          "address": "cpu-2",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "128",
+        "ephemeral-storage": "422788806366",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "391221760Ki",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "4cbe079f-2cca-4ade-8dab-470642885d52",
+        "containerRuntimeVersion": "containerd://2.2.2",
+        "kernelVersion": "7.0.0-38-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "f6b78252df964db19e4cf8a921b82b44",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 26.04 LTS",
+        "systemUUID": "4c4c4544-0036-3710-8039-b3c04f513533"
+      },
+      "images": [
+        [
+          "docker.io/library/golang@sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804",
+          "docker.io/library/golang:1.24"
+        ],
+        [
+          "docker.io/library/python@sha256:b27df5841f3355e9473f9a516d38a6783b6c8dfeacaf2d14a240f443b368ddb6",
+          "docker.io/library/python:3.11-slim"
+        ],
+        [
+          "docker.io/library/python@sha256:5f9928ea39771e8ddf4fb9a96ab24f65f087793635614405a1dc9384f040852e",
+          "docker.io/library/python:3.10-slim"
+        ]
+      ]
+    },
+    {
+      "name": "cpu-3",
+      "arch": "amd64",
+      "taints": [
+        {
+          "effect": "NoSchedule",
+          "key": "node.kubernetes.io/unreachable",
+          "timeAdded": "2026-07-07T04:43:06Z"
+        },
+        {
+          "effect": "NoSchedule",
+          "key": "node.cilium.io/agent-not-ready"
+        },
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/unreachable",
+          "timeAdded": "2026-07-07T04:43:11Z"
+        }
+      ],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.184.186",
+          "type": "InternalIP"
+        },
+        {
+          "address": "cpu-3",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "128",
+        "ephemeral-storage": "422788806366",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "391221860Ki",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "Unknown",
+        "DiskPressure": "Unknown",
+        "PIDPressure": "Unknown",
+        "Ready": "Unknown"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "6a5732f8-7723-4dae-be45-22be680f35e8",
+        "containerRuntimeVersion": "containerd://2.2.2",
+        "kernelVersion": "7.0.0-22-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "d69bcbdd443a4ed8a05ecac82145e079",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 26.04 LTS",
+        "systemUUID": "4c4c4544-0039-3610-8039-c6c04f513533"
+      },
+      "images": [
+        [
+          "docker.io/library/python@sha256:a3ab0b966bc4e91546a033e22093cb840908979487a9fc0e6e38295747e49ac0",
+          "docker.io/library/python:3.11-slim"
+        ],
+        [
+          "docker.io/library/python@sha256:5f9928ea39771e8ddf4fb9a96ab24f65f087793635614405a1dc9384f040852e",
+          "docker.io/library/python:3.10-slim"
+        ],
+        [
+          "docker.io/library/busybox@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d",
+          "docker.io/library/busybox:latest"
+        ]
+      ]
+    },
+    {
+      "name": "dgx-spark0",
+      "arch": "arm64",
+      "taints": [
+        {
+          "effect": "NoSchedule",
+          "key": "node.kubernetes.io/unschedulable",
+          "timeAdded": "2026-10-15T04:45:51Z"
+        },
+        {
+          "effect": "NoSchedule",
+          "key": "node.cilium.io/agent-not-ready"
+        },
+        {
+          "effect": "NoSchedule",
+          "key": "node.kubernetes.io/unreachable",
+          "timeAdded": "2026-10-30T22:21:52Z"
+        },
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/unreachable",
+          "timeAdded": "2026-10-30T22:21:57Z"
+        }
+      ],
+      "unschedulable": true,
+      "addresses": [
+        {
+          "address": "10.254.175.66",
+          "type": "InternalIP"
+        },
+        {
+          "address": "dgx-spark0",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "20",
+        "ephemeral-storage": "3542660371940",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "hugepages-32Mi": "0",
+        "hugepages-64Ki": "0",
+        "memory": "127498160Ki",
+        "nvidia.com/gpu": "1",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "Unknown",
+        "DiskPressure": "Unknown",
+        "PIDPressure": "Unknown",
+        "Ready": "Unknown"
+      },
+      "nodeInfo": {
+        "architecture": "arm64",
+        "bootID": "16f1a99a-efef-480a-8857-4ce07b2b6609",
+        "containerRuntimeVersion": "containerd://2.2.1",
+        "kernelVersion": "6.17.0-1029-nvidia",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "e6f6ad4d4de54522865951112279a80c",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 24.04.4 LTS",
+        "systemUUID": "c1864aba-d549-11d3-a613-30c599404825"
+      },
+      "images": []
+    },
+    {
+      "name": "etri-001",
+      "arch": "amd64",
+      "taints": [],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.184.183",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-001",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "96",
+        "ephemeral-storage": "4483617818385",
+        "furiosa.ai/rngd": "3",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "1584900468Ki",
+        "nvidia.com/gpu": "0",
+        "pods": "110",
+        "rebellions.ai/ATOM": "4"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "6db1b2d9-399b-419d-98cb-37e38da5629d",
+        "containerRuntimeVersion": "containerd://2.2.1",
+        "kernelVersion": "6.8.0-40-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "4c90e4f0cbfa47ba88334d1126f0d490",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 22.04.5 LTS",
+        "systemUUID": "f6a41200-9b3e-11ef-8000-7cc25560a2ff"
+      },
+      "images": [
+        [
+          "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+          "docker.io/library/python:3.11-slim"
+        ]
+      ]
+    },
+    {
+      "name": "etri-esc8000-e11",
+      "arch": "amd64",
+      "taints": [
+        {
+          "effect": "NoSchedule",
+          "key": "node.kubernetes.io/unschedulable",
+          "timeAdded": "2026-10-22T08:16:42Z"
+        }
+      ],
+      "unschedulable": true,
+      "addresses": [
+        {
+          "address": "10.254.184.126",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-esc8000-e11",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "24",
+        "ephemeral-storage": "3739475836453",
+        "furiosa.ai/rngd": "2",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "1056440756Ki",
+        "nvidia.com/gpu": "2",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "36951bdc-1613-497e-96e8-61bbbde44489",
+        "containerRuntimeVersion": "containerd://2.2.1",
+        "kernelVersion": "6.8.0-106-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "03d70e274c25448697b6ea4ba3c1b674",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 22.04.5 LTS",
+        "systemUUID": "8d05872c-9f1e-2d8c-b29e-a036bccd4ff3"
+      },
+      "images": [
+        [
+          "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+          "docker.io/library/python:3.11-slim"
+        ],
+        [
+          "docker.io/library/busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+          "docker.io/library/busybox:1.36"
+        ]
+      ]
+    },
+    {
+      "name": "gspark-poweredge-r7525",
+      "arch": "amd64",
+      "taints": [
+        {
+          "effect": "NoSchedule",
+          "key": "node-role.kubernetes.io/control-plane"
+        }
+      ],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.184.105",
+          "type": "InternalIP"
+        },
+        {
+          "address": "gspark-poweredge-r7525",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "128",
+        "ephemeral-storage": "422788806366",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "391221836Ki",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "amd64",
+        "bootID": "d71358ad-7533-4ab3-a827-1c719f92e674",
+        "containerRuntimeVersion": "containerd://2.2.2",
+        "kernelVersion": "7.0.0-22-generic",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "b748c30b32f7413c868488b2ab417f44",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 26.04 LTS",
+        "systemUUID": "4c4c4544-0039-3610-8039-c4c04f513533"
+      },
+      "images": [
+        [
+          "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+          "docker.io/library/python:3.11-slim"
+        ]
+      ]
+    },
+    {
+      "name": "gx10-4744",
+      "arch": "arm64",
+      "taints": [
+        {
+          "effect": "NoSchedule",
+          "key": "node.kubernetes.io/disk-pressure",
+          "timeAdded": "2026-10-22T02:54:59Z"
+        }
+      ],
+      "unschedulable": false,
+      "addresses": [
+        {
+          "address": "10.254.175.155",
+          "type": "InternalIP"
+        },
+        {
+          "address": "gx10-4744",
+          "type": "Hostname"
+        }
+      ],
+      "allocatable": {
+        "cpu": "20",
+        "ephemeral-storage": "3542660371940",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "hugepages-32Mi": "0",
+        "hugepages-64Ki": "0",
+        "memory": "125405944Ki",
+        "nvidia.com/gpu": "1",
+        "pods": "110"
+      },
+      "conditions": {
+        "NetworkUnavailable": "False",
+        "MemoryPressure": "False",
+        "DiskPressure": "True",
+        "PIDPressure": "False",
+        "Ready": "True"
+      },
+      "nodeInfo": {
+        "architecture": "arm64",
+        "bootID": "7e7260e4-645f-41c5-ab1d-920e45ed4256",
+        "containerRuntimeVersion": "containerd://2.2.1",
+        "kernelVersion": "6.17.0-1008-nvidia",
+        "kubeProxyVersion": "v1.31.14",
+        "kubeletVersion": "v1.31.14",
+        "machineID": "e6f6ad4d4de54522865951112279a80c",
+        "operatingSystem": "linux",
+        "osImage": "Ubuntu 24.04.4 LTS",
+        "systemUUID": "a5e45920-d574-11d3-9559-30c599404744"
+      },
+      "images": []
+    }
+  ],
+  "tools": {
+    "go": null,
+    "docker": null,
+    "python3": "/usr/bin/python3"
+  },
+  "paths": {
+    "/home/gspark/workspace/claude_onggi_abstraction_20261030": false,
+    "/home/gspark/workspace/codex_ccgrid_npu_20261030": false
+  },
+  "own_pods": []
+}

@@ -1,0 +1,12 @@
+{
+  "path": "/home/gspark/workspace/codex_e11_20261031/export-post-cleanup-dell.tar.gz",
+  "bytes": 290,
+  "sha256": "3821b909559074959e8402c4b089a53645b0b80f4da386dd88e0f4148dec6b15",
+  "files": [
+    {
+      "path": "final-owned-inventory.json",
+      "bytes": 94,
+      "sha256": "7d0fc4adb9c1e1ad025515a9f0f84660ecc8cae7c71a717fdaf3d716aaf4e1a4"
+    }
+  ]
+}

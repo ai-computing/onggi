@@ -1,0 +1,9 @@
+Cloning into 'source'...
+HEAD is now at 05c9760 Bound CSI materialization and preserve lease ownership (#67)
+go version go1.25.1 linux/amd64
+ok  	github.com/ai-computing/onggi/pkg/peer	0.653s
+ok  	github.com/ai-computing/onggi/pkg/store	5.194s
+43620e9c668fc022a561982460ea9ec99f70403e2383e95ae139feb6ccf5bc84  onggi
+80d34e246449ec45056686513dd81fad20fcc6f2ff4a8fd1e29f5d2d663e1f1f  versitygw
+2ba2c734d10d2c4e651d03182cb4b246656bc735a2f282db7b0b73fba6073467  gateway.tar.gz
+dev

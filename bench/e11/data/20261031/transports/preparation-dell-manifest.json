@@ -1,0 +1,147 @@
+{
+  "path": "/home/gspark/workspace/codex_e11_20261031/export-preparation-dell.tar.gz",
+  "bytes": 74734,
+  "sha256": "d30e1de66b54f984ad40ec0df31fc511a479e49e9da1c051920fe161fc87e467",
+  "files": [
+    {
+      "path": "common.py",
+      "bytes": 6117,
+      "sha256": "5237dc8ddf2d2ef753d3805523784260f3b43923eae27f634d0b4a8b9719a1d8"
+    },
+    {
+      "path": "control/cdx-e11-origin-02-created.json",
+      "bytes": 4206,
+      "sha256": "00dabc579f5e3e060ba783b096c4f95749d615c0b9834f60080c4f348a890dfa"
+    },
+    {
+      "path": "control/cdx-e11-origin-03-created.json",
+      "bytes": 4216,
+      "sha256": "d03ecf085a071246123654194e5581a6acf1c659f16a12594a1e2d9af5e534ee"
+    },
+    {
+      "path": "control/cdx-e11-origin-created.json",
+      "bytes": 4194,
+      "sha256": "56e5e437d9e4847aa753ca5e4aef7cc6afa6057d5fb3311ac8035c26ff5a0d6e"
+    },
+    {
+      "path": "control/cdx-e11-scripts-02-created.json",
+      "bytes": 24031,
+      "sha256": "0d81f9476d33b1749597bc3df761c4b2be8c23ff501a3e8a7da300b930dde9bc"
+    },
+    {
+      "path": "control/cdx-e11-scripts-03-created.json",
+      "bytes": 27171,
+      "sha256": "bfe3176914498abcd478aad0a902d087e9cc084896ac339dcdb9c73d3e647d2b"
+    },
+    {
+      "path": "control/cdx-e11-scripts-created.json",
+      "bytes": 24028,
+      "sha256": "13847421598142c76c457c019c42399458a18ab33914bda1aa6305d5efad7204"
+    },
+    {
+      "path": "control/cdx-e11-worker-0-created.json",
+      "bytes": 4738,
+      "sha256": "af06ddeff72219083e939184f4c2ab7994f45cdeb333ea6f6f3d33baaa91e4cf"
+    },
+    {
+      "path": "control/cdx-e11-worker-03-0-created.json",
+      "bytes": 4747,
+      "sha256": "bdfbe5a4f6e56551298b7561066e9d4a7cb9846fdc2e00ce03b609741e3879f8"
+    },
+    {
+      "path": "control/cdx-e11-worker-03-1-created.json",
+      "bytes": 4747,
+      "sha256": "d323da8b3379d585455c53c331db8f2b1fddfa79c2c76d30beab418ad5efa6e9"
+    },
+    {
+      "path": "control/cdx-e11-worker-03-2-created.json",
+      "bytes": 4750,
+      "sha256": "985112f641cc2f1d97805124120b078e69108bb16a937a72d673af0d64c0e3d4"
+    },
+    {
+      "path": "control/cdx-e11-worker-1-created.json",
+      "bytes": 4738,
+      "sha256": "7e77d7c8f8201dc3d53a08af5b4d95232e6c0dcf6b0be35ec652738dcaf37cbb"
+    },
+    {
+      "path": "control/cdx-e11-worker-2-created.json",
+      "bytes": 4741,
+      "sha256": "f2d2a14b0562ee1b001353b359f55ccd31956cef98d3ec94ffda261f18d92d28"
+    },
+    {
+      "path": "control/codex-e11-20261031-created.json",
+      "bytes": 446,
+      "sha256": "f8ff9adf31bb5f544cc31d8caa1d30670c6f7bf7fc9a450c0ae2a6e49704586c"
+    },
+    {
+      "path": "deploy.py",
+      "bytes": 5460,
+      "sha256": "efbe06613abde971f05e0e6c7ac352be671785defd3f431645e21f566a64f09e"
+    },
+    {
+      "path": "failed-origin-01.json",
+      "bytes": 12372,
+      "sha256": "0405041259f4a8adeb462978d680584c4e148810e78a69addf8f9d78647c0fe6"
+    },
+    {
+      "path": "failed-origin-01.log",
+      "bytes": 319,
+      "sha256": "bad07d23226b08ea8a88761f8301ae62f3505fce61fb06728613a73ab9300a45"
+    },
+    {
+      "path": "harness-7870cef.tar.gz",
+      "bytes": 13118,
+      "sha256": "e9f34063d9b2a5412291104eceaeae77e55160306fe86b8b7b195914bdda1376"
+    },
+    {
+      "path": "harness-929438e.tar.gz",
+      "bytes": 11241,
+      "sha256": "61400f016bfe79aa72d36ea09d727236db2aab17ab0359cb518f28c084168b27"
+    },
+    {
+      "path": "harness.tar.gz",
+      "bytes": 10946,
+      "sha256": "fba7712317ebe4231babfbe27ca0e55bdb26ea729c387bd3c53e8307ed4d48bf"
+    },
+    {
+      "path": "namespace.json",
+      "bytes": 84,
+      "sha256": "5117b8b20727a52f7cffebdd622c197d6bc291418afa070e2cfa8f93d2448746"
+    },
+    {
+      "path": "origin-assignment02.json",
+      "bytes": 96,
+      "sha256": "d35d2df2009f952ed9b92cc66cf2df20eb73d52144bd6e733c4807410ad589c6"
+    },
+    {
+      "path": "origin.py",
+      "bytes": 10333,
+      "sha256": "9d484a6fac804803e848b0f8bae33b3a367a54ee2ea2e5acb600c6dc96f539ec"
+    },
+    {
+      "path": "run_matrix.py",
+      "bytes": 2932,
+      "sha256": "6c33cc06c555d385ae1bcf86a7a7f8fa4882f4e45fd8122eecbf51f387310079"
+    },
+    {
+      "path": "setup02-final-workers.json",
+      "bytes": 41555,
+      "sha256": "6ae96d6b1f2cb7c4c4ed74db74ed127435fd4bd0d2975cae816422e6ddb2c43a"
+    },
+    {
+      "path": "setup02-terminal-api.json",
+      "bytes": 56167,
+      "sha256": "bd5ddaf4577d634564a9bc37683ca7b0f4068eb8a382adeed2c2e69188447c5c"
+    },
+    {
+      "path": "worker.py",
+      "bytes": 9749,
+      "sha256": "39d0b3dbcbf6227bfb88a30e2f7fcabe8b4821b50db92a0289dc1c1908fce94a"
+    },
+    {
+      "path": "workers-attempt02.json",
+      "bytes": 30651,
+      "sha256": "910e4197792f8c18926d6fd7b452599792505ff27b00fac1cb7e6acb40e49ce8"
+    }
+  ]
+}

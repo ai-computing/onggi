@@ -1,0 +1,1847 @@
+{
+  "namespace": {
+    "apiVersion": "v1",
+    "kind": "Namespace",
+    "metadata": {
+      "annotations": {
+        "cattle.io/status": "{\"Conditions\":[{\"Type\":\"ResourceQuotaInit\",\"Status\":\"True\",\"Message\":\"\",\"LastUpdateTime\":\"2026-10-31T01:25:57Z\"},{\"Type\":\"InitialRolesPopulated\",\"Status\":\"True\",\"Message\":\"\",\"LastUpdateTime\":\"2026-10-31T01:25:57Z\"}]}",
+        "lifecycle.cattle.io/create.namespace-auth": "true"
+      },
+      "creationTimestamp": "2026-10-31T01:25:56Z",
+      "labels": {
+        "app": "cdx-e11",
+        "kubernetes.io/metadata.name": "codex-e11-20261031"
+      },
+      "name": "codex-e11-20261031",
+      "resourceVersion": "114027791",
+      "uid": "320dcf20-454b-4fdb-8f6a-14f3aaa992c8"
+    },
+    "spec": {
+      "finalizers": [
+        "kubernetes"
+      ]
+    },
+    "status": {
+      "phase": "Active"
+    }
+  },
+  "jobs": [
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "annotations": {
+          "e11.source-sha": "7870cef872e201a6a4dca87ed1bb998da9c3109f"
+        },
+        "creationTimestamp": "2026-10-31T01:34:58Z",
+        "generation": 1,
+        "labels": {
+          "app": "cdx-e11"
+        },
+        "name": "cdx-e11-origin-03",
+        "namespace": "codex-e11-20261031",
+        "resourceVersion": "114061220",
+        "uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f"
+      },
+      "spec": {
+        "activeDeadlineSeconds": 14400,
+        "backoffLimit": 0,
+        "completionMode": "NonIndexed",
+        "completions": 1,
+        "manualSelector": false,
+        "parallelism": 1,
+        "podReplacementPolicy": "TerminatingOrFailed",
+        "selector": {
+          "matchLabels": {
+            "batch.kubernetes.io/controller-uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f"
+          }
+        },
+        "suspend": false,
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "app": "cdx-e11",
+              "batch.kubernetes.io/controller-uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f",
+              "batch.kubernetes.io/job-name": "cdx-e11-origin-03",
+              "controller-uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f",
+              "job-name": "cdx-e11-origin-03"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "command": [
+                  "python3",
+                  "-u",
+                  "/scripts/origin.py"
+                ],
+                "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "main",
+                "resources": {
+                  "limits": {
+                    "cpu": "2",
+                    "memory": "2Gi"
+                  },
+                  "requests": {
+                    "cpu": "1",
+                    "memory": "1Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/scripts",
+                    "name": "scripts",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/host-sys",
+                    "name": "host-sys",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/e11",
+                    "name": "work"
+                  },
+                  {
+                    "mountPath": "/data",
+                    "name": "data"
+                  },
+                  {
+                    "mountPath": "/data/e11",
+                    "name": "store",
+                    "readOnly": true
+                  }
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "nodeSelector": {
+              "kubernetes.io/hostname": "etri-001"
+            },
+            "restartPolicy": "Never",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "fsGroup": 1000,
+              "runAsGroup": 1002,
+              "runAsUser": 1002
+            },
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "cdx-e11-scripts-03"
+                },
+                "name": "scripts"
+              },
+              {
+                "hostPath": {
+                  "path": "/sys",
+                  "type": "Directory"
+                },
+                "name": "host-sys"
+              },
+              {
+                "hostPath": {
+                  "path": "/home/gspark/workspace/codex_e11_20261031/attempt03",
+                  "type": "Directory"
+                },
+                "name": "work"
+              },
+              {
+                "hostPath": {
+                  "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/store/e6-posix",
+                  "type": "Directory"
+                },
+                "name": "store"
+              },
+              {
+                "emptyDir": {},
+                "name": "data"
+              }
+            ]
+          }
+        },
+        "ttlSecondsAfterFinished": 600
+      },
+      "status": {
+        "completionTime": "2026-10-31T02:29:12Z",
+        "conditions": [
+          {
+            "lastProbeTime": "2026-10-31T02:29:12Z",
+            "lastTransitionTime": "2026-10-31T02:29:12Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "SuccessCriteriaMet"
+          },
+          {
+            "lastProbeTime": "2026-10-31T02:29:12Z",
+            "lastTransitionTime": "2026-10-31T02:29:12Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "Complete"
+          }
+        ],
+        "ready": 0,
+        "startTime": "2026-10-31T01:34:58Z",
+        "succeeded": 1,
+        "terminating": 0,
+        "uncountedTerminatedPods": {}
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "annotations": {
+          "e11.source-sha": "7870cef"
+        },
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generation": 1,
+        "labels": {
+          "app": "cdx-e11"
+        },
+        "name": "cdx-e11-worker-03-0",
+        "namespace": "codex-e11-20261031",
+        "resourceVersion": "114061192",
+        "uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed"
+      },
+      "spec": {
+        "activeDeadlineSeconds": 14400,
+        "backoffLimit": 0,
+        "completionMode": "NonIndexed",
+        "completions": 1,
+        "manualSelector": false,
+        "parallelism": 1,
+        "podReplacementPolicy": "TerminatingOrFailed",
+        "selector": {
+          "matchLabels": {
+            "batch.kubernetes.io/controller-uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed"
+          }
+        },
+        "suspend": false,
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "app": "cdx-e11",
+              "batch.kubernetes.io/controller-uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed",
+              "batch.kubernetes.io/job-name": "cdx-e11-worker-03-0",
+              "controller-uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed",
+              "job-name": "cdx-e11-worker-03-0"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "command": [
+                  "python3",
+                  "-u",
+                  "/scripts/worker.py"
+                ],
+                "env": [
+                  {
+                    "name": "E11_ADMIN",
+                    "value": "http://10.0.1.176:9010"
+                  },
+                  {
+                    "name": "E11_STORE",
+                    "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+                  },
+                  {
+                    "name": "NODE_NAME",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "spec.nodeName"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_IP",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "status.podIP"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_UID",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "metadata.uid"
+                      }
+                    }
+                  }
+                ],
+                "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "main",
+                "resources": {
+                  "limits": {
+                    "cpu": "2",
+                    "ephemeral-storage": "60Gi",
+                    "memory": "4Gi"
+                  },
+                  "requests": {
+                    "cpu": "2",
+                    "ephemeral-storage": "40Gi",
+                    "memory": "4Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/scripts",
+                    "name": "scripts",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/host-sys",
+                    "name": "host-sys",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/work",
+                    "name": "work"
+                  }
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "nodeSelector": {
+              "kubernetes.io/hostname": "cpu-1"
+            },
+            "restartPolicy": "Never",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "fsGroup": 1000,
+              "runAsGroup": 1000,
+              "runAsUser": 1000
+            },
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "cdx-e11-scripts-03"
+                },
+                "name": "scripts"
+              },
+              {
+                "hostPath": {
+                  "path": "/sys",
+                  "type": "Directory"
+                },
+                "name": "host-sys"
+              },
+              {
+                "emptyDir": {
+                  "sizeLimit": "60Gi"
+                },
+                "name": "work"
+              }
+            ]
+          }
+        },
+        "ttlSecondsAfterFinished": 600
+      },
+      "status": {
+        "completionTime": "2026-10-31T02:29:08Z",
+        "conditions": [
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "SuccessCriteriaMet"
+          },
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "Complete"
+          }
+        ],
+        "ready": 0,
+        "startTime": "2026-10-31T01:35:22Z",
+        "succeeded": 1,
+        "terminating": 0,
+        "uncountedTerminatedPods": {}
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "annotations": {
+          "e11.source-sha": "7870cef"
+        },
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generation": 1,
+        "labels": {
+          "app": "cdx-e11"
+        },
+        "name": "cdx-e11-worker-03-1",
+        "namespace": "codex-e11-20261031",
+        "resourceVersion": "114061176",
+        "uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d"
+      },
+      "spec": {
+        "activeDeadlineSeconds": 14400,
+        "backoffLimit": 0,
+        "completionMode": "NonIndexed",
+        "completions": 1,
+        "manualSelector": false,
+        "parallelism": 1,
+        "podReplacementPolicy": "TerminatingOrFailed",
+        "selector": {
+          "matchLabels": {
+            "batch.kubernetes.io/controller-uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d"
+          }
+        },
+        "suspend": false,
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "app": "cdx-e11",
+              "batch.kubernetes.io/controller-uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d",
+              "batch.kubernetes.io/job-name": "cdx-e11-worker-03-1",
+              "controller-uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d",
+              "job-name": "cdx-e11-worker-03-1"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "command": [
+                  "python3",
+                  "-u",
+                  "/scripts/worker.py"
+                ],
+                "env": [
+                  {
+                    "name": "E11_ADMIN",
+                    "value": "http://10.0.1.176:9010"
+                  },
+                  {
+                    "name": "E11_STORE",
+                    "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+                  },
+                  {
+                    "name": "NODE_NAME",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "spec.nodeName"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_IP",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "status.podIP"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_UID",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "metadata.uid"
+                      }
+                    }
+                  }
+                ],
+                "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "main",
+                "resources": {
+                  "limits": {
+                    "cpu": "2",
+                    "ephemeral-storage": "60Gi",
+                    "memory": "4Gi"
+                  },
+                  "requests": {
+                    "cpu": "2",
+                    "ephemeral-storage": "40Gi",
+                    "memory": "4Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/scripts",
+                    "name": "scripts",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/host-sys",
+                    "name": "host-sys",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/work",
+                    "name": "work"
+                  }
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "nodeSelector": {
+              "kubernetes.io/hostname": "cpu-2"
+            },
+            "restartPolicy": "Never",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "fsGroup": 1000,
+              "runAsGroup": 1000,
+              "runAsUser": 1000
+            },
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "cdx-e11-scripts-03"
+                },
+                "name": "scripts"
+              },
+              {
+                "hostPath": {
+                  "path": "/sys",
+                  "type": "Directory"
+                },
+                "name": "host-sys"
+              },
+              {
+                "emptyDir": {
+                  "sizeLimit": "60Gi"
+                },
+                "name": "work"
+              }
+            ]
+          }
+        },
+        "ttlSecondsAfterFinished": 600
+      },
+      "status": {
+        "completionTime": "2026-10-31T02:29:08Z",
+        "conditions": [
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "SuccessCriteriaMet"
+          },
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "Complete"
+          }
+        ],
+        "ready": 0,
+        "startTime": "2026-10-31T01:35:22Z",
+        "succeeded": 1,
+        "terminating": 0,
+        "uncountedTerminatedPods": {}
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "annotations": {
+          "e11.source-sha": "7870cef"
+        },
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generation": 1,
+        "labels": {
+          "app": "cdx-e11"
+        },
+        "name": "cdx-e11-worker-03-2",
+        "namespace": "codex-e11-20261031",
+        "resourceVersion": "114061172",
+        "uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21"
+      },
+      "spec": {
+        "activeDeadlineSeconds": 14400,
+        "backoffLimit": 0,
+        "completionMode": "NonIndexed",
+        "completions": 1,
+        "manualSelector": false,
+        "parallelism": 1,
+        "podReplacementPolicy": "TerminatingOrFailed",
+        "selector": {
+          "matchLabels": {
+            "batch.kubernetes.io/controller-uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21"
+          }
+        },
+        "suspend": false,
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "app": "cdx-e11",
+              "batch.kubernetes.io/controller-uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21",
+              "batch.kubernetes.io/job-name": "cdx-e11-worker-03-2",
+              "controller-uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21",
+              "job-name": "cdx-e11-worker-03-2"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "command": [
+                  "python3",
+                  "-u",
+                  "/scripts/worker.py"
+                ],
+                "env": [
+                  {
+                    "name": "E11_ADMIN",
+                    "value": "http://10.0.1.176:9010"
+                  },
+                  {
+                    "name": "E11_STORE",
+                    "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+                  },
+                  {
+                    "name": "NODE_NAME",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "spec.nodeName"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_IP",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "status.podIP"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POD_UID",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "metadata.uid"
+                      }
+                    }
+                  }
+                ],
+                "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "main",
+                "resources": {
+                  "limits": {
+                    "cpu": "2",
+                    "ephemeral-storage": "60Gi",
+                    "memory": "4Gi"
+                  },
+                  "requests": {
+                    "cpu": "2",
+                    "ephemeral-storage": "40Gi",
+                    "memory": "4Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/scripts",
+                    "name": "scripts",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/host-sys",
+                    "name": "host-sys",
+                    "readOnly": true
+                  },
+                  {
+                    "mountPath": "/work",
+                    "name": "work"
+                  }
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "nodeSelector": {
+              "kubernetes.io/hostname": "etri-001"
+            },
+            "restartPolicy": "Never",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "fsGroup": 1000,
+              "runAsGroup": 1000,
+              "runAsUser": 1000
+            },
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "cdx-e11-scripts-03"
+                },
+                "name": "scripts"
+              },
+              {
+                "hostPath": {
+                  "path": "/sys",
+                  "type": "Directory"
+                },
+                "name": "host-sys"
+              },
+              {
+                "emptyDir": {
+                  "sizeLimit": "60Gi"
+                },
+                "name": "work"
+              }
+            ]
+          }
+        },
+        "ttlSecondsAfterFinished": 600
+      },
+      "status": {
+        "completionTime": "2026-10-31T02:29:08Z",
+        "conditions": [
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "SuccessCriteriaMet"
+          },
+          {
+            "lastProbeTime": "2026-10-31T02:29:08Z",
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "message": "Reached expected number of succeeded pods",
+            "reason": "CompletionsReached",
+            "status": "True",
+            "type": "Complete"
+          }
+        ],
+        "ready": 0,
+        "startTime": "2026-10-31T01:35:22Z",
+        "succeeded": 1,
+        "terminating": 0,
+        "uncountedTerminatedPods": {}
+      }
+    }
+  ],
+  "pods": [
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-10-31T01:34:58Z",
+        "generateName": "cdx-e11-origin-03-",
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f",
+          "batch.kubernetes.io/job-name": "cdx-e11-origin-03",
+          "controller-uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f",
+          "job-name": "cdx-e11-origin-03"
+        },
+        "name": "cdx-e11-origin-03-zjr8z",
+        "namespace": "codex-e11-20261031",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-e11-origin-03",
+            "uid": "47a800d6-fbe3-4197-8577-fecb3e10c81f"
+          }
+        ],
+        "resourceVersion": "114061219",
+        "uid": "fca304f1-ae4f-49a2-8300-aec465006063"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/origin.py"
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              },
+              "requests": {
+                "cpu": "1",
+                "memory": "1Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/e11",
+                "name": "work"
+              },
+              {
+                "mountPath": "/data",
+                "name": "data"
+              },
+              {
+                "mountPath": "/data/e11",
+                "name": "store",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-001",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1002,
+          "runAsUser": 1002
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-03"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_e11_20261031/attempt03",
+              "type": "Directory"
+            },
+            "name": "work"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/store/e6-posix",
+              "type": "Directory"
+            },
+            "name": "store"
+          },
+          {
+            "emptyDir": {},
+            "name": "data"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:11Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:34:58Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:10Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:10Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:34:58Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://315e947bd805db2a9ee7edb5c4d45402a672809cb24b18e26ac86818c6e90342",
+            "image": "docker.io/library/python:3.11-slim",
+            "imageID": "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "lastState": {},
+            "name": "main",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://315e947bd805db2a9ee7edb5c4d45402a672809cb24b18e26ac86818c6e90342",
+                "exitCode": 0,
+                "finishedAt": "2026-10-31T02:29:09Z",
+                "reason": "Completed",
+                "startedAt": "2026-10-31T01:35:00Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/e11",
+                "name": "work"
+              },
+              {
+                "mountPath": "/data",
+                "name": "data"
+              },
+              {
+                "mountPath": "/data/e11",
+                "name": "store",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.183",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.183"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.1.176",
+        "podIPs": [
+          {
+            "ip": "10.0.1.176"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-10-31T01:34:58Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generateName": "cdx-e11-worker-03-0-",
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed",
+          "batch.kubernetes.io/job-name": "cdx-e11-worker-03-0",
+          "controller-uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed",
+          "job-name": "cdx-e11-worker-03-0"
+        },
+        "name": "cdx-e11-worker-03-0-cmqgf",
+        "namespace": "codex-e11-20261031",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-e11-worker-03-0",
+            "uid": "3a79c763-755e-4a7d-af67-c0b4deccdfed"
+          }
+        ],
+        "resourceVersion": "114061191",
+        "uid": "5d796e04-1680-4601-a1b2-1f122f718fa9"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/worker.py"
+            ],
+            "env": [
+              {
+                "name": "E11_ADMIN",
+                "value": "http://10.0.1.176:9010"
+              },
+              {
+                "name": "E11_STORE",
+                "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+              },
+              {
+                "name": "NODE_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "spec.nodeName"
+                  }
+                }
+              },
+              {
+                "name": "POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "POD_UID",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.uid"
+                  }
+                }
+              }
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "ephemeral-storage": "60Gi",
+                "memory": "4Gi"
+              },
+              "requests": {
+                "cpu": "2",
+                "ephemeral-storage": "40Gi",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "cpu-1",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "cpu-1"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1000,
+          "runAsUser": 1000
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-03"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "emptyDir": {
+              "sizeLimit": "60Gi"
+            },
+            "name": "work"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://2728e8df081031286a0a454a270dcc600b0bdf5c570a5af01983265f3b2b4e54",
+            "image": "sha256:541096ae9b05d3b850341b78790e2ed31e94d5aa0ea086933c6ff0c09ffa2e63",
+            "imageID": "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "lastState": {},
+            "name": "main",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://2728e8df081031286a0a454a270dcc600b0bdf5c570a5af01983265f3b2b4e54",
+                "exitCode": 0,
+                "finishedAt": "2026-10-31T02:29:06Z",
+                "reason": "Completed",
+                "startedAt": "2026-10-31T01:35:23Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.178",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.178"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.3.12",
+        "podIPs": [
+          {
+            "ip": "10.0.3.12"
+          }
+        ],
+        "qosClass": "Guaranteed",
+        "startTime": "2026-10-31T01:35:22Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generateName": "cdx-e11-worker-03-1-",
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d",
+          "batch.kubernetes.io/job-name": "cdx-e11-worker-03-1",
+          "controller-uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d",
+          "job-name": "cdx-e11-worker-03-1"
+        },
+        "name": "cdx-e11-worker-03-1-gwxx2",
+        "namespace": "codex-e11-20261031",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-e11-worker-03-1",
+            "uid": "78dc785c-7817-4b54-8a90-6eb40c4bc40d"
+          }
+        ],
+        "resourceVersion": "114061175",
+        "uid": "1bf2c42d-30c2-4d87-9900-ef368df9746f"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/worker.py"
+            ],
+            "env": [
+              {
+                "name": "E11_ADMIN",
+                "value": "http://10.0.1.176:9010"
+              },
+              {
+                "name": "E11_STORE",
+                "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+              },
+              {
+                "name": "NODE_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "spec.nodeName"
+                  }
+                }
+              },
+              {
+                "name": "POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "POD_UID",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.uid"
+                  }
+                }
+              }
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "ephemeral-storage": "60Gi",
+                "memory": "4Gi"
+              },
+              "requests": {
+                "cpu": "2",
+                "ephemeral-storage": "40Gi",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "cpu-2",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "cpu-2"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1000,
+          "runAsUser": 1000
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-03"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "emptyDir": {
+              "sizeLimit": "60Gi"
+            },
+            "name": "work"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://e8537f9988bbaf744c88e8728fd96e565e2b8aa5185dfbfe14e50a2d0d8849c2",
+            "image": "sha256:541096ae9b05d3b850341b78790e2ed31e94d5aa0ea086933c6ff0c09ffa2e63",
+            "imageID": "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "lastState": {},
+            "name": "main",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://e8537f9988bbaf744c88e8728fd96e565e2b8aa5185dfbfe14e50a2d0d8849c2",
+                "exitCode": 0,
+                "finishedAt": "2026-10-31T02:29:06Z",
+                "reason": "Completed",
+                "startedAt": "2026-10-31T01:35:23Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.179",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.179"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.4.126",
+        "podIPs": [
+          {
+            "ip": "10.0.4.126"
+          }
+        ],
+        "qosClass": "Guaranteed",
+        "startTime": "2026-10-31T01:35:22Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-10-31T01:35:22Z",
+        "generateName": "cdx-e11-worker-03-2-",
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21",
+          "batch.kubernetes.io/job-name": "cdx-e11-worker-03-2",
+          "controller-uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21",
+          "job-name": "cdx-e11-worker-03-2"
+        },
+        "name": "cdx-e11-worker-03-2-m4xt9",
+        "namespace": "codex-e11-20261031",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-e11-worker-03-2",
+            "uid": "cbc6cdf7-6779-44fc-bccf-52a96dcc0f21"
+          }
+        ],
+        "resourceVersion": "114061171",
+        "uid": "64659289-fe6d-4814-9921-9a0ceec5cbb3"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/worker.py"
+            ],
+            "env": [
+              {
+                "name": "E11_ADMIN",
+                "value": "http://10.0.1.176:9010"
+              },
+              {
+                "name": "E11_STORE",
+                "value": "s3://e11?endpoint=10.0.1.176:9000&insecure=1&region=us-east-1"
+              },
+              {
+                "name": "NODE_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "spec.nodeName"
+                  }
+                }
+              },
+              {
+                "name": "POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "POD_UID",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.uid"
+                  }
+                }
+              }
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "ephemeral-storage": "60Gi",
+                "memory": "4Gi"
+              },
+              "requests": {
+                "cpu": "2",
+                "ephemeral-storage": "40Gi",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-001",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1000,
+          "runAsUser": 1000
+        },
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-03"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "emptyDir": {
+              "sizeLimit": "60Gi"
+            },
+            "name": "work"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:08Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T02:29:06Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-10-31T01:35:22Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://dfcfb69f9496c345652ce0a58495479a4a50d15472a9205d793a5ff190449c9a",
+            "image": "docker.io/library/python:3.11-slim",
+            "imageID": "docker.io/library/python@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "lastState": {},
+            "name": "main",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://dfcfb69f9496c345652ce0a58495479a4a50d15472a9205d793a5ff190449c9a",
+                "exitCode": 0,
+                "finishedAt": "2026-10-31T02:29:06Z",
+                "reason": "Completed",
+                "startedAt": "2026-10-31T01:35:25Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.183",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.183"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.1.82",
+        "podIPs": [
+          {
+            "ip": "10.0.1.82"
+          }
+        ],
+        "qosClass": "Guaranteed",
+        "startTime": "2026-10-31T01:35:22Z"
+      }
+    }
+  ],
+  "utc": 1793413752.6762943
+}

@@ -1,0 +1,32 @@
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+bootstrap registered ['etri-001', 'cpu-2']
+START smoke-empty-store-01
+DONE smoke-empty-store-01 {"cohort_completion_s": 3.5927269579842687, "received_start_skew_s": 0.0008274288848042488, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START smoke-empty-peer-01
+DONE smoke-empty-peer-01 {"cohort_completion_s": 3.1470302590169013, "received_start_skew_s": 0.0008040799293667078, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START smoke-one-seed-store-01
+DONE smoke-one-seed-store-01 {"cohort_completion_s": 3.4154736129567027, "received_start_skew_s": 0.00246945908293128, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START smoke-one-seed-peer-01
+DONE smoke-one-seed-peer-01 {"cohort_completion_s": 3.315932792145759, "received_start_skew_s": 0.0008412899915128946, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}

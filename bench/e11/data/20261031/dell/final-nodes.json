@@ -1,0 +1,538 @@
+[
+  {
+    "name": "cpu-1",
+    "addresses": [
+      {
+        "address": "10.254.184.178",
+        "type": "InternalIP"
+      },
+      {
+        "address": "cpu-1",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T05:12:04Z",
+        "lastTransitionTime": "2026-05-29T05:12:04Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:40Z",
+        "lastTransitionTime": "2026-10-14T08:00:16Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:40Z",
+        "lastTransitionTime": "2026-10-14T08:00:16Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:40Z",
+        "lastTransitionTime": "2026-10-14T08:00:16Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:40Z",
+        "lastTransitionTime": "2026-10-14T08:00:16Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "6645af6b-8bcf-4fbf-b912-662db7db97a8",
+      "containerRuntimeVersion": "containerd://2.2.2",
+      "kernelVersion": "7.0.0-30-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "7cc22a637b304c58b972fa828f79f311",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 26.04 LTS",
+      "systemUUID": "4c4c4544-0036-3710-8039-b4c04f513533"
+    }
+  },
+  {
+    "name": "cpu-2",
+    "addresses": [
+      {
+        "address": "10.254.184.179",
+        "type": "InternalIP"
+      },
+      {
+        "address": "cpu-2",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T05:12:12Z",
+        "lastTransitionTime": "2026-05-29T05:12:12Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:24:36Z",
+        "lastTransitionTime": "2026-10-14T07:59:38Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:24:36Z",
+        "lastTransitionTime": "2026-10-14T07:59:38Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:24:36Z",
+        "lastTransitionTime": "2026-10-14T07:59:38Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:24:36Z",
+        "lastTransitionTime": "2026-10-14T07:59:38Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "4cbe079f-2cca-4ade-8dab-470642885d52",
+      "containerRuntimeVersion": "containerd://2.2.2",
+      "kernelVersion": "7.0.0-38-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "f6b78252df964db19e4cf8a921b82b44",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 26.04 LTS",
+      "systemUUID": "4c4c4544-0036-3710-8039-b3c04f513533"
+    }
+  },
+  {
+    "name": "cpu-3",
+    "addresses": [
+      {
+        "address": "10.254.184.186",
+        "type": "InternalIP"
+      },
+      {
+        "address": "cpu-3",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T05:12:54Z",
+        "lastTransitionTime": "2026-05-29T05:12:54Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-07-07T04:39:37Z",
+        "lastTransitionTime": "2026-07-07T04:43:06Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-07-07T04:39:37Z",
+        "lastTransitionTime": "2026-07-07T04:43:06Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-07-07T04:39:37Z",
+        "lastTransitionTime": "2026-07-07T04:43:06Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-07-07T04:39:37Z",
+        "lastTransitionTime": "2026-07-07T04:43:06Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "6a5732f8-7723-4dae-be45-22be680f35e8",
+      "containerRuntimeVersion": "containerd://2.2.2",
+      "kernelVersion": "7.0.0-22-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "d69bcbdd443a4ed8a05ecac82145e079",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 26.04 LTS",
+      "systemUUID": "4c4c4544-0039-3610-8039-c6c04f513533"
+    }
+  },
+  {
+    "name": "dgx-spark0",
+    "addresses": [
+      {
+        "address": "10.254.175.66",
+        "type": "InternalIP"
+      },
+      {
+        "address": "dgx-spark0",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-07-01T04:08:09Z",
+        "lastTransitionTime": "2026-07-01T04:08:09Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:22:12Z",
+        "lastTransitionTime": "2026-10-31T02:22:56Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:22:12Z",
+        "lastTransitionTime": "2026-10-31T02:22:56Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:22:12Z",
+        "lastTransitionTime": "2026-10-31T02:22:56Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:22:12Z",
+        "lastTransitionTime": "2026-10-31T02:22:56Z",
+        "message": "Kubelet stopped posting node status.",
+        "reason": "NodeStatusUnknown",
+        "status": "Unknown",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "arm64",
+      "bootID": "16f1a99a-efef-480a-8857-4ce07b2b6609",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "6.17.0-1029-nvidia",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "e6f6ad4d4de54522865951112279a80c",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 24.04.4 LTS",
+      "systemUUID": "c1864aba-d549-11d3-a613-30c599404825"
+    }
+  },
+  {
+    "name": "etri-001",
+    "addresses": [
+      {
+        "address": "10.254.184.183",
+        "type": "InternalIP"
+      },
+      {
+        "address": "etri-001",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T01:35:09Z",
+        "lastTransitionTime": "2026-05-29T01:35:09Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:43Z",
+        "lastTransitionTime": "2026-10-20T10:50:48Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:43Z",
+        "lastTransitionTime": "2026-10-20T10:50:48Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:43Z",
+        "lastTransitionTime": "2026-10-20T10:50:48Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:43Z",
+        "lastTransitionTime": "2026-10-20T10:50:48Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "6db1b2d9-399b-419d-98cb-37e38da5629d",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "6.8.0-40-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "4c90e4f0cbfa47ba88334d1126f0d490",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 22.04.5 LTS",
+      "systemUUID": "f6a41200-9b3e-11ef-8000-7cc25560a2ff"
+    }
+  },
+  {
+    "name": "etri-esc8000-e11",
+    "addresses": [
+      {
+        "address": "10.254.184.126",
+        "type": "InternalIP"
+      },
+      {
+        "address": "etri-esc8000-e11",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T02:49:14Z",
+        "lastTransitionTime": "2026-05-29T02:49:14Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:57Z",
+        "lastTransitionTime": "2026-10-20T12:44:10Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:57Z",
+        "lastTransitionTime": "2026-10-20T12:44:10Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:57Z",
+        "lastTransitionTime": "2026-10-20T12:44:10Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:27:57Z",
+        "lastTransitionTime": "2026-10-20T12:44:10Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "36951bdc-1613-497e-96e8-61bbbde44489",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "6.8.0-106-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "03d70e274c25448697b6ea4ba3c1b674",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 22.04.5 LTS",
+      "systemUUID": "8d05872c-9f1e-2d8c-b29e-a036bccd4ff3"
+    }
+  },
+  {
+    "name": "gspark-poweredge-r7525",
+    "addresses": [
+      {
+        "address": "10.254.184.105",
+        "type": "InternalIP"
+      },
+      {
+        "address": "gspark-poweredge-r7525",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-05-29T01:29:37Z",
+        "lastTransitionTime": "2026-05-29T01:29:37Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:28:19Z",
+        "lastTransitionTime": "2026-05-29T01:28:55Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:28:19Z",
+        "lastTransitionTime": "2026-05-29T01:28:55Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:28:19Z",
+        "lastTransitionTime": "2026-05-29T01:28:55Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:28:19Z",
+        "lastTransitionTime": "2026-05-29T01:29:32Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "amd64",
+      "bootID": "d71358ad-7533-4ab3-a827-1c719f92e674",
+      "containerRuntimeVersion": "containerd://2.2.2",
+      "kernelVersion": "7.0.0-22-generic",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "b748c30b32f7413c868488b2ab417f44",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 26.04 LTS",
+      "systemUUID": "4c4c4544-0039-3610-8039-c4c04f513533"
+    }
+  },
+  {
+    "name": "gx10-4744",
+    "addresses": [
+      {
+        "address": "10.254.175.155",
+        "type": "InternalIP"
+      },
+      {
+        "address": "gx10-4744",
+        "type": "Hostname"
+      }
+    ],
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-07-01T03:55:20Z",
+        "lastTransitionTime": "2026-07-01T03:55:20Z",
+        "message": "Cilium is running on this node",
+        "reason": "CiliumIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:00Z",
+        "lastTransitionTime": "2026-10-22T01:46:27Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:00Z",
+        "lastTransitionTime": "2026-10-22T02:54:59Z",
+        "message": "kubelet has disk pressure",
+        "reason": "KubeletHasDiskPressure",
+        "status": "True",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:00Z",
+        "lastTransitionTime": "2026-10-22T01:46:27Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-10-31T02:26:00Z",
+        "lastTransitionTime": "2026-10-22T01:46:27Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ],
+    "nodeInfo": {
+      "architecture": "arm64",
+      "bootID": "7e7260e4-645f-41c5-ab1d-920e45ed4256",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "6.17.0-1008-nvidia",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "e6f6ad4d4de54522865951112279a80c",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 24.04.4 LTS",
+      "systemUUID": "a5e45920-d574-11d3-9559-30c599404744"
+    }
+  }
+]

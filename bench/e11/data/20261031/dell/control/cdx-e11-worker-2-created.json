@@ -1,0 +1,171 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "annotations": {
+      "e11.source-sha": "929438e"
+    },
+    "creationTimestamp": "2026-10-31T01:27:58Z",
+    "generation": 1,
+    "labels": {
+      "app": "cdx-e11"
+    },
+    "name": "cdx-e11-worker-2",
+    "namespace": "codex-e11-20261031",
+    "resourceVersion": "114028903",
+    "uid": "97ae80ba-6ef0-4915-a648-99352386339c"
+  },
+  "spec": {
+    "activeDeadlineSeconds": 14400,
+    "backoffLimit": 0,
+    "completionMode": "NonIndexed",
+    "completions": 1,
+    "manualSelector": false,
+    "parallelism": 1,
+    "podReplacementPolicy": "TerminatingOrFailed",
+    "selector": {
+      "matchLabels": {
+        "batch.kubernetes.io/controller-uid": "97ae80ba-6ef0-4915-a648-99352386339c"
+      }
+    },
+    "suspend": false,
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "cdx-e11",
+          "batch.kubernetes.io/controller-uid": "97ae80ba-6ef0-4915-a648-99352386339c",
+          "batch.kubernetes.io/job-name": "cdx-e11-worker-2",
+          "controller-uid": "97ae80ba-6ef0-4915-a648-99352386339c",
+          "job-name": "cdx-e11-worker-2"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "python3",
+              "-u",
+              "/scripts/worker.py"
+            ],
+            "env": [
+              {
+                "name": "E11_ADMIN",
+                "value": "http://10.0.1.211:9010"
+              },
+              {
+                "name": "E11_STORE",
+                "value": "s3://e11?endpoint=10.0.1.211:9000&insecure=1&region=us-east-1"
+              },
+              {
+                "name": "NODE_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "spec.nodeName"
+                  }
+                }
+              },
+              {
+                "name": "POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "POD_UID",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.uid"
+                  }
+                }
+              }
+            ],
+            "image": "python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "main",
+            "resources": {
+              "limits": {
+                "cpu": "2",
+                "ephemeral-storage": "60Gi",
+                "memory": "4Gi"
+              },
+              "requests": {
+                "cpu": "2",
+                "ephemeral-storage": "40Gi",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/scripts",
+                "name": "scripts",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-sys",
+                "name": "host-sys",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 1000,
+          "runAsGroup": 1000,
+          "runAsUser": 1000
+        },
+        "terminationGracePeriodSeconds": 30,
+        "volumes": [
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "cdx-e11-scripts-02"
+            },
+            "name": "scripts"
+          },
+          {
+            "hostPath": {
+              "path": "/sys",
+              "type": "Directory"
+            },
+            "name": "host-sys"
+          },
+          {
+            "emptyDir": {
+              "sizeLimit": "60Gi"
+            },
+            "name": "work"
+          }
+        ]
+      }
+    },
+    "ttlSecondsAfterFinished": 600
+  },
+  "status": {}
+}

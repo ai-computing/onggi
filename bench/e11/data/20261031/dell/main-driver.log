@@ -1,0 +1,40 @@
+START main-empty-store-01
+DONE main-empty-store-01 {"cohort_completion_s": 3.374343275092542, "received_start_skew_s": 0.0006997580640017986, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-empty-peer-01
+DONE main-empty-peer-01 {"cohort_completion_s": 4.005845699924976, "received_start_skew_s": 0.0006346779409796, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-one-seed-store-01
+DONE main-one-seed-store-01 {"cohort_completion_s": 3.29568895092234, "received_start_skew_s": 0.0006164070218801498, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START main-one-seed-peer-01
+DONE main-one-seed-peer-01 {"cohort_completion_s": 3.2921381229534745, "received_start_skew_s": 0.0007695350795984268, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}
+START main-empty-peer-02
+DONE main-empty-peer-02 {"cohort_completion_s": 4.026811592048034, "received_start_skew_s": 0.0009904659818857908, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-empty-store-02
+DONE main-empty-store-02 {"cohort_completion_s": 3.1556758391670883, "received_start_skew_s": 0.0009754488710314035, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-one-seed-peer-02
+DONE main-one-seed-peer-02 {"cohort_completion_s": 3.163075176998973, "received_start_skew_s": 0.0008388608694076538, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}
+START main-one-seed-store-02
+DONE main-one-seed-store-02 {"cohort_completion_s": 3.1803898769430816, "received_start_skew_s": 0.0004783421754837036, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START main-empty-store-03
+DONE main-empty-store-03 {"cohort_completion_s": 3.1020971569232643, "received_start_skew_s": 0.0006470330990850925, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-empty-peer-03
+DONE main-empty-peer-03 {"cohort_completion_s": 3.1071996949613094, "received_start_skew_s": 0.0006011230871081352, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-one-seed-store-03
+DONE main-one-seed-store-03 {"cohort_completion_s": 3.751702321926132, "received_start_skew_s": 0.0008309048134833574, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START main-one-seed-peer-03
+DONE main-one-seed-peer-03 {"cohort_completion_s": 3.0140617720317096, "received_start_skew_s": 0.0005729838740080595, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}
+START main-empty-peer-04
+DONE main-empty-peer-04 {"cohort_completion_s": 3.13964652386494, "received_start_skew_s": 0.0005235141143202782, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-empty-store-04
+DONE main-empty-store-04 {"cohort_completion_s": 3.0608272310346365, "received_start_skew_s": 0.0007106761913746595, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-one-seed-peer-04
+DONE main-one-seed-peer-04 {"cohort_completion_s": 2.8640347039327025, "received_start_skew_s": 0.001630823127925396, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}
+START main-one-seed-store-04
+DONE main-one-seed-store-04 {"cohort_completion_s": 3.4235543669201434, "received_start_skew_s": 0.0005603849422186613, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START main-empty-store-05
+DONE main-empty-store-05 {"cohort_completion_s": 3.086804199963808, "received_start_skew_s": 0.0015776138752698898, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-empty-peer-05
+DONE main-empty-peer-05 {"cohort_completion_s": 3.2402369359042495, "received_start_skew_s": 0.0007226760499179363, "store_read_bytes": 593733, "peer_bytes": 0, "cache_bytes": 0, "successful_body_bytes": 70287027, "pack_body_bytes": 593733, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 990, "transfer_errors": 0, "by_status": {"200": 984, "206": 6}}
+START main-one-seed-store-05
+DONE main-one-seed-store-05 {"cohort_completion_s": 2.9892585650086403, "received_start_skew_s": 0.0008208069484680891, "store_read_bytes": 395822, "peer_bytes": 0, "cache_bytes": 197911, "successful_body_bytes": 70089116, "pack_body_bytes": 395822, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 988, "transfer_errors": 0, "by_status": {"200": 984, "206": 4}}
+START main-one-seed-peer-05
+DONE main-one-seed-peer-05 {"cohort_completion_s": 2.940179550787434, "received_start_skew_s": 0.0007970270235091448, "store_read_bytes": 0, "peer_bytes": 395822, "cache_bytes": 197911, "successful_body_bytes": 69693294, "pack_body_bytes": 0, "metadata_body_bytes": 69693294, "error_body_bytes": 0, "requests": 984, "transfer_errors": 0, "by_status": {"200": 984}}
