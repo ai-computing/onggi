@@ -3,12 +3,12 @@ import argparse
 import base64
 import gzip
 import hashlib
-import importlib.util
 import io
 import json
 from pathlib import Path, PurePosixPath
 import subprocess
 import tarfile
+from types import ModuleType
 
 
 def digest(data):
@@ -106,10 +106,11 @@ def verify_provenance(root):
     actual_files = source_files(archive)
     assert actual_files == source_files(expected), 'Source canonicalization applies only to code, never raw records'
     source = root / 'timing-main/timing-main/causal.py'
-    spec = importlib.util.spec_from_file_location('provenance_frozen_cpu', source)
-    assert digest(source.read_bytes()) == cfg['harness_sha256']
-    h = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(h)
+    source_raw = source.read_bytes()
+    assert digest(source_raw) == cfg['harness_sha256']
+    h = ModuleType('provenance_frozen_cpu')
+    h.__file__ = str(source)
+    exec(compile(source_raw, str(source), 'exec'), h.__dict__)
     remote_root = PurePosixPath(cfg['store']).parent
     for ref, role in [('a', 'base'), ('b', 'target')]:
         label = 'prepare-push-' + ref
@@ -175,10 +176,11 @@ def _verify_contents(root, label, traced, files):
     """Internal: call only after the enclosing exact export has been verified."""
     cohort_root = root / label
     copied_source = cohort_root / 'causal.py'
-    assert digest(copied_source.read_bytes()) == '1546801671fc19d3871487b2d2d4f0f8e445bae82cbfd25aabf9e87351554f5a'
-    spec = importlib.util.spec_from_file_location('frozen_cpu_harness', copied_source)
-    h = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(h)
+    source_raw = copied_source.read_bytes()
+    assert digest(source_raw) == '1546801671fc19d3871487b2d2d4f0f8e445bae82cbfd25aabf9e87351554f5a'
+    h = ModuleType('frozen_cpu_harness')
+    h.__file__ = str(copied_source)
+    exec(compile(source_raw, str(copied_source), 'exec'), h.__dict__)
     cohort = json.loads((cohort_root / 'cohort.json').read_bytes())
     assert cohort['stage'] in ('smoke', 'main')
     assert label == ('io-' if traced else 'timing-') + cohort['stage'], 'Label/stage mismatch'

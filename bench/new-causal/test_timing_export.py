@@ -5,8 +5,10 @@ import gzip
 import hashlib
 import importlib.util
 import json
+import marshal
 from pathlib import Path
 import shutil
+import struct
 import tempfile
 import unittest
 
@@ -32,6 +34,33 @@ def resign(root):
 
 
 class TimingExportTests(unittest.TestCase):
+    def cached_source(self, source, marker):
+        stat = source.stat()
+        code = compile(source.read_bytes() + ('\nfrom pathlib import Path; Path(%r).write_text("unarchived")\n' % str(marker)).encode(), str(source), 'exec')
+        cached = Path(importlib.util.cache_from_source(str(source)))
+        cached.parent.mkdir(exist_ok=True)
+        header = importlib.util.MAGIC_NUMBER + struct.pack('<III', 0, int(stat.st_mtime), stat.st_size)
+        cached.write_bytes(header + marshal.dumps(code))
+
+    def test_timing_uses_verified_source_not_matching_unarchived_bytecode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'export'
+            shutil.copytree(DATA / 'timing-smoke', root)
+            marker = Path(directory) / 'unarchived-executed'
+            self.cached_source(root / 'timing-smoke/causal.py', marker)
+            self.assertTrue(v.verify(root, 'timing-smoke')['verified'])
+            self.assertFalse(marker.exists(), 'Unarchived bytecode executed instead of checked source')
+
+    def test_provenance_uses_verified_source_not_matching_unarchived_bytecode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'data'
+            for name in ('control', 'timing-main'):
+                shutil.copytree(DATA / name, root / name)
+            marker = Path(directory) / 'unarchived-executed'
+            self.cached_source(root / 'timing-main/timing-main/causal.py', marker)
+            self.assertTrue(v.verify_provenance(root)['verified'])
+            self.assertFalse(marker.exists(), 'Unarchived bytecode executed instead of checked source')
+
     def test_smoke_cohort_cannot_masquerade_as_main(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'export'
