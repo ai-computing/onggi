@@ -37,6 +37,12 @@ unchanged-core capability. Its manifest preserves every original/reference
 source hash, the exact one-line patch, generator hash, Go/check commands and
 binary hash. It runs Go vet/race tests before building. All four policies
 use this same reference binary; F/H processing code is otherwise unchanged.
+Freeze validates the pinned base, reviewed generator hash, canonical identities
+of all67original/reference files, the exact guard patch, successful command
+arguments and hashes of all eight retained build/check log files. The runner
+directly compiles checked generator bytes and archives its source and logs.
+These are consistency/provenance checks, not a cryptographic attestation of
+remote execution; independent CI/node control receipts remain required.
 
 The selected kinds are atom-prefill/atom-decode/atom-other in every policy
 where sub-splitting is enabled. For I/F the minimum sub-size exceeds every

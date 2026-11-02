@@ -8,11 +8,14 @@ import json
 from pathlib import Path, PurePosixPath
 import subprocess
 import sys
+import re
 
 BASE='1e3c74f3c61f8791eadbec704b17df10feb55241'
 TARGET='pkg/store/store.go'
 OLD=b'if c.Sub.Max > p.Min {'
 NEW=b'if c.Sub.Max > p.Min && c.Sub.Min < p.Max {'
+# Canonical complete 67-file original/reference identity list from pinned BASE.
+FILES_SHA='0197690d277280bf803aa9a661e5b95e45ff7e634f13af61dede5fea64099f6d'
 
 
 def patch_store_source(raw):
@@ -21,6 +24,30 @@ def patch_store_source(raw):
 
 
 def digest(raw):return hashlib.sha256(raw).hexdigest()
+
+
+def validate_proof(path,binary_sha):
+    path=Path(path);record=json.loads(path.read_bytes())
+    def need(condition):
+        if not condition:raise ValueError('Incomplete or mismatched experimental reference proof')
+    need(record.get('schema')=='onggi.flat-frame-reference.v1' and record.get('status')=='built'
+        and record.get('base_revision')==BASE and record.get('binary_sha256')==binary_sha)
+    need(record.get('generator_sha256')==digest(Path(__file__).read_bytes()) and
+        record.get('modified')==[TARGET] and record.get('product_source_edited') is False)
+    need(record.get('patch')==dict(path=TARGET,before=OLD.decode(),after=NEW.decode()))
+    need(digest(json.dumps(record.get('files'),sort_keys=True,separators=(',',':')).encode())==FILES_SHA)
+    binary=record.get('binary');need(isinstance(binary,str) and bool(binary))
+    expected=[['go','version'],['go','vet','./...'],['go','test','-race','./...'],
+        ['go','build','-buildvcs=false','-trimpath','-ldflags','-s -w','-o',binary,'./cmd/onggi']]
+    commands=record.get('commands',[]);need(len(commands)==len(expected))
+    for i,(command,argv) in enumerate(zip(commands,expected)):
+        need(command.get('argv')==argv and type(command.get('exit_code')) is int and command['exit_code']==0)
+        for suffix in ['stdout','stderr']:
+            p=path.parent/('command-%d.%s'%(i,suffix));need(p.is_file() and not p.is_symlink())
+            raw=p.read_bytes();need(digest(raw)==command.get(suffix+'_sha256'))
+            if suffix=='stdout' and i==0:need(raw.startswith(b'go version go'))
+            if suffix=='stdout' and i==2:need(re.search(rb'^ok\s+github.com/ai-computing/onggi/pkg/store\s',raw,re.M))
+    return record
 
 
 def generate(repo,output):
@@ -40,6 +67,8 @@ def generate(repo,output):
             reference_bytes=len(changed),reference_sha256=digest(changed)))
     modified=[r['path'] for r in rows if r['base_sha256']!=r['reference_sha256']]
     if modified!=[TARGET]:raise ValueError('Reference unexpectedly changes other product source')
+    if digest(json.dumps(rows,sort_keys=True,separators=(',',':')).encode())!=FILES_SHA:
+        raise ValueError('Reference does not match complete pinned source identities')
     record=dict(schema='onggi.flat-frame-reference.v1',status='generated-not-built',base_revision=BASE,
         generator_sha256=digest(Path(__file__).read_bytes()),
         product_source_edited=False,reference_source=str(source),files=rows,modified=modified,

@@ -21,6 +21,9 @@ _bytes=_helper.read_bytes()
 if hashlib.sha256(_bytes).hexdigest()!=HELPER_SHA:raise ValueError('Unexpected historical helper')
 h=types.ModuleType('matched_frames_checked_helper');h.__file__=str(_helper)
 exec(compile(_bytes,str(_helper),'exec'),h.__dict__)
+_reference=Path(__file__).with_name('flat_frame_reference.py')
+reference=types.ModuleType('checked_reference_builder');reference.__file__=str(_reference)
+exec(compile(_reference.read_bytes(),str(_reference),'exec'),reference.__dict__)
 ARMS=['D','I','F','H']
 SUB_KINDS=['atom-prefill','atom-decode','atom-other']
 FINE=dict(Min=1024,Avg=4096,Max=16384)
@@ -99,16 +102,15 @@ def freeze(config,output):
     check_dataset(cfg)
     if cfg['dataset_kind']=='model':require(cfg.get('reference_manifest_path'),'Model policy requires its experimental reference build receipt')
     if cfg.get('reference_manifest_path'):
-        proof=Path(cfg['reference_manifest_path']).resolve(strict=True);build=json.loads(proof.read_bytes())
-        require(build.get('schema')=='onggi.flat-frame-reference.v1' and build.get('status')=='built'
-            and build.get('binary_sha256')==cfg['binary_sha256'] and build.get('modified')==['pkg/store/store.go'],
-            'Wrong experimental reference build receipt')
+        proof=Path(cfg['reference_manifest_path']).resolve(strict=True)
+        reference.validate_proof(proof,cfg['binary_sha256'])
         cfg.update(reference_manifest_path=str(proof),reference_manifest_sha256=h.sha(proof))
     for key in ['source_dir','onggi']:cfg[key]=str(Path(cfg[key]).resolve(strict=True))
     guard_output(output,cfg)
     require(h.sha(cfg['onggi'])==cfg['binary_sha256'],'Binary digest differs')
     require(h.inventory(cfg['source_dir'])==cfg['input_inventory'],'Predeclared input inventory differs')
     cfg.update(harness_sha256=h.sha(__file__),helper_sha256=HELPER_SHA,config_source_sha256=h.sha(config),
+        reference_generator_sha256=h.sha(_reference),
         config_source_path=str(Path(config).resolve()),
         gomemlimit=os.environ.get('GOMEMLIMIT'),policies=ARMS,host=h.host_info(),
         frozen_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -122,11 +124,13 @@ def check_frozen(cfg):
     check_dataset(cfg)
     require(cfg.get('harness_sha256')==h.sha(__file__) and cfg.get('helper_sha256')==h.sha(_helper),
         'Measured source changed')
+    require(cfg.get('reference_generator_sha256')==h.sha(_reference),'Reference generator source changed')
     require(cfg.get('policies')==ARMS and cfg.get('gomemlimit')==os.environ.get('GOMEMLIMIT'),'Policy/environment changed')
     require(h.sha(cfg['onggi'])==cfg['binary_sha256'],'Binary changed')
     require(h.sha(cfg['config_source_path'])==cfg['config_source_sha256'],'Predeclared configuration changed')
     if cfg.get('reference_manifest_path'):
         require(h.sha(cfg['reference_manifest_path'])==cfg['reference_manifest_sha256'],'Reference build receipt changed')
+        reference.validate_proof(cfg['reference_manifest_path'],cfg['binary_sha256'])
     require(h.inventory(cfg['source_dir'])==cfg['input_inventory'],'Immutable input changed')
     return True
 
@@ -311,10 +315,14 @@ def run(frozen,output,stage,smoke=None):
         check_smoke(json.loads(Path(smoke).read_bytes()),frozen_sha,cfg)
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=False)
     for source,name in [(Path(frozen),'frozen.json'),(Path(__file__),'matched_frames.py'),(_helper,'causal.py'),
-                        (Path(cfg['config_source_path']),'config.json')]:
+                        (Path(cfg['config_source_path']),'config.json'),(_reference,'flat_frame_reference.py')]:
         shutil.copyfile(source,output/name)
     if cfg.get('reference_manifest_path'):
         shutil.copyfile(cfg['reference_manifest_path'],output/'reference-manifest.json')
+        for i in range(4):
+            for suffix in ['stdout','stderr']:
+                name='command-%d.%s'%(i,suffix)
+                shutil.copyfile(Path(cfg['reference_manifest_path']).parent/name,output/name)
     n=5 if stage=='main' else 1
     cohort=dict(status='running',valid=False,stage=stage,arms=ARMS,order=orders(n),trials=[],
         frozen_sha256=frozen_sha,host=h.host_info(),scientific_acceptance='pending exact raw replay and build/control provenance')

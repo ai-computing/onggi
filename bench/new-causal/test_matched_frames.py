@@ -12,7 +12,7 @@ import sys
 import tempfile
 import unittest
 import matched_frames as m
-import flat_frame_reference as reference
+reference=m.reference
 
 
 class MatchedFramesTests(unittest.TestCase):
@@ -109,6 +109,42 @@ class MatchedFramesTests(unittest.TestCase):
             (src/'f').write_bytes(b'changed fixture')
             with self.assertRaises(ValueError):m.check_frozen(frozen)
             with self.assertRaises(ValueError):m.freeze(p,root/'other.json')
+
+    def test_marker_only_reference_receipt_never_admits_binary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'input';source.mkdir();(source/'f').write_bytes(b'opaque')
+            binary=root/'not-executed';binary.write_bytes(b'synthetic non-executed binary')
+            proof=root/'reference-manifest.json'
+            proof.write_text(json.dumps(dict(schema='onggi.flat-frame-reference.v1',status='built',
+                binary_sha256=m.h.sha(binary),modified=['pkg/store/store.go'])))
+            cfg=dict(status='not_run',dataset_kind='synthetic',source_dir=str(source),input_inventory=m.h.inventory(source),
+                onggi=str(binary),binary_sha256=m.h.sha(binary),core_revision='a'*40,binary_build_provenance='synthetic',
+                limits_description='synthetic',workers=8,gomaxprocs=32,free_margin_bytes=1024,reference_manifest_path=str(proof))
+            path=root/'config.json';path.write_text(json.dumps(cfg))
+            with self.assertRaises(ValueError):m.freeze(path,root/'frozen.json')
+
+    @unittest.skipUnless(shutil.which('git'),'Git source checkout required')
+    def test_reference_proof_parser_binds_sources_patch_commands_and_raw_logs(self):
+        # Synthetic parser records only; actual execution is the separate Linux fixture.
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/'reference';repo=Path(__file__).resolve().parents[2]
+            record=reference.generate(repo,root);binary=str(root/'onggi')
+            record.update(status='built',binary=binary,binary_sha256='a'*64,commands=[])
+            commands=[['go','version'],['go','vet','./...'],['go','test','-race','./...'],
+                ['go','build','-buildvcs=false','-trimpath','-ldflags','-s -w','-o',binary,'./cmd/onggi']]
+            for i,argv in enumerate(commands):
+                stdout={0:b'go version go0 synthetic\n',2:b'ok\tgithub.com/ai-computing/onggi/pkg/store\tsynthetic\n'}.get(i,b'')
+                (root/('command-%d.stdout'%i)).write_bytes(stdout);(root/('command-%d.stderr'%i)).write_bytes(b'')
+                record['commands'].append(dict(argv=argv,exit_code=0,stdout_sha256=reference.digest(stdout),stderr_sha256=reference.digest(b'')))
+            p=root/'reference-manifest.json';p.write_text(json.dumps(record))
+            self.assertEqual(reference.validate_proof(p,'a'*64)['status'],'built')
+            for mutate in [lambda r:r.update(base_revision='b'*40),lambda r:r.update(generator_sha256='b'*64),
+                lambda r:r.pop('patch'),lambda r:r['files'].pop(),lambda r:r['commands'][2].update(exit_code=1),
+                lambda r:r['commands'][2].update(stdout_sha256='b'*64)]:
+                changed=copy.deepcopy(record);mutate(changed);p.write_text(json.dumps(changed))
+                with self.assertRaises(ValueError):reference.validate_proof(p,'a'*64)
+            p.write_text(json.dumps(record));(root/'command-2.stdout').write_bytes(b'changed log')
+            with self.assertRaises(ValueError):reference.validate_proof(p,'a'*64)
 
     def test_smoke_requires_actual_complete_treatments_and_frozen_identity(self):
         cfg=self.cfg();cfg.update(gomemlimit=None,input_inventory=[dict(path='f',bytes=1,sha256='a'*64)])
