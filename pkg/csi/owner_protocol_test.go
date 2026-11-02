@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -231,6 +232,9 @@ func TestOwnerPostConsumptionFailureThenRetry(t *testing.T) {
 	_, err = m.Ensure(ctx, f.b)
 	if !claimed || injectionErr != nil || pullErr == nil || !errors.Is(err, pullErr) {
 		t.Fatalf("expected actual post-claim construction failure: claimed=%v injection=%v pull=%v ensure=%v", claimed, injectionErr, pullErr, err)
+	}
+	if !strings.Contains(pullErr.Error(), "fails its hash check") || !strings.Contains(pullErr.Error(), filepath.Base(pack)) {
+		t.Fatalf("expected the selected corrupted residual pack's hash failure: pack=%s err=%v", filepath.Base(pack), pullErr)
 	}
 	if failedStats.Base != f.a.String() || failedStats.Reused == 0 {
 		t.Fatalf("failure preceded genuine consumption/preservation: %+v", failedStats)
