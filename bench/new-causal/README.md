@@ -196,3 +196,29 @@ retention across all arms needs much more. Recorded artifact byte snapshots
 and per-file allocated blocks do not establish an observed peak or unique
 physical extent usage. Peak scratch/RSS/PSS/device-memory and process-I/O
 claims remain unavailable unless independently collected.
+
+## Exact publication acceptance
+
+The separate `verify_publication.py` accepts only this frozen two-file cohort.
+It authenticates every consumed record against the exact export, checks actual
+treatment argv and stored config, fixed environment/cgroup/scratch policy,
+raw GNU time and monotonic clocks, append-only object inventories against
+independent push pack counters, roundtrip manifest witnesses, sample order and
+recomputed summaries. Main requires the separate matching smoke. Mutations
+include omitted archive members, impossible zero stores and changed memory or
+scratch policy. It does not independently rehash absent model/output payloads:
+the pinned worker performed full inventory comparisons before recording success.
+F/T match zstd and frame0; T/TF isolate the frame toggle and TF/TA the codec mode.
+There is no flat-fine-with-frames arm, and these two-file observations do not
+establish the full artifact-set storage gain.
+
+```sh
+python3 bench/new-causal/verify_publication.py \
+  bench/new-causal/data/20261102/publish-smoke publish-smoke \
+  --output /new/scratch/publication-smoke-verified.json
+# Only after main has been exactly exported:
+python3 bench/new-causal/verify_publication.py \
+  /exact/main/export publish-main \
+  --smoke bench/new-causal/data/20261102/publish-smoke \
+  --output /new/scratch/publication-main-verified.json
+```

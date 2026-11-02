@@ -1,96 +1,6 @@
 {
   "files": [
     {
-      "path": "cdx-resident-cpu-model-a01-job.json",
-      "bytes": 13482,
-      "sha256": "bdfd5ed4dc9cd6ec011f9ab736c423709aec6391289663757999da07ee3ce9da"
-    },
-    {
-      "path": "cdx-resident-cpu-model-a01-create.json",
-      "bytes": 160,
-      "sha256": "98db480d172edd73ee048eb3a623d6bdd004fbc76a9df9101cd275a7b24a9ce9"
-    },
-    {
-      "path": "cdx-resident-cpu-model-a01-cleanup.json",
-      "bytes": 8524,
-      "sha256": "6c4c6fd98ab98d8e2f3965207c96851951477c04e6733da8e51074768eb8a7dd"
-    },
-    {
-      "path": "cdx-resident-cpu-model-a01-latest-status.json",
-      "bytes": 41097,
-      "sha256": "b66286f4790a4602f5ed1170b9930c48e7e67c83dbed3d254248d049b57dc31d"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-smoke-job.json",
-      "bytes": 13528,
-      "sha256": "025889988bb9f6a888a9b8eb8134fe959b337ccc1934bd5045b4472dbb90ce91"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-smoke-create.json",
-      "bytes": 163,
-      "sha256": "27663bd7679f2fc18608a0e0833001619168b74dad508b02ce24800fa14b860d"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-smoke-cleanup.json",
-      "bytes": 7379,
-      "sha256": "c129d5a47fffab71ad3f2c1a62cc3796c0320612d7b6ded388b9ef86ad8a5a34"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-smoke-latest-status.json",
-      "bytes": 40060,
-      "sha256": "2d6f563128e2706bc97fdfd5596608df2debb09124572ca823c0b96c40986795"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-main-job.json",
-      "bytes": 13526,
-      "sha256": "b641adc11b1cf2de58617b671d87621b2197cb58ed77d41345b63ab02c514705"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-main-create.json",
-      "bytes": 162,
-      "sha256": "91fb94084e763541a7253b9a53f762233a83d311963e31b6698c3d4dc985b39c"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-main-cleanup.json",
-      "bytes": 7377,
-      "sha256": "a41d110cb24e00c9ed6ef8887c49292cabf25c4c687e1de0e6ac1da9fcf44d2b"
-    },
-    {
-      "path": "cdx-resident-cpu-timing-main-latest-status.json",
-      "bytes": 40050,
-      "sha256": "609a57441fd0cd1af75a106775f42b281df96c4f2b51d11bc93ee0ef68c57330"
-    },
-    {
-      "path": "cpu_run_matrix.py",
-      "bytes": 1059,
-      "sha256": "8c46692d965f2ecc62261f96781242cbb3d4e1c7b63bae5b9c1166980962da24"
-    },
-    {
-      "path": "cpu_followup_controller.py",
-      "bytes": 5091,
-      "sha256": "9cfeebb193f0bf3fbda4f60fc96e933698a270a2cf4b1789d7c31fe6b937c63f"
-    },
-    {
-      "path": "cpu-matrix-stage-manifest.json",
-      "bytes": 180,
-      "sha256": "99533aa9a45eb2046065313e6926e511e11ee8c379fffe9b5b6fa44307057eb7"
-    },
-    {
-      "path": "cpu-model-v2-stage-manifest.json",
-      "bytes": 210,
-      "sha256": "8834ef94cabcb2f71aaa1e1ef62a8721571297dd2c2dc1470afd270971c26c53"
-    },
-    {
-      "path": "collect_cpu_cohort.py",
-      "bytes": 3032,
-      "sha256": "c7236ec327dee16c7a0857f4f54dd42336ddfd37539128d22bc47be7d262c3f1"
-    },
-    {
-      "path": "check_cpu_export.py",
-      "bytes": 5724,
-      "sha256": "d67be55de852a583384521729b167a3cbca3ac8028f481f153d0174c629f3111"
-    },
-    {
       "path": "cdx-resident-build-02-cleanup.json",
       "bytes": 1377,
       "sha256": "35e69a032ed8c6d515494dabd2109c60aae224b84ec812c36a7a09b6772c4f75"
@@ -104,6 +14,176 @@
       "path": "cdx-resident-build-02-job.json",
       "bytes": 2793,
       "sha256": "63c4bc2fb2765194d0ef48d30f022d133390dc2ac78a22dfd5e75b7ce64fc898"
+    },
+    {
+      "path": "cdx-resident-cpu-io-main-cleanup.json",
+      "bytes": 7365,
+      "sha256": "9be5e33132dcb013d8afefaed33aceb52813ae28f71789c0c015c147619d50dc"
+    },
+    {
+      "path": "cdx-resident-cpu-io-main-create.json",
+      "bytes": 158,
+      "sha256": "928f0614dda0b3ebdcf04895bce3c404b56c9765799bcdda154f7de5b0f146ae"
+    },
+    {
+      "path": "cdx-resident-cpu-io-main-job.json",
+      "bytes": 13518,
+      "sha256": "b2e748b35a3c8899f57cca4cc7c9806c9d6afb399e28c62161a4bdc326aeb4b4"
+    },
+    {
+      "path": "cdx-resident-cpu-io-main-latest-status.json",
+      "bytes": 40006,
+      "sha256": "52ea510e2ea1922ae52e80f9d16039c86a3b985b557c83fb1c50151695a75d12"
+    },
+    {
+      "path": "cdx-resident-cpu-io-smoke-cleanup.json",
+      "bytes": 7367,
+      "sha256": "b05ba74bdd6c8e0abc2fd8fda4cd338d98654af4872d20472b41ab03238563c3"
+    },
+    {
+      "path": "cdx-resident-cpu-io-smoke-create.json",
+      "bytes": 159,
+      "sha256": "ee163ff7b730d8e4a62d777ef88fd44a743823b248bf757e31301fe6cbb0292f"
+    },
+    {
+      "path": "cdx-resident-cpu-io-smoke-job.json",
+      "bytes": 13520,
+      "sha256": "68dcbb844e0f9e7dbc7a25f9e074d36810805d846289d35720162113a57d9cff"
+    },
+    {
+      "path": "cdx-resident-cpu-io-smoke-latest-status.json",
+      "bytes": 40014,
+      "sha256": "a80e2f8593214903b8776ac4879aefa9cf77d620aece80b43b44c94373c3d70a"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-cleanup.json",
+      "bytes": 8524,
+      "sha256": "6c4c6fd98ab98d8e2f3965207c96851951477c04e6733da8e51074768eb8a7dd"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-create.json",
+      "bytes": 160,
+      "sha256": "98db480d172edd73ee048eb3a623d6bdd004fbc76a9df9101cd275a7b24a9ce9"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-job.json",
+      "bytes": 13482,
+      "sha256": "bdfd5ed4dc9cd6ec011f9ab736c423709aec6391289663757999da07ee3ce9da"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-latest-status.json",
+      "bytes": 41097,
+      "sha256": "b66286f4790a4602f5ed1170b9930c48e7e67c83dbed3d254248d049b57dc31d"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-main-cleanup.json",
+      "bytes": 7380,
+      "sha256": "5f740e2403166ec9c5c31f0693e47f7ffb4d46218394dfdf34403b3a34fd3595"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-main-create.json",
+      "bytes": 163,
+      "sha256": "728ae51f99aa91e2236bb5e46b0845d8c1d1474df2863b5d1ea3f91d2c0aa4a9"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-main-job.json",
+      "bytes": 13529,
+      "sha256": "fb72b3602bfa452678575e02c865c060f658f4daff9c9efad1f28552e7dd7364"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-main-latest-status.json",
+      "bytes": 40062,
+      "sha256": "c51ed52fed961178aec420294e271dbe17d280461ae64182934ed54d9e5e87ba"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-smoke-cleanup.json",
+      "bytes": 7382,
+      "sha256": "707874f3c9cdd4c099e35eab1dbfac8abfeb1ed3eb97a117ab225664c2153c06"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-smoke-create.json",
+      "bytes": 164,
+      "sha256": "8454b09d1b871e77675dde33323eb900268dbbc14080f8ee3bdde25093671f11"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-smoke-job.json",
+      "bytes": 13530,
+      "sha256": "98a1a0956768324a0a8ab7712639f8cf12c92fa2443a1b6de0d45cd84ca26a07"
+    },
+    {
+      "path": "cdx-resident-cpu-publish-smoke-latest-status.json",
+      "bytes": 40071,
+      "sha256": "50d1edd0a829a7ee06e4a9aff669abf0c761d5a7654531a8071fb376724d521b"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-cleanup.json",
+      "bytes": 7377,
+      "sha256": "a41d110cb24e00c9ed6ef8887c49292cabf25c4c687e1de0e6ac1da9fcf44d2b"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-create.json",
+      "bytes": 162,
+      "sha256": "91fb94084e763541a7253b9a53f762233a83d311963e31b6698c3d4dc985b39c"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-job.json",
+      "bytes": 13526,
+      "sha256": "b641adc11b1cf2de58617b671d87621b2197cb58ed77d41345b63ab02c514705"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-latest-status.json",
+      "bytes": 40050,
+      "sha256": "609a57441fd0cd1af75a106775f42b281df96c4f2b51d11bc93ee0ef68c57330"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-cleanup.json",
+      "bytes": 7379,
+      "sha256": "c129d5a47fffab71ad3f2c1a62cc3796c0320612d7b6ded388b9ef86ad8a5a34"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-create.json",
+      "bytes": 163,
+      "sha256": "27663bd7679f2fc18608a0e0833001619168b74dad508b02ce24800fa14b860d"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-job.json",
+      "bytes": 13528,
+      "sha256": "025889988bb9f6a888a9b8eb8134fe959b337ccc1934bd5045b4472dbb90ce91"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-latest-status.json",
+      "bytes": 40060,
+      "sha256": "2d6f563128e2706bc97fdfd5596608df2debb09124572ca823c0b96c40986795"
+    },
+    {
+      "path": "check_cpu_export.py",
+      "bytes": 5724,
+      "sha256": "d67be55de852a583384521729b167a3cbca3ac8028f481f153d0174c629f3111"
+    },
+    {
+      "path": "collect_cpu_cohort.py",
+      "bytes": 3032,
+      "sha256": "c7236ec327dee16c7a0857f4f54dd42336ddfd37539128d22bc47be7d262c3f1"
+    },
+    {
+      "path": "cpu-matrix-stage-manifest.json",
+      "bytes": 180,
+      "sha256": "99533aa9a45eb2046065313e6926e511e11ee8c379fffe9b5b6fa44307057eb7"
+    },
+    {
+      "path": "cpu-model-v2-stage-manifest.json",
+      "bytes": 210,
+      "sha256": "8834ef94cabcb2f71aaa1e1ef62a8721571297dd2c2dc1470afd270971c26c53"
+    },
+    {
+      "path": "cpu_followup_controller.py",
+      "bytes": 5091,
+      "sha256": "9cfeebb193f0bf3fbda4f60fc96e933698a270a2cf4b1789d7c31fe6b937c63f"
+    },
+    {
+      "path": "cpu_run_matrix.py",
+      "bytes": 1059,
+      "sha256": "8c46692d965f2ecc62261f96781242cbb3d4e1c7b63bae5b9c1166980962da24"
     },
     {
       "path": "proof/build-export-manifest.json",
@@ -161,6 +241,11 @@
       "sha256": "6036b173e69a4f94a7211ec100945c5469e6e05586454c49aba760bc1d677b9c"
     },
     {
+      "path": "proof/push-export-manifest.json",
+      "bytes": 1306,
+      "sha256": "bfe4443f7d2137bb0459dd42e9e28bdd8d96c676e0ce7fe63ab68e382daa098e"
+    },
+    {
       "path": "proof/push/prepare-push-a.json",
       "bytes": 3702,
       "sha256": "619e6135be783d2e2ae3c1f03ce8c5fc602c00fcc7d4eb3c4d89bcf43bc72c63"
@@ -199,11 +284,6 @@
       "path": "proof/push/prepare-push-b.stdout",
       "bytes": 343,
       "sha256": "3ed6a028ecb7a0d82bbe399c8e388a77f0bb5b903f64d2d0463e746c22e5b217"
-    },
-    {
-      "path": "proof/push-export-manifest.json",
-      "bytes": 1306,
-      "sha256": "bfe4443f7d2137bb0459dd42e9e28bdd8d96c676e0ce7fe63ab68e382daa098e"
     },
     {
       "path": "proof/stage/cpu_prepare_model_v2.py",

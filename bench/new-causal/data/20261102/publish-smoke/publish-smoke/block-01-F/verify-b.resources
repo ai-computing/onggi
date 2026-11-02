@@ -1,0 +1,23 @@
+	Command being timed: "nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-F/store --workers 8 --json b /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-F/verify-b"
+	User time (seconds): 12.20
+	System time (seconds): 152.49
+	Percent of CPU this job got: 634%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:25.95
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1236572
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 911109
+	Voluntary context switches: 653729
+	Involuntary context switches: 3711
+	Swaps: 0
+	File system inputs: 2359488
+	File system outputs: 29742576
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
