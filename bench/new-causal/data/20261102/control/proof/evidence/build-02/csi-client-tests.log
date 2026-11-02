@@ -1,0 +1,8 @@
+go: downloading google.golang.org/grpc v1.75.1
+go: downloading github.com/container-storage-interface/spec v1.12.0
+go: downloading google.golang.org/protobuf v1.36.6
+go: downloading golang.org/x/sys v0.33.0
+go: downloading golang.org/x/net v0.41.0
+go: downloading google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7
+go: downloading golang.org/x/text v0.26.0
+ok  	command-line-arguments	0.006s

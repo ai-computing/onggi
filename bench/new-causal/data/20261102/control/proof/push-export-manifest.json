@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "prepare-push-a.json",
+      "bytes": 3702,
+      "sha256": "619e6135be783d2e2ae3c1f03ce8c5fc602c00fcc7d4eb3c4d89bcf43bc72c63"
+    },
+    {
+      "path": "prepare-push-a.stdout",
+      "bytes": 351,
+      "sha256": "77f816b6e4d9aed761eb715c8a0b35044c9e5b0468f4ca7adfcad2f5a793133a"
+    },
+    {
+      "path": "prepare-push-a.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prepare-push-a.resources",
+      "bytes": 1251,
+      "sha256": "449b259f87ae2c69028227389645d3cf269e060f8db8f953d0522fe88ed5f55d"
+    },
+    {
+      "path": "prepare-push-b.json",
+      "bytes": 3702,
+      "sha256": "ff230ebca5ccae17c49f2e898a538b8d2dad022c3f4d32eb7fab9e3b1e2b1dda"
+    },
+    {
+      "path": "prepare-push-b.stdout",
+      "bytes": 343,
+      "sha256": "3ed6a028ecb7a0d82bbe399c8e388a77f0bb5b903f64d2d0463e746c22e5b217"
+    },
+    {
+      "path": "prepare-push-b.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prepare-push-b.resources",
+      "bytes": 1248,
+      "sha256": "7002629531971aeab64fc41dde9bc11d0ed9c208a67859c7d2a6e238bde2d661"
+    }
+  ]
+}

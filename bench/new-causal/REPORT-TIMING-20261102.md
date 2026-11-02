@@ -37,7 +37,7 @@ preparation/smoke/main Jobs were UID-cleaned with Pods absent.
 
 Source runnerc2288e7 / SHA15468016...554f5a, Onggi core05c9760 / binary
 SHAe6b8ee52...15ae5. Full identities are in frozen records. The package has
-64 smoke and184 main worker files plus18 exact operational records. Exact
+64 smoke and184 main worker files plus43 exact operational records. Exact
 compressed exports, stdout/stderr, executed arguments, GNU time, input hashes,
 independent inode witnesses, output hashes and cleanup receipts are retained.
 Large model payloads/binary/delta files are absent. Offline checks validate
@@ -56,6 +56,23 @@ same frozen source/target, full-output hash witnesses, real R admission and CPU
 UID cleanup. A mutation test resigns an entire export with a false validated
 clock and still requires rejection. Model experiments use the frozen runner;
 the added offline checker does not change that measured source.
+
+Pre-publication review found three missing verification boundaries, not an
+observed invalid trial: GNU-time agreement, complete expected method arguments
+and small build/store provenance. Regressions first showed resigned false
+command clocks and wrong stores could pass; checks now bind full expected
+argv, actual raw GNU-time/resources and independently timed CLI duration. The
+GNU-time consistency check allows up to1s of outer launch/recording overhead
+and0.02s rounding; it never subtracts or adjusts a measured value.
+
+Supplemental exact records supply the actual350-byte store config, preparation
+script, original shared-store push commands/output, source archive, Go1.25.1
+and binary-hash/build-status receipts. Code-only canonical LF comparison binds
+the archived cmd/pkg/module files to core05c9760; raw records stay byte-exact.
+The CLI reports dev because the source archive has no Git checkout. The
+earlier CPU-only Go build used a privileged container; its submitted image,
+commands and successful UID cleanup are separate from the three nonprivileged
+preparation/timing Jobs. The native/core and measured runner are unchanged.
 
 Logical local writes/read bytes are **unavailable in this untraced timing
 cohort**. CLI stats.bytes is target size, and GNU time filesystem blocks are

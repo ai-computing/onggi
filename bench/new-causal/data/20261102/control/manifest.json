@@ -89,7 +89,132 @@
       "path": "check_cpu_export.py",
       "bytes": 5724,
       "sha256": "d67be55de852a583384521729b167a3cbca3ac8028f481f153d0174c629f3111"
+    },
+    {
+      "path": "cdx-resident-build-02-cleanup.json",
+      "bytes": 1377,
+      "sha256": "35e69a032ed8c6d515494dabd2109c60aae224b84ec812c36a7a09b6772c4f75"
+    },
+    {
+      "path": "cdx-resident-build-02-create.json",
+      "bytes": 155,
+      "sha256": "1f26fa7878482804a48ece5328c14cb915c22afa2f6f3c5b93670f533c38b9b3"
+    },
+    {
+      "path": "cdx-resident-build-02-job.json",
+      "bytes": 2793,
+      "sha256": "63c4bc2fb2765194d0ef48d30f022d133390dc2ac78a22dfd5e75b7ce64fc898"
+    },
+    {
+      "path": "proof/build-export-manifest.json",
+      "bytes": 1977,
+      "sha256": "5b0229a56432d5fdc8f25733f195f7bdaec569d97b40696babd5f506068a114c"
+    },
+    {
+      "path": "proof/cpu-model-a01/store/config/st/store",
+      "bytes": 350,
+      "sha256": "b622760634fffcd17a57767a1fe6480e7393ea3df47eb88e2610fcfb9edd6ff8"
+    },
+    {
+      "path": "proof/evidence/build-02/binary-sha256.txt",
+      "bytes": 167,
+      "sha256": "8f7dc164e343cc54a3c254228ce726c0bf3973391018b212773986e45afd78a3"
+    },
+    {
+      "path": "proof/evidence/build-02/build-status.txt",
+      "bytes": 10,
+      "sha256": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a"
+    },
+    {
+      "path": "proof/evidence/build-02/client-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "proof/evidence/build-02/csi-client-tests.log",
+      "bytes": 418,
+      "sha256": "2eac5dce63fbdfee3f1267fbb4d8071161fff00852bfca13c28459bc4f8ac5ea"
+    },
+    {
+      "path": "proof/evidence/build-02/go-version.txt",
+      "bytes": 32,
+      "sha256": "b6fb5596d2012530ab21387717217c56c6240d9d2a8384d99f7ef12443157bf8"
+    },
+    {
+      "path": "proof/evidence/build-02/onggi-build.log",
+      "bytes": 580,
+      "sha256": "f120a8c23accb914f0661488aa635cbb9a9e27c9b72ad603a49bf30f22262e76"
+    },
+    {
+      "path": "proof/evidence/build-02/onggi-csi-tests.log",
+      "bytes": 104,
+      "sha256": "81e2d860d08b430934fc06e764a9ad5da2bfdcc4c6ce7e107212d4bf08956d32"
+    },
+    {
+      "path": "proof/exact.json.gz",
+      "bytes": 112361,
+      "sha256": "1ad1e22be5857580c72388ef054ed89208a1a14c01f5135433878dd858c26b61"
+    },
+    {
+      "path": "proof/manifest.json",
+      "bytes": 3674,
+      "sha256": "6036b173e69a4f94a7211ec100945c5469e6e05586454c49aba760bc1d677b9c"
+    },
+    {
+      "path": "proof/push/prepare-push-a.json",
+      "bytes": 3702,
+      "sha256": "619e6135be783d2e2ae3c1f03ce8c5fc602c00fcc7d4eb3c4d89bcf43bc72c63"
+    },
+    {
+      "path": "proof/push/prepare-push-a.resources",
+      "bytes": 1251,
+      "sha256": "449b259f87ae2c69028227389645d3cf269e060f8db8f953d0522fe88ed5f55d"
+    },
+    {
+      "path": "proof/push/prepare-push-a.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "proof/push/prepare-push-a.stdout",
+      "bytes": 351,
+      "sha256": "77f816b6e4d9aed761eb715c8a0b35044c9e5b0468f4ca7adfcad2f5a793133a"
+    },
+    {
+      "path": "proof/push/prepare-push-b.json",
+      "bytes": 3702,
+      "sha256": "ff230ebca5ccae17c49f2e898a538b8d2dad022c3f4d32eb7fab9e3b1e2b1dda"
+    },
+    {
+      "path": "proof/push/prepare-push-b.resources",
+      "bytes": 1248,
+      "sha256": "7002629531971aeab64fc41dde9bc11d0ed9c208a67859c7d2a6e238bde2d661"
+    },
+    {
+      "path": "proof/push/prepare-push-b.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "proof/push/prepare-push-b.stdout",
+      "bytes": 343,
+      "sha256": "3ed6a028ecb7a0d82bbe399c8e388a77f0bb5b903f64d2d0463e746c22e5b217"
+    },
+    {
+      "path": "proof/push-export-manifest.json",
+      "bytes": 1306,
+      "sha256": "bfe4443f7d2137bb0459dd42e9e28bdd8d96c676e0ce7fe63ab68e382daa098e"
+    },
+    {
+      "path": "proof/stage/cpu_prepare_model_v2.py",
+      "bytes": 4038,
+      "sha256": "d7ad3ce2e23390cc085e626cc7476913d4887ce796fbc96d700507b42f522cb9"
+    },
+    {
+      "path": "proof/stage/onggi-source.tar.gz",
+      "bytes": 106433,
+      "sha256": "94777fdd3847db4d8ca77ae7cb463731538c720a4f32ba445b9f3c1b90f231e8"
     }
   ],
-  "scope": "Exact timing/preparation controller records; IO/publication still pending, not part of completed timing claim"
+  "scope": "Exact timing/preparation controls plus supplemental actual store/build/publication receipts; IO/publication matrix results pending"
 }

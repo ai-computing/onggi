@@ -1,0 +1,2 @@
+go: downloading github.com/klauspost/compress v1.18.0
+ok  	github.com/ai-computing/onggi/pkg/csi	1.770s

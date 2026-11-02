@@ -1,0 +1,21 @@
+{
+  "schema": "onggi.store.v1",
+  "chunker": {
+    "Min": 16384,
+    "Avg": 65536,
+    "Max": 262144
+  },
+  "pack_size": 67108864,
+  "sub_chunker": {
+    "Min": 1024,
+    "Avg": 4096,
+    "Max": 16384
+  },
+  "sub_kinds": [
+    "atom-prefill",
+    "atom-decode",
+    "atom-other"
+  ],
+  "frame": 262144,
+  "created": "2026-11-02T03:46:06.083322272Z"
+}
