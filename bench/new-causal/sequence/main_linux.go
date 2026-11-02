@@ -433,19 +433,15 @@ func execute(cfg configuration, raw []byte, origin *store.Store, start time.Time
 	}
 	var previousLease string
 	var sequenceContext context.Context
-	var sequenceCancel context.CancelFunc
-	defer func() {
-		if sequenceCancel != nil {
-			sequenceCancel()
-		}
-	}()
 	for i, key := range cfg.Requests {
 		requestTime := time.Now()
 		step := requestRecord{Artifact: key, Status: "running", RequestNS: requestTime.Sub(start).Nanoseconds(), RequestUTC: requestTime.UTC().Format(time.RFC3339Nano), Pulls: []pullRecord{}, FileIdentities: []fileIdentity{}}
 		active = &step
 		if i == 1 {
 			report.SequenceStartNS = step.RequestNS
-			sequenceContext, sequenceCancel = context.WithDeadline(context.Background(), requestTime.Add(time.Duration(cfg.SequenceTimeoutNS)))
+			var cancelSequence context.CancelFunc
+			sequenceContext, cancelSequence = context.WithDeadline(context.Background(), requestTime.Add(time.Duration(cfg.SequenceTimeoutNS)))
+			defer cancelSequence()
 		}
 		parent := context.Background()
 		if i > 0 {
