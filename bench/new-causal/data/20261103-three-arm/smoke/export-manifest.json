@@ -1,0 +1,143 @@
+{
+  "schema": "onggi.three-arm-evidence.v1",
+  "cohort": "smoke",
+  "files": [
+    {
+      "path": "config.json",
+      "bytes": 144329,
+      "sha256": "710d33fb533e2ae6c4e4387fe2498063c9de9582eea6971dd15dbf9a300aca9f"
+    },
+    {
+      "path": "frozen.json",
+      "bytes": 140868,
+      "sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d"
+    },
+    {
+      "path": "smoke/block-01-C/cleanup.json",
+      "bytes": 551,
+      "sha256": "1df4f92b96eee70a0acd16619382e68a2ef404a81634ee2a69148c0d51fe6851"
+    },
+    {
+      "path": "smoke/block-01-C/deploy.json",
+      "bytes": 4009,
+      "sha256": "782e05661194ed8d91c2d30999a73134b8b844ddfc118412a28a7b03b754149f"
+    },
+    {
+      "path": "smoke/block-01-C/deploy.resources",
+      "bytes": 1417,
+      "sha256": "a0569d21f969aca2acaa31b0edb9ef5e7824815f73f10fd8305e305cbda44b02"
+    },
+    {
+      "path": "smoke/block-01-C/deploy.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "smoke/block-01-C/deploy.stdout",
+      "bytes": 442,
+      "sha256": "2db96ef6332d9024f07a4bde370738fba4f3123df3fdfc97d0d03d53b2f56911"
+    },
+    {
+      "path": "smoke/block-01-C/result.json",
+      "bytes": 131765,
+      "sha256": "8316ad343e4c48f06c6b36e739f599a87243baa06e0df8452cf51566d7c76fee"
+    },
+    {
+      "path": "smoke/block-01-P/cleanup.json",
+      "bytes": 551,
+      "sha256": "85693fd4ff111de51f0e97a22fec109fe55bb5c4e613ed9b7d15fb9d36867917"
+    },
+    {
+      "path": "smoke/block-01-P/deploy.json",
+      "bytes": 4009,
+      "sha256": "732d07193b07018399658a1c43cf566b915344fbaf1b6fb2ba893a7b97cde9ec"
+    },
+    {
+      "path": "smoke/block-01-P/deploy.resources",
+      "bytes": 1417,
+      "sha256": "32d0d60eff49009ab78eb76dfe216164c38ec15c6c3771ffc40013bf33fd4d91"
+    },
+    {
+      "path": "smoke/block-01-P/deploy.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "smoke/block-01-P/deploy.stdout",
+      "bytes": 336,
+      "sha256": "380309836b3eef96276ee48fbac7c6e6f4d308b10496cb1691c82bc3cdcda38e"
+    },
+    {
+      "path": "smoke/block-01-P/result.json",
+      "bytes": 131651,
+      "sha256": "c1c1651fab3baf5fdb7a5048a5f754f1bbb2d286ecb44b45fbbad76e2db9811d"
+    },
+    {
+      "path": "smoke/block-01-R/cleanup.json",
+      "bytes": 551,
+      "sha256": "2fd704b7d96d43b8cabcc621fbdbe0e045658862dd9654fb80cb9df7b0a25b84"
+    },
+    {
+      "path": "smoke/block-01-R/deploy.json",
+      "bytes": 3981,
+      "sha256": "ca8c7d49b9800bae389ab92c12343bd21a2d382720742d14c10245bad96f89df"
+    },
+    {
+      "path": "smoke/block-01-R/deploy.resources",
+      "bytes": 1402,
+      "sha256": "30c506d06c6407f30f6aac57009209cac2c634650f3b2e49ce082736f173f721"
+    },
+    {
+      "path": "smoke/block-01-R/deploy.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "smoke/block-01-R/deploy.stdout",
+      "bytes": 434,
+      "sha256": "b4cddf1848fc814c4dd4a7f5731cad562d25497d2d736451ede22a1d9e4f5c48"
+    },
+    {
+      "path": "smoke/block-01-R/result.json",
+      "bytes": 131517,
+      "sha256": "e16991b9f6b8908dd7ce8615498b368857fb31e14ea01107ff4555b71ef9f58f"
+    },
+    {
+      "path": "smoke/causal.py",
+      "bytes": 35231,
+      "sha256": "1546801671fc19d3871487b2d2d4f0f8e445bae82cbfd25aabf9e87351554f5a"
+    },
+    {
+      "path": "smoke/cohort.json",
+      "bytes": 936871,
+      "sha256": "a06030602f18997e7f1fd4abaa9ae436da8d2e498833ea8a92f6c9f3ccf11aaf"
+    },
+    {
+      "path": "smoke/frozen.json",
+      "bytes": 140868,
+      "sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d"
+    },
+    {
+      "path": "smoke/three_arm.py",
+      "bytes": 17498,
+      "sha256": "b04a44fe2928247e8b4c588e5b9a20e3fcd48c2f04b0bc9577e83a31bfe4abd9"
+    },
+    {
+      "path": "worker-source.py",
+      "bytes": 3102,
+      "sha256": "9ce6e52d110ce5be2ba1769b470f36eebf7671f500a26b74790c5115d1c2c507"
+    }
+  ],
+  "archive": {
+    "bytes": 308564,
+    "sha256": "7618241b73110841cba1c2178285817e137f78be0a0ee9fae5096b18df7afcb1",
+    "parts": [
+      {
+        "file": "evidence.tar.gz.part-000",
+        "bytes": 308564,
+        "sha256": "7618241b73110841cba1c2178285817e137f78be0a0ee9fae5096b18df7afcb1"
+      }
+    ]
+  },
+  "scope": "Exact raw/source bytes; large input/output/store/cache payload trees excluded"
+}

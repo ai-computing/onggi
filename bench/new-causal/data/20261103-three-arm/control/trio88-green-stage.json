@@ -1,0 +1,15 @@
+{
+  "directory": "/home/gspark/workspace/codex_resident_delivery_20261102/trio88-green",
+  "verified_core_source": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+  "core_files": 67,
+  "files": [
+    {
+      "name": "three_arm_call.go",
+      "sha256": "b6015c42ea40772f57d0ac89e013597ad63201ac5ba0e61f7e2bb1183e7dab81"
+    },
+    {
+      "name": "three_arm_call_test.go",
+      "sha256": "6a64a9a4774171636988a6defdc7c8f497057cf63a85cb57c25325015c658deb"
+    }
+  ]
+}

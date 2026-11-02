@@ -1,0 +1,45 @@
+{
+  "directory": "/home/gspark/workspace/codex_resident_delivery_20261102/trio88-stage-1e99504",
+  "files": [
+    {
+      "path": "PROTOCOL-THREE-ARM-20261103.md",
+      "bytes": 4217,
+      "sha256": "d53b35994f4fff3675ee4a7100d565203430fcc8623366d2e6482dd4fb727e02"
+    },
+    {
+      "path": "causal.py",
+      "bytes": 35231,
+      "sha256": "1546801671fc19d3871487b2d2d4f0f8e445bae82cbfd25aabf9e87351554f5a"
+    },
+    {
+      "path": "stage-manifest.json",
+      "bytes": 1163,
+      "sha256": "36388cc915b8f4075932887383d3528b602ebbcb00863b2e6ad692f67094b340"
+    },
+    {
+      "path": "test_three_arm.py",
+      "bytes": 8870,
+      "sha256": "1834b3aec2f3f0fd5090ad63ea68f94d4d299415aa5c1d650d5fb7039ce96e49"
+    },
+    {
+      "path": "three_arm.py",
+      "bytes": 17498,
+      "sha256": "b04a44fe2928247e8b4c588e5b9a20e3fcd48c2f04b0bc9577e83a31bfe4abd9"
+    },
+    {
+      "path": "three_arm_call.go",
+      "bytes": 3824,
+      "sha256": "b6015c42ea40772f57d0ac89e013597ad63201ac5ba0e61f7e2bb1183e7dab81"
+    },
+    {
+      "path": "three_arm_call_test.go",
+      "bytes": 5403,
+      "sha256": "6a64a9a4774171636988a6defdc7c8f497057cf63a85cb57c25325015c658deb"
+    },
+    {
+      "path": "trio88_fixture_worker.py",
+      "bytes": 1178,
+      "sha256": "6085cbeda453d82ff7d1e710cc2b065f78d36a5ef3a44b26c343f5cf138d2898"
+    }
+  ]
+}

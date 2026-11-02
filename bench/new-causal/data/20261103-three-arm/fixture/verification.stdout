@@ -1,0 +1,1403 @@
+{
+  "valid": true,
+  "fixture": true,
+  "model_evidence": false,
+  "label": "smoke",
+  "trials": 3,
+  "n_per_arm": 1,
+  "frozen_sha256": "fe9fd18f5d821c085ff66bcc3966b8ba16a19bc4052edad093ccc3af5fe10fab",
+  "driver_sha256": "4613b8936144f4a13e22e9e47a4df700a73062e44615a6438741bd3d14634a53",
+  "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+  "timing": {
+    "P": {
+      "command_s": {
+        "values": [
+          0.121962674
+        ],
+        "median": 0.121962674,
+        "q1": 0.121962674,
+        "q3": 0.121962674
+      },
+      "durable_s": {
+        "values": [
+          0.12335334
+        ],
+        "median": 0.12335334,
+        "q1": 0.12335334,
+        "q3": 0.12335334
+      },
+      "validated_s": {
+        "values": [
+          0.131547132
+        ],
+        "median": 0.131547132,
+        "q1": 0.131547132,
+        "q3": 0.131547132
+      },
+      "donor_validation_s": {
+        "values": [
+          0.008178071
+        ],
+        "median": 0.008178071,
+        "q1": 0.008178071,
+        "q3": 0.008178071
+      }
+    },
+    "C": {
+      "command_s": {
+        "values": [
+          0.097125282
+        ],
+        "median": 0.097125282,
+        "q1": 0.097125282,
+        "q3": 0.097125282
+      },
+      "durable_s": {
+        "values": [
+          0.097950139
+        ],
+        "median": 0.097950139,
+        "q1": 0.097950139,
+        "q3": 0.097950139
+      },
+      "validated_s": {
+        "values": [
+          0.105637245
+        ],
+        "median": 0.105637245,
+        "q1": 0.105637245,
+        "q3": 0.105637245
+      },
+      "donor_validation_s": {
+        "values": [
+          0.008246605
+        ],
+        "median": 0.008246605,
+        "q1": 0.008246605,
+        "q3": 0.008246605
+      }
+    },
+    "R": {
+      "command_s": {
+        "values": [
+          0.032814317
+        ],
+        "median": 0.032814317,
+        "q1": 0.032814317,
+        "q3": 0.032814317
+      },
+      "durable_s": {
+        "values": [
+          0.033461462
+        ],
+        "median": 0.033461462,
+        "q1": 0.033461462,
+        "q3": 0.033461462
+      },
+      "validated_s": {
+        "values": [
+          0.040956995
+        ],
+        "median": 0.040956995,
+        "q1": 0.040956995,
+        "q3": 0.040956995
+      },
+      "donor_validation_s": {
+        "values": [
+          0.000105587
+        ],
+        "median": 0.000105587,
+        "q1": 0.000105587,
+        "q3": 0.000105587
+      }
+    }
+  },
+  "worker_reported_timing": {
+    "P": {
+      "preparation_s": {
+        "values": [
+          0.052820663
+        ],
+        "median": 0.052820663,
+        "q1": 0.052820663,
+        "q3": 0.052820663
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          0.184519435
+        ],
+        "median": 0.184519435,
+        "q1": 0.184519435,
+        "q3": 0.184519435
+      }
+    },
+    "C": {
+      "preparation_s": {
+        "values": [
+          0.054613533
+        ],
+        "median": 0.054613533,
+        "q1": 0.054613533,
+        "q3": 0.054613533
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          0.160401078
+        ],
+        "median": 0.160401078,
+        "q1": 0.160401078,
+        "q3": 0.160401078
+      }
+    },
+    "R": {
+      "preparation_s": {
+        "values": [
+          0.054646462
+        ],
+        "median": 0.054646462,
+        "q1": 0.054646462,
+        "q3": 0.054646462
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          0.095758048
+        ],
+        "median": 0.095758048,
+        "q1": 0.095758048,
+        "q3": 0.095758048
+      }
+    }
+  },
+  "preparation_scope": "Worker-reported, consistency-only: preparation start timestamp absent; not independently reconstructed",
+  "logical_io": {
+    "P": {
+      "base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "cache": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            4316236
+          ],
+          "median": 4316236,
+          "q1": 4316236,
+          "q3": 4316236
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            174
+          ],
+          "median": 174,
+          "q1": 174,
+          "q3": 174
+        }
+      },
+      "source_base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "staging": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "store": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            54480
+          ],
+          "median": 54480,
+          "q1": 54480,
+          "q3": 54480
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "ftruncate_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            8388608
+          ],
+          "median": 8388608,
+          "q1": 8388608,
+          "q3": 8388608
+        }
+      }
+    },
+    "C": {
+      "base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            4202869
+          ],
+          "median": 4202869,
+          "q1": 4202869,
+          "q3": 4202869
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "cache": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            113367
+          ],
+          "median": 113367,
+          "q1": 113367,
+          "q3": 113367
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            174
+          ],
+          "median": 174,
+          "q1": 174,
+          "q3": 174
+        }
+      },
+      "source_base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "staging": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "store": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            107501
+          ],
+          "median": 107501,
+          "q1": 107501,
+          "q3": 107501
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "ftruncate_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            8388608
+          ],
+          "median": 8388608,
+          "q1": 8388608,
+          "q3": 8388608
+        }
+      }
+    },
+    "R": {
+      "base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "cache": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            113367
+          ],
+          "median": 113367,
+          "q1": 113367,
+          "q3": 113367
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            174
+          ],
+          "median": 174,
+          "q1": 174,
+          "q3": 174
+        }
+      },
+      "source_base": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "staging": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "store": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "read_bytes": {
+          "values": [
+            107501
+          ],
+          "median": 107501,
+          "q1": 107501,
+          "q3": 107501
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "target": {
+        "errors": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fdatasync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "ftruncate_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "truncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            68256
+          ],
+          "median": 68256,
+          "q1": 68256,
+          "q3": 68256
+        }
+      }
+    }
+  },
+  "physical_io": null,
+  "scope": "Exact source/command/output-hash/inode/clock witnesses and trace replay; absent model bytes not independently rehashed",
+  "archive_sha256": "61c1b865e1db26f8851da80914e55ad625d48b32fca2864353ce131c7a8a4de0",
+  "files": 48,
+  "control_provenance": "Separate CPU Job/Pod UID cleanup, build and source receipts required"
+}

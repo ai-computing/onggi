@@ -1,5 +1,13 @@
 # CPU causal cohorts (issue #84)
 
+Issue #88 adds a separate [common-caller P/C/R timing result](RESULTS-THREE-ARM-20261103.md)
+with exact actual fixture/smoke/main archives and build/control receipts in
+`data/20261103-three-arm/`. Each model arm has five accepted prepared-state
+untraced observations. Run `python3 -B -m unittest discover -s bench/new-causal
+-p test_three_arm_retained.py -v` to replay the retained records offline.
+Three-arm traced I/O, lifecycle and broader-layout acceptance remain separate;
+do not pool these observations with the earlier cohorts below.
+
 Real model timing: **complete, five arms each n=5**, plus excluded smoke.
 Same-complete-target-cache traced I/O (two arms,n=5 each) and two-file
 publication (five arms,n=5 each) are now exactly exported and independently

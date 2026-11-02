@@ -1,0 +1,92 @@
+{
+  "status": "completed-awaiting-exact-export",
+  "completed": [
+    {
+      "label": "smoke",
+      "job_uid": "d07e974d-0f2c-4fd1-926c-86fefdf540b4",
+      "pod_uid": "c0d7f843-d84a-4345-b893-0c5fa4171502",
+      "cohort": {
+        "status": "succeeded",
+        "valid": true,
+        "trials": 3,
+        "frozen_sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d",
+        "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+        "label": "smoke",
+        "traced": false,
+        "scientific_acceptance": "pending exact export and independent reparse"
+      }
+    },
+    {
+      "label": "main",
+      "job_uid": "6b882249-9a12-4243-a9a8-66b297f46f11",
+      "pod_uid": "49dc5fb1-b529-40fd-8500-e91ae947e57b",
+      "cohort": {
+        "status": "succeeded",
+        "valid": true,
+        "trials": 15,
+        "frozen_sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d",
+        "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+        "label": "main",
+        "traced": false,
+        "scientific_acceptance": "pending exact export and independent reparse"
+      }
+    },
+    {
+      "label": "io-smoke",
+      "job_uid": "e8a3204a-a655-4bc3-b17c-2be13f76ab83",
+      "pod_uid": "49a95d0e-1ae0-44f8-a2de-646fbe5bab91",
+      "cohort": {
+        "status": "succeeded",
+        "valid": true,
+        "trials": 3,
+        "frozen_sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d",
+        "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+        "label": "io-smoke",
+        "traced": true,
+        "scientific_acceptance": "pending exact export and independent reparse"
+      }
+    },
+    {
+      "label": "io-main",
+      "job_uid": "244b152e-ac63-4baf-ab86-eba5f742c5ad",
+      "pod_uid": "d2f39df2-9a20-4cce-9172-fc066b221606",
+      "cohort": {
+        "status": "succeeded",
+        "valid": true,
+        "trials": 15,
+        "frozen_sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d",
+        "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+        "label": "io-main",
+        "traced": true,
+        "scientific_acceptance": "pending exact export and independent reparse"
+      }
+    }
+  ],
+  "active": null,
+  "plan": [
+    [
+      "smoke",
+      3,
+      false
+    ],
+    [
+      "main",
+      15,
+      false
+    ],
+    [
+      "io-smoke",
+      3,
+      true
+    ],
+    [
+      "io-main",
+      15,
+      true
+    ]
+  ],
+  "controller_sha256": "230bbe935b36e8b8224987b30ab2df168a686b1566416ebb39e953ea7d2b8754",
+  "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+  "updated_utc": "2026-11-02T17:03:56.486602+00:00",
+  "scientific_acceptance": "pending exact raw export and independent reparse"
+}
