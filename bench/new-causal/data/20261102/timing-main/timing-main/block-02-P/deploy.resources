@@ -1,0 +1,23 @@
+	Command being timed: "nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/store --workers 8 --json sha256:99ba4e88392ad77d36a629b94d904ac904269950e43270d1b020383b1619225a /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-02-P/output"
+	User time (seconds): 45.96
+	System time (seconds): 124.73
+	Percent of CPU this job got: 728%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:23.43
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1465744
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2235927
+	Voluntary context switches: 122577
+	Involuntary context switches: 379
+	Swaps: 0
+	File system inputs: 91144
+	File system outputs: 29742800
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

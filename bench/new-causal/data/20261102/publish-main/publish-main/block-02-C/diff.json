@@ -1,0 +1,56 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "diff",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-02-C/store",
+    "--json",
+    "--ranges",
+    "a",
+    "b"
+  ],
+  "elapsed_s": 0.36105284,
+  "environment": {
+    "GOMAXPROCS": "32",
+    "GOMEMLIMIT": null,
+    "LC_ALL": "C",
+    "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-02-C/tmp",
+    "TZ": "UTC"
+  },
+  "executed_argv": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-02-C/diff.resources",
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "diff",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-02-C/store",
+    "--json",
+    "--ranges",
+    "a",
+    "b"
+  ],
+  "exit_code": 0,
+  "gnu_time": "\tCommand being timed: \"nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi diff --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-02-C/store --json --ranges a b\"\n\tUser time (seconds): 0.29\n\tSystem time (seconds): 0.18\n\tPercent of CPU this job got: 133%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:00.35\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 128372\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 39797\n\tVoluntary context switches: 770\n\tInvoluntary context switches: 1\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 8\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+  "monotonic_end_ns": 1575618101465129,
+  "monotonic_start_ns": 1575617740412289,
+  "process_io": null,
+  "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+  "resources": {
+    "filesystem_input_blocks": 0,
+    "filesystem_output_blocks": 8,
+    "max_rss_kib": 128372,
+    "system_s": 0.18,
+    "user_s": 0.29
+  },
+  "status": "succeeded",
+  "traced": false,
+  "utc_start": "2026-11-02T06:24:02.865233+00:00"
+}

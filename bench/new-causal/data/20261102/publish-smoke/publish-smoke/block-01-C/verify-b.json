@@ -1,0 +1,58 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/verify-b"
+  ],
+  "elapsed_s": 15.836204362,
+  "environment": {
+    "GOMAXPROCS": "32",
+    "GOMEMLIMIT": null,
+    "LC_ALL": "C",
+    "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/tmp",
+    "TZ": "UTC"
+  },
+  "executed_argv": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/verify-b.resources",
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/verify-b"
+  ],
+  "exit_code": 0,
+  "gnu_time": "\tCommand being timed: \"nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/store --workers 8 --json b /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-smoke/block-01-C/verify-b\"\n\tUser time (seconds): 8.35\n\tSystem time (seconds): 83.44\n\tPercent of CPU this job got: 579%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:15.83\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 485372\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 349179\n\tVoluntary context switches: 201247\n\tInvoluntary context switches: 2271\n\tSwaps: 0\n\tFile system inputs: 67544\n\tFile system outputs: 29742512\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+  "monotonic_end_ns": 1572116935776389,
+  "monotonic_start_ns": 1572101099572027,
+  "process_io": null,
+  "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+  "resources": {
+    "filesystem_input_blocks": 67544,
+    "filesystem_output_blocks": 29742512,
+    "max_rss_kib": 485372,
+    "system_s": 83.44,
+    "user_s": 8.35
+  },
+  "status": "succeeded",
+  "traced": false,
+  "utc_start": "2026-11-02T05:25:26.224395+00:00"
+}

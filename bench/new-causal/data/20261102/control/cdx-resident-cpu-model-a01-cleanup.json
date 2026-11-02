@@ -1,0 +1,204 @@
+{
+  "job_uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc",
+  "name": "cdx-resident-cpu-model-a01",
+  "job_absent": true,
+  "pods_absent": true,
+  "observations": [
+    {
+      "name": "cdx-resident-cpu-model-a01-s2xnr",
+      "uid": "dac24237-b83d-4e8d-802f-eeb2a77ce7f7",
+      "phase": "Succeeded",
+      "containers": [
+        {
+          "containerID": "containerd://ed66336baa531606cd5f9ed431bab55d575d645428e7bd83b52aaa9ad47423e5",
+          "image": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+          "imageID": "docker.io/library/ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+          "lastState": {},
+          "name": "run",
+          "ready": false,
+          "restartCount": 0,
+          "started": false,
+          "state": {
+            "terminated": {
+              "containerID": "containerd://ed66336baa531606cd5f9ed431bab55d575d645428e7bd83b52aaa9ad47423e5",
+              "exitCode": 0,
+              "finishedAt": "2026-11-02T03:55:48Z",
+              "reason": "Completed",
+              "startedAt": "2026-11-02T03:45:05Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+              "name": "source-views",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/host-libs",
+              "name": "host-libs",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/host-usrlib",
+              "name": "host-usrlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/host-bin",
+              "name": "host-bin",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/lib/python3/dist-packages",
+              "name": "dist",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/local/lib/python3.10/dist-packages",
+              "name": "local-dist",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/venvs/furiosa-2026.4",
+              "name": "rngd-sdk",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/run/swap",
+              "name": "assigned",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/dev/shm",
+              "name": "shm",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_rngd_opt_20261023",
+              "name": "prior-opt",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_onggi_integration_20261030",
+              "name": "onggi-build",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+              "name": "work",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+              "name": "own-cache",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+              "name": "source",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+              "name": "published",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/var/lib/kubelet/device-plugins",
+              "name": "device-checkpoint",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030",
+              "name": "binding-work",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+              "name": "binding-source",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+              "name": "binding-kit",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/python3.10",
+              "name": "host-python",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/lib/python3.10",
+              "name": "host-python-stdlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+              "name": "new-work",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "name": "owned"
+            },
+            {
+              "mountPath": "/usr/bin/time",
+              "name": "cpu-tool-time",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/strace",
+              "name": "cpu-tool-strace",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/rsync",
+              "name": "cpu-tool-rsync",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/home/gspark/rbln-llama8b-pd",
+              "name": "atom-source",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/xdelta3",
+              "name": "xdelta-existing",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ],
+      "log": "{\"status\": \"completed\", \"npu_requested\": 0, \"question\": \"same-cache materialization writes, repeated local baselines and matched chunking\", \"started_unix_ns\": 1793591105606643698, \"inputs\": [{\"original\": \"/home/gspark/rbln-llama8b-pd/decode_S256_B2_lm.rbln\", \"copy\": \"/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/base/decode_S256_B2_lm.rbln\", \"bytes\": 15238278850, \"sha256\": \"8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332\", \"copy_and_hash_s\": 29.8140752}, {\"original\": \"/home/gspark/rbln-llama8b-pd/decode_S256_B8_lm.rbln\", \"copy\": \"/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln\", \"bytes\": 15228048882, \"sha256\": \"304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d\", \"copy_and_hash_s\": 29.741689101}], \"finished_unix_ns\": 1793591748815794210, \"free_bytes\": 336006950912, \"tools\": {\"time\": \"7310b9b4c51a8f4d26c1af0da250f03a49ec8a8141033123e79196ad18f6c81b\", \"strace\": \"38a5c75cb29dd85ddd7780d54f5bf595554d7a1b5c42524b23065f5dc4c4b01d\", \"rsync\": \"f029cadc3f0b1c879bf8dfb899f434703c13ee53197d27da5d17bf0faf1f1318\", \"xdelta3\": \"fb861f85195a3e6afedd9d5d7ab42273855f9dacb5893b1b6069412d2c574c0f\"}}\n",
+      "log_stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "arm": "xdelta",
+  "base_copy_proof": [
+    {
+      "allocated_bytes": 15238283264,
+      "bytes": 15238278850,
+      "copy_dev": 64512,
+      "copy_ino": 25171213,
+      "independent_inode": true,
+      "nlink": 1,
+      "path": "decode_S256_B2_lm.rbln",
+      "sha256": "8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332",
+      "source_dev": 64512,
+      "source_ino": 25170289
+    }
+  ],
+  "command": {
+    "argv": [
+      "nice",
+      "-n",
+      "19",
+      "xdelta3",
+      "-d",
+      "-s",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/base/decode_S256_B2_lm.rbln",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/delta.vcdiff",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/output/decode_S256_B8_lm.rbln"
+    ],
+    "elapsed_s": 17.347696438,
+    "environment": {
+      "GOMAXPROCS": "32",
+      "GOMEMLIMIT": null,
+      "LC_ALL": "C",
+      "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/tmp",
+      "TZ": "UTC"
+    },
+    "executed_argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/deploy.resources",
+      "nice",
+      "-n",
+      "19",
+      "xdelta3",
+      "-d",
+      "-s",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/base/decode_S256_B2_lm.rbln",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/delta.vcdiff",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/output/decode_S256_B8_lm.rbln"
+    ],
+    "exit_code": 0,
+    "gnu_time": "\tCommand being timed: \"nice -n 19 xdelta3 -d -s /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/base/decode_S256_B2_lm.rbln /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/delta.vcdiff /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-03-xdelta/output/decode_S256_B8_lm.rbln\"\n\tUser time (seconds): 4.84\n\tSystem time (seconds): 12.50\n\tPercent of CPU this job got: 99%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:17.34\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 78336\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 19446\n\tVoluntary context switches: 2\n\tInvoluntary context switches: 34\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 29742288\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "monotonic_end_ns": 1569047038441836,
+    "monotonic_start_ns": 1569029690745398,
+    "process_io": null,
+    "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+    "resources": {
+      "filesystem_input_blocks": 0,
+      "filesystem_output_blocks": 29742288,
+      "max_rss_kib": 78336,
+      "system_s": 12.5,
+      "user_s": 4.84
+    },
+    "status": "succeeded",
+    "traced": false,
+    "utc_start": "2026-11-02T04:34:14.815568+00:00"
+  },
+  "consume_treatment_valid": true,
+  "durable_s": 18.462607515,
+  "free_bytes_before_command": 320759234560,
+  "logical_io": null,
+  "output_hash_equal": true,
+  "output_inventory": [
+    {
+      "bytes": 15228048882,
+      "path": "decode_S256_B8_lm.rbln",
+      "sha256": "304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d"
+    }
+  ],
+  "preparation_inclusive_s": 76.181880885,
+  "preparation_s": 31.47525814,
+  "publication": "not applicable: prepublished source",
+  "retained_artifact_bytes": 30466331935,
+  "status": "succeeded",
+  "sync_end_ns": 1569048153352913,
+  "sync_s": 1.114223315,
+  "sync_start_ns": 1569047039129598,
+  "synced_files": 1,
+  "valid": true,
+  "validated_s": 26.824613367,
+  "validation_end_ns": 1569056515358765,
+  "validation_s": 8.362001832,
+  "validation_start_ns": 1569048153356933,
+  "warm_source_verification_s": 17.881840518
+}

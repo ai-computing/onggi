@@ -1,0 +1,227 @@
+{
+  "verified": true,
+  "label": "timing-smoke",
+  "n": 1,
+  "trials": 5,
+  "files": 64,
+  "status": "succeeded",
+  "traced": false,
+  "summary": {
+    "P": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          27.628006144
+        ],
+        "median": 27.628006144,
+        "q1": 27.628006144,
+        "q3": 27.628006144
+      },
+      "validated_s": {
+        "values": [
+          38.134603831
+        ],
+        "median": 38.134603831,
+        "q1": 38.134603831,
+        "q3": 38.134603831
+      },
+      "user_s": {
+        "values": [
+          48.39
+        ],
+        "median": 48.39,
+        "q1": 48.39,
+        "q3": 48.39
+      },
+      "system_s": {
+        "values": [
+          127.04
+        ],
+        "median": 127.04,
+        "q1": 127.04,
+        "q3": 127.04
+      },
+      "max_rss_kib": {
+        "values": [
+          1720088
+        ],
+        "median": 1720088,
+        "q1": 1720088,
+        "q3": 1720088
+      }
+    },
+    "R": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          6.086046858
+        ],
+        "median": 6.086046858,
+        "q1": 6.086046858,
+        "q3": 6.086046858
+      },
+      "validated_s": {
+        "values": [
+          14.835365687
+        ],
+        "median": 14.835365687,
+        "q1": 14.835365687,
+        "q3": 14.835365687
+      },
+      "user_s": {
+        "values": [
+          4.08
+        ],
+        "median": 4.08,
+        "q1": 4.08,
+        "q3": 4.08
+      },
+      "system_s": {
+        "values": [
+          4.02
+        ],
+        "median": 4.02,
+        "q1": 4.02,
+        "q3": 4.02
+      },
+      "max_rss_kib": {
+        "values": [
+          2628288
+        ],
+        "median": 2628288,
+        "q1": 2628288,
+        "q3": 2628288
+      }
+    },
+    "rsync": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          42.160650347
+        ],
+        "median": 42.160650347,
+        "q1": 42.160650347,
+        "q3": 42.160650347
+      },
+      "validated_s": {
+        "values": [
+          56.621084557
+        ],
+        "median": 56.621084557,
+        "q1": 56.621084557,
+        "q3": 56.621084557
+      },
+      "user_s": {
+        "values": [
+          9.61
+        ],
+        "median": 9.61,
+        "q1": 9.61,
+        "q3": 9.61
+      },
+      "system_s": {
+        "values": [
+          33.35
+        ],
+        "median": 33.35,
+        "q1": 33.35,
+        "q3": 33.35
+      },
+      "max_rss_kib": {
+        "values": [
+          9984
+        ],
+        "median": 9984,
+        "q1": 9984,
+        "q3": 9984
+      }
+    },
+    "rsync_inplace": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          30.427681243
+        ],
+        "median": 30.427681243,
+        "q1": 30.427681243,
+        "q3": 30.427681243
+      },
+      "validated_s": {
+        "values": [
+          40.461891937
+        ],
+        "median": 40.461891937,
+        "q1": 40.461891937,
+        "q3": 40.461891937
+      },
+      "user_s": {
+        "values": [
+          9.58
+        ],
+        "median": 9.58,
+        "q1": 9.58,
+        "q3": 9.58
+      },
+      "system_s": {
+        "values": [
+          17.48
+        ],
+        "median": 17.48,
+        "q1": 17.48,
+        "q3": 17.48
+      },
+      "max_rss_kib": {
+        "values": [
+          10752
+        ],
+        "median": 10752,
+        "q1": 10752,
+        "q3": 10752
+      }
+    },
+    "xdelta": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          19.598478388
+        ],
+        "median": 19.598478388,
+        "q1": 19.598478388,
+        "q3": 19.598478388
+      },
+      "validated_s": {
+        "values": [
+          29.53286229
+        ],
+        "median": 29.53286229,
+        "q1": 29.53286229,
+        "q3": 29.53286229
+      },
+      "user_s": {
+        "values": [
+          4.86
+        ],
+        "median": 4.86,
+        "q1": 4.86,
+        "q3": 4.86
+      },
+      "system_s": {
+        "values": [
+          14.7
+        ],
+        "median": 14.7,
+        "q1": 14.7,
+        "q3": 14.7
+      },
+      "max_rss_kib": {
+        "values": [
+          78336
+        ],
+        "median": 78336,
+        "q1": 78336,
+        "q3": 78336
+      }
+    }
+  },
+  "scope": "Exact export bytes and recorded output/hash/inode/clock witnesses; model files absent, no independent full-byte rehash"
+}

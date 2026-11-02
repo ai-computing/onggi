@@ -1,0 +1,2 @@
+# Exact raw evidence includes platform-specific newlines. Do not normalize it.
+data/** -text whitespace=cr-at-eol

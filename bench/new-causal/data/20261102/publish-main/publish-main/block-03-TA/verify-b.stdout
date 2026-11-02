@@ -1,0 +1,17 @@
+{
+  "manifest": "sha256:f1e99da882df0458b4e84d35c84ac68166a2346e8311ce4c6847db417128ea52",
+  "stats": {
+    "files": 1,
+    "bytes": 15228048882,
+    "read_bytes": 9912715442,
+    "cache_bytes": 0,
+    "peer_bytes": 0,
+    "peer_chunks": 0,
+    "cached": 0,
+    "reused": 0,
+    "base_best": 0,
+    "local_bytes": 0,
+    "ranges": 739,
+    "duration_ns": 25772296556
+  }
+}

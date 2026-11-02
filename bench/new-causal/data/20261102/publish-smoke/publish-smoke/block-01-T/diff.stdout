@@ -1,0 +1,37 @@
+{
+  "files": [
+    {
+      "path": "decode_S256_B8_lm.rbln",
+      "base": "decode_S256_B2_lm.rbln",
+      "size": 15228048882,
+      "same": 15009857021,
+      "moved": 0,
+      "new": 218191861,
+      "same_blocks": 15009845248,
+      "changed_runs": 3,
+      "largest_run": 218137453,
+      "changed": [
+        [
+          0,
+          45196
+        ],
+        [
+          60586,
+          9212
+        ],
+        [
+          15009911429,
+          218137453
+        ]
+      ]
+    }
+  ],
+  "size": 15228048882,
+  "same": 15009857021,
+  "moved": 0,
+  "new": 218191861,
+  "new_stored": 28295643,
+  "same_blocks": 15009845248,
+  "changed_runs": 3,
+  "largest_run": 218137453
+}

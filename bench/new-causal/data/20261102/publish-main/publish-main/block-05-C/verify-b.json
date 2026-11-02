@@ -1,0 +1,58 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/verify-b"
+  ],
+  "elapsed_s": 17.543510726,
+  "environment": {
+    "GOMAXPROCS": "32",
+    "GOMEMLIMIT": null,
+    "LC_ALL": "C",
+    "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/tmp",
+    "TZ": "UTC"
+  },
+  "executed_argv": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/verify-b.resources",
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/verify-b"
+  ],
+  "exit_code": 0,
+  "gnu_time": "\tCommand being timed: \"nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/store --workers 8 --json b /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-C/verify-b\"\n\tUser time (seconds): 8.71\n\tSystem time (seconds): 88.52\n\tPercent of CPU this job got: 554%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:17.54\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 540296\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 405991\n\tVoluntary context switches: 188941\n\tInvoluntary context switches: 2598\n\tSwaps: 0\n\tFile system inputs: 2264520\n\tFile system outputs: 29742472\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+  "monotonic_end_ns": 1578563251478007,
+  "monotonic_start_ns": 1578545707967281,
+  "process_io": null,
+  "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+  "resources": {
+    "filesystem_input_blocks": 2264520,
+    "filesystem_output_blocks": 29742472,
+    "max_rss_kib": 540296,
+    "system_s": 88.52,
+    "user_s": 8.71
+  },
+  "status": "succeeded",
+  "traced": false,
+  "utc_start": "2026-11-02T07:12:50.832790+00:00"
+}

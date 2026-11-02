@@ -1,0 +1,101 @@
+{
+  "arm": "rsync",
+  "base_copy_proof": [
+    {
+      "allocated_bytes": 15238283264,
+      "bytes": 15238278850,
+      "copy_dev": 64512,
+      "copy_ino": 25171141,
+      "independent_inode": true,
+      "nlink": 1,
+      "path": "decode_S256_B2_lm.rbln",
+      "sha256": "8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332",
+      "source_dev": 64512,
+      "source_ino": 25170289
+    }
+  ],
+  "command": {
+    "argv": [
+      "nice",
+      "-n",
+      "19",
+      "rsync",
+      "--no-whole-file",
+      "--ignore-times",
+      "--stats",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-01-rsync/output/"
+    ],
+    "elapsed_s": 24.04690533,
+    "environment": {
+      "GOMAXPROCS": "32",
+      "GOMEMLIMIT": null,
+      "LC_ALL": "C",
+      "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-01-rsync/tmp",
+      "TZ": "UTC"
+    },
+    "executed_argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-01-rsync/deploy.resources",
+      "nice",
+      "-n",
+      "19",
+      "rsync",
+      "--no-whole-file",
+      "--ignore-times",
+      "--stats",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-01-rsync/output/"
+    ],
+    "exit_code": 0,
+    "gnu_time": "\tCommand being timed: \"nice -n 19 rsync --no-whole-file --ignore-times --stats /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-01-rsync/output/\"\n\tUser time (seconds): 9.26\n\tSystem time (seconds): 18.57\n\tPercent of CPU this job got: 115%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:24.04\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 10752\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 2521\n\tVoluntary context switches: 7352\n\tInvoluntary context switches: 344\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 29742296\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "monotonic_end_ns": 1568128865450933,
+    "monotonic_start_ns": 1568104818545603,
+    "process_io": null,
+    "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+    "resources": {
+      "filesystem_input_blocks": 0,
+      "filesystem_output_blocks": 29742296,
+      "max_rss_kib": 10752,
+      "system_s": 18.57,
+      "user_s": 9.26
+    },
+    "status": "succeeded",
+    "traced": false,
+    "utc_start": "2026-11-02T04:18:49.943369+00:00"
+  },
+  "consume_treatment_valid": true,
+  "durable_s": 24.050178027,
+  "free_bytes_before_command": 320760066048,
+  "logical_io": null,
+  "output_hash_equal": true,
+  "output_inventory": [
+    {
+      "bytes": 15228048882,
+      "path": "decode_S256_B8_lm.rbln",
+      "sha256": "304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d"
+    }
+  ],
+  "preparation_inclusive_s": 81.585425596,
+  "preparation_s": 31.269259454,
+  "publication": "not applicable: prepublished source",
+  "retained_artifact_bytes": 15228053192,
+  "rsync_protocol": {
+    "protocol_bytes": 219889568,
+    "received_bytes": 987671,
+    "sent_bytes": 218901897
+  },
+  "status": "succeeded",
+  "sync_end_ns": 1568128868723630,
+  "sync_s": 0.002641708,
+  "sync_start_ns": 1568128866081922,
+  "synced_files": 1,
+  "valid": true,
+  "validated_s": 32.415129782,
+  "validation_end_ns": 1568137233675385,
+  "validation_s": 8.364950945,
+  "validation_start_ns": 1568128868724440,
+  "warm_source_verification_s": 17.900871809
+}

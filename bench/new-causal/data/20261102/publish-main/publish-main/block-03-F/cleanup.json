@@ -1,0 +1,10 @@
+{
+  "elapsed_s": 5.18408803,
+  "policy": "remove successful trial artifact trees; retain raw evidence",
+  "removed": [
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-F/store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-F/tmp",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-F/verify-a",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-F/verify-b"
+  ]
+}

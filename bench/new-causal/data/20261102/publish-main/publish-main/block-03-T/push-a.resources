@@ -1,0 +1,23 @@
+	Command being timed: "nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi push --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-T/store --min 16KiB --avg 64KiB --max 256KiB --sub 4KiB --sub-kinds atom-prefill,atom-decode,atom-other --frame 0 --compress zstd --pack-size 64MiB --workers 8 --uploads 4 --quiet --json --tmp /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-03-T/tmp --ref a /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/base"
+	User time (seconds): 143.53
+	System time (seconds): 69.37
+	Percent of CPU this job got: 181%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:57.09
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1007264
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1750006
+	Voluntary context switches: 1591371
+	Involuntary context switches: 424
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 60008232
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

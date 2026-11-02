@@ -1,0 +1,32 @@
+{
+  "base_dir": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/base",
+  "base_manifest": null,
+  "binary_build_provenance": "resident build02 pinned Go image; go-version.txt and binary SHA retained",
+  "binary_sha256": "e6b8ee52a69c7cf9fe970cc1df08e93eab9c175c061baccb078725e549a15ae5",
+  "cache_dir": null,
+  "deployment_arms": [
+    "P",
+    "R",
+    "rsync",
+    "rsync_inplace",
+    "xdelta"
+  ],
+  "go_version": "go1.25.1 linux/amd64",
+  "gomaxprocs": 32,
+  "limits_description": "K8s CPU-only etri-001, request4/limit12 CPU, request8/limit32Gi memory; actual cgroup/affinity/mounts in frozen.host; nice19; warm rehash; no cache drops",
+  "onggi": "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+  "publication_arms": [
+    "C",
+    "F",
+    "T",
+    "TF",
+    "TA"
+  ],
+  "retain_outputs": false,
+  "source_revision": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+  "status": "not_run",
+  "store": null,
+  "target_dir": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target",
+  "target_manifest": null,
+  "workers": 8
+}

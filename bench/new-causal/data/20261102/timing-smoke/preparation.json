@@ -1,0 +1,30 @@
+{
+  "finished_unix_ns": 1793591748815794210,
+  "free_bytes": 336006950912,
+  "inputs": [
+    {
+      "bytes": 15238278850,
+      "copy": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/base/decode_S256_B2_lm.rbln",
+      "copy_and_hash_s": 29.8140752,
+      "original": "/home/gspark/rbln-llama8b-pd/decode_S256_B2_lm.rbln",
+      "sha256": "8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332"
+    },
+    {
+      "bytes": 15228048882,
+      "copy": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln",
+      "copy_and_hash_s": 29.741689101,
+      "original": "/home/gspark/rbln-llama8b-pd/decode_S256_B8_lm.rbln",
+      "sha256": "304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d"
+    }
+  ],
+  "npu_requested": 0,
+  "question": "same-cache materialization writes, repeated local baselines and matched chunking",
+  "started_unix_ns": 1793591105606643698,
+  "status": "completed",
+  "tools": {
+    "rsync": "f029cadc3f0b1c879bf8dfb899f434703c13ee53197d27da5d17bf0faf1f1318",
+    "strace": "38a5c75cb29dd85ddd7780d54f5bf595554d7a1b5c42524b23065f5dc4c4b01d",
+    "time": "7310b9b4c51a8f4d26c1af0da250f03a49ec8a8141033123e79196ad18f6c81b",
+    "xdelta3": "fb861f85195a3e6afedd9d5d7ab42273855f9dacb5893b1b6069412d2c574c0f"
+  }
+}

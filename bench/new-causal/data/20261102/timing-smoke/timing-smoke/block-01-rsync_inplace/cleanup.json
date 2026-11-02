@@ -1,0 +1,9 @@
+{
+  "elapsed_s": 1.508524821,
+  "policy": "remove successful trial artifact trees; retain raw evidence",
+  "removed": [
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-smoke/block-01-rsync_inplace/base",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-smoke/block-01-rsync_inplace/output",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-smoke/block-01-rsync_inplace/tmp"
+  ]
+}
