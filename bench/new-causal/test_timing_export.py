@@ -32,6 +32,22 @@ def resign(root):
 
 
 class TimingExportTests(unittest.TestCase):
+    def test_smoke_cohort_cannot_masquerade_as_main(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'export'
+            shutil.copytree(DATA / 'timing-smoke', root)
+            (root / 'timing-smoke').rename(root / 'timing-main')
+            doc = json.loads(gzip.decompress((root / 'exact-evidence.json.gz').read_bytes()))
+            doc['cohort'] = 'timing-main'
+            for entry in doc['files']:
+                entry['path'] = entry['path'].replace('timing-smoke', 'timing-main')
+                path = root / entry['path']
+                path.write_bytes(path.read_bytes().replace(b'timing-smoke', b'timing-main'))
+            (root / 'exact-evidence.json.gz').write_bytes(gzip.compress(json.dumps(doc).encode()))
+            resign(root)
+            with self.assertRaises(AssertionError):
+                v.verify(root, 'timing-main')
+
     def test_complete_main_and_excluded_smoke(self):
         for label, n, trials in [('timing-smoke', 1, 5), ('timing-main', 5, 25)]:
             result = v.verify(DATA / label, label)

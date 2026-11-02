@@ -1,8 +1,9 @@
 # CPU causal cohorts (issue #84)
 
 Real model timing: **complete, five arms each n=5**, plus excluded smoke.
-Same-cache traced I/O and publication ablations remain pending/running; their
-completion is not inferred from timing. See [the timing report](REPORT-TIMING-20261102.md)
+Same-cache traced I/O is terminal at the worker but exact trace export/reparse
+is pending; publication ablations remain running. Their verification is not
+inferred from timing. See [the timing report](REPORT-TIMING-20261102.md)
 and `data/20261102/`. This runner changes no runtime code, allocates no device,
 compiles no model, contacts no node and modifies no manuscript evidence.
 
@@ -147,6 +148,23 @@ unparseable traces invalidate the diagnostic; missing counters stay null.
 Traced latencies must not be pooled with or compared against untraced ones.
 Process-wide `/proc/PID/io` stays null: no validated pre-exit final snapshot is
 implemented. Neither warm-cache zeros nor size-minus-reused arithmetic fills it.
+
+The separate diagnostic verifier `verify_io.py` re-parses all exact per-thread
+traces using the frozen runner and expected roots. It binds command/strace
+arguments, raw GNU time, full-output SHA witnesses, n5 versus smoke, target
+sync and changed-file write attribution. `pack_trace_export.py` streams raw
+evidence into tar.gz and <=48MB transport parts, excluding model/output/store
+payload trees; hashes preserve all raw bytes. Extraction streams raw records
+into temporary storage, while compressed parts are joined in memory. The known
+3.05GB main trace is spread over376 files (largest24.8MB); allow sufficient
+temporary disk space. Raw traces are not committed uncompressed.
+
+The packer/verifier have synthetic and mutation checks, including wrong-run R
+attribution, an empty aggregate, a smoke disguised as main, changed parts and
+path escape. **Actual model I/O remains unverified until its exact package is
+exported and this verifier passes.** It is a separate diagnostic; its traced
+latencies never replace or pool with untraced timing. Do not run a multi-GB
+trace export concurrently with publication/timing measurements.
 
 Publication creates a fresh store for every arm/repetition and pushes A then
 B using identical zstd policy, 64-MiB packs, worker/upload limits and scratch

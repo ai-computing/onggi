@@ -18,10 +18,13 @@ def digest(data):
 def check_command(command, argv, resource_path, resources, h):
     assert command['status'] == 'succeeded' and command['exit_code'] == 0
     assert command['argv'] == ['nice', '-n', '19'] + argv
-    assert command['executed_argv'] == ['/usr/bin/time', '-v', '-o', str(resource_path)] + command['argv']
+    timed = command['argv']
+    if command.get('traced'):
+        timed = h.trace_argv(resource_path.with_suffix('.trace')) + timed
+    assert command['executed_argv'] == ['/usr/bin/time', '-v', '-o', str(resource_path)] + timed
     assert command['gnu_time'] == resources
     assert command['resources'] == h.time_metrics(resources)
-    assert 'Command being timed: "' + ' '.join(command['argv']) + '"' in resources
+    assert 'Command being timed: "' + ' '.join(timed) + '"' in resources
     line = next(line for line in resources.splitlines() if line.strip().startswith('Elapsed (wall clock) time '))
     wall = 0.0
     for component in line.rsplit('):', 1)[1].strip().split(':'):
@@ -30,6 +33,28 @@ def check_command(command, argv, resource_path, resources, h):
     # This loose consistency allowance never changes or subtracts measured time.
     assert wall - .02 <= command['elapsed_s'] <= wall + 1
     assert 'Exit status: 0' in resources
+
+
+def check_trace(trial, remote_trial, cfg, row, h):
+    accounting = h.read_traces(trial / 'deploy.trace', h.trace_roots(cfg, remote_trial))
+    assert accounting['valid'] and not accounting['warnings'], 'Trace attribution is incomplete'
+    assert accounting == row['trace_accounting'], 'Recorded accounting differs from raw traces'
+    groups = accounting['groups']
+    assert groups == row['logical_io'], 'Reported logical IO differs from raw traces'
+    assert accounting['trace_files'], 'No per-thread traces'
+    for counters in groups.values():
+        assert all(isinstance(n, int) and n >= 0 for n in counters.values()), 'Unknown/negative IO'
+        assert counters['errors'] == 0, 'Failed file operations require manual interpretation'
+    for key in ('source_base', 'source_target'):
+        assert groups[key]['read_bytes'] == groups[key]['write_bytes'] == 0
+    assert groups['store']['write_bytes'] == 0
+    assert groups['target']['fsync_calls'] >= len(cfg['target_inventory']), 'Missing target sync attribution'
+    if row['arm'] == 'P':
+        assert groups['target']['write_bytes'] >= sum(r['bytes'] for r in cfg['target_inventory']), 'Missing full-target writes'
+    else:
+        # This fixed B2→B8 fixture has changed bytes; zero signals missing attribution.
+        assert groups['target']['write_bytes'] > 0, 'Missing changed-target writes'
+    return groups
 
 
 def verify_provenance(root):
@@ -97,14 +122,14 @@ def verify_provenance(root):
                 binary_sha256=cfg['binary_sha256'], go_version=cfg['go_version'], build_job_uid_cleaned=True)
 
 
-def verify_controls(root):
+def verify_controls(root, names=None):
     manifest = json.loads((root / 'manifest.json').read_bytes())
     for entry in manifest['files']:
         path = (root / entry['path']).resolve()
         assert path.is_relative_to(root.resolve())
         data = path.read_bytes()
         assert len(data) == entry['bytes'] and digest(data) == entry['sha256']
-    names = ['cdx-resident-cpu-model-a01', 'cdx-resident-cpu-timing-smoke', 'cdx-resident-cpu-timing-main']
+    names = names or ['cdx-resident-cpu-model-a01', 'cdx-resident-cpu-timing-smoke', 'cdx-resident-cpu-timing-main']
     for name in names:
         submitted = json.loads((root / (name + '-job.json')).read_bytes())
         created = json.loads((root / (name + '-create.json')).read_bytes())
@@ -130,7 +155,7 @@ def verify_controls(root):
     return dict(verified=True, cpu_jobs_uid_cleaned=len(names), control_files=len(manifest['files']))
 
 
-def verify(root, label):
+def verify(root, label, traced=False):
     manifest = json.loads((root / 'export-manifest.json').read_bytes())
     packed = (root / 'exact-evidence.json.gz').read_bytes()
     assert digest(packed) == manifest['archive']['sha256'] and len(packed) == manifest['archive']['bytes']
@@ -143,6 +168,11 @@ def verify(root, label):
         data = path.read_bytes()
         assert len(data) == entry['bytes'] and digest(data) == entry['sha256']
         assert data == base64.b64decode(entry['base64'])
+    return _verify_contents(root, label, traced, len(doc['files']))
+
+
+def _verify_contents(root, label, traced, files):
+    """Internal: call only after the enclosing exact export has been verified."""
     cohort_root = root / label
     copied_source = cohort_root / 'causal.py'
     assert digest(copied_source.read_bytes()) == '1546801671fc19d3871487b2d2d4f0f8e445bae82cbfd25aabf9e87351554f5a'
@@ -150,9 +180,18 @@ def verify(root, label):
     h = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(h)
     cohort = json.loads((cohort_root / 'cohort.json').read_bytes())
+    assert cohort['stage'] in ('smoke', 'main')
+    assert label == ('io-' if traced else 'timing-') + cohort['stage'], 'Label/stage mismatch'
     cfg = json.loads((cohort_root / 'frozen.json').read_bytes())
-    assert cohort['experiment'] == 'deploy' and not cohort['traced'], 'This checker covers untraced timing only'
-    assert cfg.get('cache_dir') is None and cfg['workers'] == 8 and cfg['gomaxprocs'] == 32
+    assert cohort['experiment'] == 'deploy' and cohort['traced'] == traced, 'Wrong diagnostic/timing mode'
+    assert cfg['workers'] == 8 and cfg['gomaxprocs'] == 32
+    if traced:
+        assert label in ('io-smoke', 'io-main') and cohort['arms'] == ['P', 'R']
+        assert cfg.get('cache_dir') and cfg['cache_inventory']
+        assert cfg['conditions']['chunk_cache'] == 'identical frozen copies'
+        assert cohort['frozen_sha256'] == '75b2df992e3369f94cb6424c422432dc2155ef9e9af76331fe3eaca5eb563f09'
+    else:
+        assert cfg.get('cache_dir') is None
     assert cfg['base_inventory'] == [dict(path='decode_S256_B2_lm.rbln', bytes=15238278850,
         sha256='8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332')]
     assert cfg['target_inventory'] == [dict(path='decode_S256_B8_lm.rbln', bytes=15228048882,
@@ -166,8 +205,8 @@ def verify(root, label):
     expected = [(block, arm) for block, arms in enumerate(cohort['order'], 1) for arm in arms]
     assert len(cohort['trials']) == len(expected)
     remote_root = PurePosixPath(cfg['store']).parent / label
-    cfg['delta_file'] = str(remote_root / 'delta.vcdiff')
     if 'xdelta' in cohort['arms']:
+        cfg['delta_file'] = str(remote_root / 'delta.vcdiff')
         encode = ['xdelta3', '-e', '-s', str(PurePosixPath(cfg['base_dir']) / cfg['base_inventory'][0]['path']),
                   str(PurePosixPath(cfg['target_dir']) / cfg['target_inventory'][0]['path']), cfg['delta_file']]
         check_command(cohort['xdelta_publication'], encode, remote_root / 'encode-xdelta.resources',
@@ -210,9 +249,11 @@ def verify(root, label):
                 assert ('--inplace' in command['argv']) == (arm == 'rsync_inplace')
             if not cohort['traced']:
                 assert row['logical_io'] is None
+            else:
+                check_trace(trial, remote_trial, cfg, row, h)
     summary = h.summarize(cohort['trials'], cohort['arms'], n)
     assert summary == cohort['summary'] and all(s['valid'] for s in summary.values())
-    return dict(verified=True, label=label, n=n, trials=len(expected), files=len(doc['files']),
+    return dict(verified=True, label=label, n=n, trials=len(expected), files=files,
         status=cohort['status'], traced=cohort['traced'], summary={arm:{k:v for k,v in s.items() if k != 'samples'}
         for arm,s in summary.items()}, scope='Exact export bytes and recorded output/hash/inode/clock witnesses; model files absent, no independent full-byte rehash')
 
