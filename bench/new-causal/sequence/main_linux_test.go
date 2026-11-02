@@ -198,6 +198,25 @@ func TestSequenceExistingRootNeverOverwritten(t *testing.T) {
 	}
 }
 
+func TestSequenceRejectsOrdinaryOriginWithoutMutation(t *testing.T) {
+	f := newSequenceFixture(t, "R")
+	origin := t.TempDir()
+	sentinel := filepath.Join(origin, "input.bin")
+	if err := os.WriteFile(sentinel, []byte("preserve input"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	f.config["store"] = origin
+	code, _, stderr := callSequence(t, f.config)
+	entries, err := os.ReadDir(origin)
+	got, readErr := os.ReadFile(sentinel)
+	if code != 2 || err != nil || readErr != nil || len(entries) != 1 || entries[0].Name() != "input.bin" || string(got) != "preserve input" {
+		t.Fatalf("ordinary origin mutated on refusal: code=%d entries=%v err=%v readErr=%v stderr=%s", code, entries, err, readErr, stderr)
+	}
+	if _, err := os.Lstat(f.config["root"].(string)); !os.IsNotExist(err) {
+		t.Fatalf("refusal created output: %v", err)
+	}
+}
+
 func TestSequenceBadTargetHashStopsAndRetainsAttempt(t *testing.T) {
 	f := newSequenceFixture(t, "R")
 	f.config["artifacts"].(map[string]any)["B"].(map[string]any)["files"].([]any)[0].(map[string]any)["sha256"] = string(bytes.Repeat([]byte{'0'}, 64))
