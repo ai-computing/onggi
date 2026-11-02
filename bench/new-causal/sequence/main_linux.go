@@ -173,6 +173,15 @@ func validate(cfg *configuration) error {
 	if err != nil || !info.IsDir() {
 		return errors.New("origin must be an existing directory")
 	}
+	// fs.Open creates tmp/refs even if OpenWith later rejects a missing config.
+	// Admit only an existing store layout, without touching the supplied origin.
+	for _, relative := range []string{"tmp", "refs", "config", "config/st", "config/st/store"} {
+		info, err := os.Lstat(filepath.Join(storeAbs, filepath.FromSlash(relative)))
+		if err != nil || (relative == "config/st/store" && !info.Mode().IsRegular()) ||
+			(relative != "config/st/store" && !info.IsDir()) {
+			return errors.New("origin must have an existing regular store config and directories")
+		}
+	}
 	rootAbs, err := filepath.Abs(cfg.Root)
 	if err != nil {
 		return err

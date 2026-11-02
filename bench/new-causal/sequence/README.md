@@ -38,6 +38,11 @@ artifact contains its immutable `manifest` and complete `files` records with
 `sequence_timeout_ns`, `materialized_capacity_bytes`,
 `workspace_capacity_bytes` and `cache_capacity_bytes` are mandatory.
 
+The origin must be an existing, immutable store with regular config and
+existing tmp/refs directories. Layout admission precedes the backend open,
+so mistaking an ordinary input directory for a store does not create entries
+inside it. Config contents are then checked by the actual store reader.
+
 The primary regime must allow retention of both complete artifacts. Workspace
 reserves at least the largest target plus one configured cache pack. These
 are common declared allowances, **not kernel-enforced quotas**. Occupancy is
