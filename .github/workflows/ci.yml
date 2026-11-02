@@ -15,7 +15,9 @@ jobs:
         with:
           go-version-file: go.mod
       - name: gofmt
-        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+        run: test -z "$(gofmt -l .)" || { gofmt -d .; exit 1; }
+      - name: Owner admission and post-consumption recovery witnesses
+        run: go test -race -count=1 -timeout=2m -run '^TestOwner' -v ./pkg/csi
       - run: go vet ./...
       - run: go test -race ./...
       - name: E11 payload accounting and validity regressions
