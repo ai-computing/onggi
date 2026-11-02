@@ -1,0 +1,20 @@
+{
+  "status": "not_run",
+  "source_revision": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+  "go_version": "FILL_WITH_ACTUAL_BUILD_GO_VERSION",
+  "binary_build_provenance": "FILL_WITH_VERIFIED_BUILD_OR_HISTORICAL_BINARY_RECEIPT",
+  "binary_sha256": "811d770afb82b5534e2c87109fb0ed7690521136f02f392e45d706b3e9786381",
+  "onggi": "/FILL/onggi",
+  "base_dir": "/FILL/private-input-a-containing-only-original-B2_lm",
+  "target_dir": "/FILL/private-input-b-containing-only-original-B8_lm",
+  "store": null,
+  "base_manifest": null,
+  "target_manifest": null,
+  "cache_dir": null,
+  "workers": 8,
+  "gomaxprocs": 32,
+  "limits_description": "FILL_WITH_ACTUAL_HOST_CPU_MEMORY_QUOTAS_AFFINITY_AND_FILESYSTEM",
+  "deployment_arms": ["P", "R", "rsync", "rsync_inplace"],
+  "publication_arms": ["C", "F", "T", "TF", "TA"],
+  "retain_outputs": false
+}
