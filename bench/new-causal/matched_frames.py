@@ -1,4 +1,4 @@
-"""Full-set matched encoding controls; unchanged core, no remote launch."""
+"""Full-set encoding controls using a labeled experimental reference binary."""
 import argparse
 import base64
 import datetime
@@ -97,6 +97,13 @@ def freeze(config,output):
         and cfg.get('limits_description'),'Missing core/build/resource provenance')
     require(type(cfg.get('free_margin_bytes')) is int and cfg['free_margin_bytes']>0,'Declare free-space margin')
     check_dataset(cfg)
+    if cfg['dataset_kind']=='model':require(cfg.get('reference_manifest_path'),'Model policy requires its experimental reference build receipt')
+    if cfg.get('reference_manifest_path'):
+        proof=Path(cfg['reference_manifest_path']).resolve(strict=True);build=json.loads(proof.read_bytes())
+        require(build.get('schema')=='onggi.flat-frame-reference.v1' and build.get('status')=='built'
+            and build.get('binary_sha256')==cfg['binary_sha256'] and build.get('modified')==['pkg/store/store.go'],
+            'Wrong experimental reference build receipt')
+        cfg.update(reference_manifest_path=str(proof),reference_manifest_sha256=h.sha(proof))
     for key in ['source_dir','onggi']:cfg[key]=str(Path(cfg[key]).resolve(strict=True))
     guard_output(output,cfg)
     require(h.sha(cfg['onggi'])==cfg['binary_sha256'],'Binary digest differs')
@@ -118,6 +125,8 @@ def check_frozen(cfg):
     require(cfg.get('policies')==ARMS and cfg.get('gomemlimit')==os.environ.get('GOMEMLIMIT'),'Policy/environment changed')
     require(h.sha(cfg['onggi'])==cfg['binary_sha256'],'Binary changed')
     require(h.sha(cfg['config_source_path'])==cfg['config_source_sha256'],'Predeclared configuration changed')
+    if cfg.get('reference_manifest_path'):
+        require(h.sha(cfg['reference_manifest_path'])==cfg['reference_manifest_sha256'],'Reference build receipt changed')
     require(h.inventory(cfg['source_dir'])==cfg['input_inventory'],'Immutable input changed')
     return True
 
@@ -174,7 +183,7 @@ def manifest_witness(root,digest):
 
 def trial(cfg,arm,root,flat_lists=None):
     root.mkdir();(root/'tmp').mkdir()
-    row=dict(arm=arm,status='running',valid=False,run_id=root.name)
+    row=dict(arm=arm,status='running',valid=False,run_id=root.name,trial_root=str(root))
     h.save(root/'result.json',row)
     try:
         row['preparation_start_ns']=time.perf_counter_ns();check_frozen(cfg)
@@ -205,11 +214,13 @@ def trial(cfg,arm,root,flat_lists=None):
         row['validation_start_ns']=time.perf_counter_ns()
         row['target_inventory']=h.inventory(root/'output')
         row['target_hash_equal']=row['target_inventory']==cfg['input_inventory']
-        row['source_hash_equal']=h.inventory(cfg['source_dir'])==cfg['input_inventory']
+        row['source_inventory_after']=h.inventory(cfg['source_dir'])
+        row['source_hash_equal']=row['source_inventory_after']==cfg['input_inventory']
         row['validation_end_ns']=time.perf_counter_ns()
         require(row['target_hash_equal'] and row['source_hash_equal'],'Full output/source SHA mismatch')
         require(row['push']['environment']['GOMEMLIMIT']==cfg['gomemlimit'],'Memory environment changed')
         row.update(status='succeeded',valid=True)
+        validate_row(row,cfg,flat_lists)
     except Exception as error:row.update(status='failed',error=repr(error))
     h.save(root/'result.json',row)
     return row
@@ -238,7 +249,44 @@ def summarize(rows,n,cohort_valid=True):
     return out
 
 
-def check_smoke(smoke,frozen_sha):
+def validate_row(row,cfg,flat_lists):
+    require(all(k in row for k in ['stored_config','index','cli','manifest_witness','file_lists',
+        'push','pull','target_inventory','source_inventory_after','trial_root']),'Missing actual treatment witness')
+    arm=row['arm'];root=Path(row['trial_root'])
+    check_config(row['stored_config'],arm)
+    index=row['index']
+    require(type(index.get('stored_entries')) is int and index['stored_entries']>0 and
+        type(index.get('framed_entries')) is int and 0<=index['framed_entries']<=index['stored_entries'],
+        'Missing actual index entries')
+    require(arm=='H' or index.get('composites')==0,'Flat policy has composites')
+    require(arm not in ['D','I'] or index['framed_entries']==0,'Unexpected frame-off entries')
+    require(row['target_inventory']==cfg['input_inventory'] and row['source_inventory_after']==cfg['input_inventory'],
+        'Actual input/output inventory differs')
+    cli=row['cli'];stats=cli.get('stats',{})
+    require(stats.get('files')==len(cfg['input_inventory']) and stats.get('bytes')==sum(f['bytes'] for f in cfg['input_inventory'])
+        and not stats.get('skipped'),'Wrong actual CLI family')
+    witness=row['manifest_witness'];raw=base64.b64decode(witness['base64'],validate=True)
+    md='sha256:'+hashlib.sha256(raw).hexdigest();manifest=json.loads(raw)
+    require(cli.get('manifest')==md and witness.get('sha256')==md[7:],'Manifest witness differs')
+    require(manifest.get('schema')=='onggi.manifest.v1' and len(manifest.get('files',[]))==len(cfg['input_inventory'])
+        and {f['path']:f['size'] for f in manifest['files']}=={f['path']:f['bytes'] for f in cfg['input_inventory']},
+        'Manifest witness omits inputs')
+    require(row['file_lists']=={f['path']:f['list'] for f in manifest['files']},'File list witness differs')
+    require(arm=='H' or flat_lists is None or row['file_lists']==flat_lists,'Actual flat lists differ')
+    env=dict(GOMAXPROCS='32',GOMEMLIMIT=cfg['gomemlimit'],LC_ALL='C',TZ='UTC',TMPDIR=str(root/'tmp'))
+    expected_pull=[cfg['onggi'],'pull','--store',str(root/'store'),'--workers','8','--json',md,str(root/'output')]
+    for label,argv in [('push',push_argv(cfg,arm,root)),('pull',expected_pull)]:
+        command=row[label]
+        require(command.get('status')=='succeeded' and command.get('exit_code')==0 and
+            command.get('argv')==['nice','-n','19']+argv and command.get('environment')==env,
+            'Actual command/environment differs')
+        require(type(command.get('elapsed_s')) in [int,float] and math.isfinite(command['elapsed_s'])
+            and command['elapsed_s']>=0,'Missing actual command clock')
+    return True
+
+
+def check_smoke(smoke,frozen_sha,cfg=None):
+    require(cfg is not None,'Smoke admission requires frozen inputs')
     require(smoke.get('stage')=='smoke' and smoke.get('status')=='succeeded' and smoke.get('valid') is True
         and smoke.get('arms')==ARMS and smoke.get('frozen_sha256')==frozen_sha and smoke.get('order')==orders(1),
         'Wrong smoke/cohort identity')
@@ -248,6 +296,7 @@ def check_smoke(smoke,frozen_sha):
         require(row.get('run_id')=='block-01-'+row['arm'] and row.get('status')=='succeeded' and
             all(row.get(k) is True for k in ['valid','target_hash_equal','source_hash_equal','config_valid','flat_lists_equal']),
             'Missing smoke treatment/output witness')
+        validate_row(row,cfg,rows[0].get('file_lists'))
     require(smoke.get('summary')==summarize(rows,1),'Smoke summary differs')
     return True
 
@@ -259,11 +308,13 @@ def run(frozen,output,stage,smoke=None):
     frozen_sha=h.sha(frozen)
     if stage=='main':
         require(smoke is not None,'Main requires matching excluded smoke')
-        check_smoke(json.loads(Path(smoke).read_bytes()),frozen_sha)
+        check_smoke(json.loads(Path(smoke).read_bytes()),frozen_sha,cfg)
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=False)
     for source,name in [(Path(frozen),'frozen.json'),(Path(__file__),'matched_frames.py'),(_helper,'causal.py'),
                         (Path(cfg['config_source_path']),'config.json')]:
         shutil.copyfile(source,output/name)
+    if cfg.get('reference_manifest_path'):
+        shutil.copyfile(cfg['reference_manifest_path'],output/'reference-manifest.json')
     n=5 if stage=='main' else 1
     cohort=dict(status='running',valid=False,stage=stage,arms=ARMS,order=orders(n),trials=[],
         frozen_sha256=frozen_sha,host=h.host_info(),scientific_acceptance='pending exact raw replay and build/control provenance')
@@ -289,7 +340,7 @@ def run(frozen,output,stage,smoke=None):
     return cohort
 
 
-def fixture(binary,root):
+def fixture(binary,root,reference_manifest=None):
     import random
     root=Path(root);source=root/'inputs';source.mkdir()
     base=random.Random(93).randbytes(16<<10);parts=[]
@@ -303,6 +354,8 @@ def fixture(binary,root):
     cfg=dict(status='not_run',dataset_kind='synthetic',source_dir=str(source),input_inventory=h.inventory(source),
         onggi=str(binary),binary_sha256=h.sha(binary),core_revision='0'*40,binary_build_provenance='Actual caller-supplied fixture binary; not model provenance',
         limits_description='Actual CI host; no model performance',workers=8,gomaxprocs=32,free_margin_bytes=8<<20)
+    if reference_manifest is not None:cfg['reference_manifest_path']=str(reference_manifest)
+    if reference_manifest is not None:cfg['core_revision']=json.loads(Path(reference_manifest).read_bytes())['base_revision']
     h.save(root/'config.json',cfg);freeze(root/'config.json',root/'frozen.json')
     return run(root/'frozen.json',root/'smoke','smoke')
 

@@ -1,17 +1,39 @@
 """Own-format gates and real CLI fixture; never synthetic model performance."""
 import copy
+import base64
+import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
 import matched_frames as m
+import flat_frame_reference as reference
 
 
 class MatchedFramesTests(unittest.TestCase):
+    def test_reference_patch_is_one_narrow_identity_split_exception(self):
+        before=b'prefix\n\t\t\tif c.Sub.Max > p.Min {\nbody\n'
+        after=reference.patch_store_source(before)
+        self.assertIn(b'c.Sub.Max > p.Min && c.Sub.Min < p.Max',after)
+        self.assertNotEqual(before,after)
+        with self.assertRaises(ValueError):reference.patch_store_source(b'unexpected source')
+        with self.assertRaises(ValueError):reference.patch_store_source(before+before)
+
+    @unittest.skipUnless(shutil.which('git'),'Git source checkout required')
+    def test_reference_generation_preserves_product_and_changes_one_guard(self):
+        repo=Path(__file__).resolve().parents[2]
+        product=repo/'pkg/store/store.go';before=product.read_bytes()
+        with tempfile.TemporaryDirectory() as tmp:
+            result=reference.generate(repo,Path(tmp)/'reference')
+            self.assertEqual(result['modified'],['pkg/store/store.go'])
+            self.assertFalse(result['product_source_edited'])
+            self.assertEqual(product.read_bytes(),before)
+            self.assertTrue((Path(result['reference_source'])/'go.mod').is_file())
     def cfg(self):
         return dict(onggi='/pinned/onggi',source_dir='/immutable',workers=8,gomaxprocs=32)
 
@@ -89,24 +111,60 @@ class MatchedFramesTests(unittest.TestCase):
             with self.assertRaises(ValueError):m.freeze(p,root/'other.json')
 
     def test_smoke_requires_actual_complete_treatments_and_frozen_identity(self):
+        cfg=self.cfg();cfg.update(gomemlimit=None,input_inventory=[dict(path='f',bytes=1,sha256='a'*64)])
         rows=[dict(arm=a,run_id='block-01-'+a,status='succeeded',valid=True,
             target_hash_equal=True,source_hash_equal=True,config_valid=True,flat_lists_equal=True,
             push=dict(elapsed_s=1,resources=dict(user_s=.2,system_s=.1,max_rss_kib=100)),
             totals=dict(pack_bytes=8,metadata_bytes=2,finalized_bytes=10)) for a in m.ARMS]
         smoke=dict(stage='smoke',status='succeeded',valid=True,arms=m.ARMS,frozen_sha256='a'*64,
             order=m.orders(1),trials=rows,summary=m.summarize(rows,1))
-        self.assertTrue(m.check_smoke(smoke,'a'*64))
+        # The previous marker-only smoke must be rejected, despite consistent summaries.
+        with self.assertRaises(ValueError):m.check_smoke(smoke,'a'*64,cfg)
+        for row in rows:
+            arm=row['arm'];root=Path('/owned'/Path(row['run_id']))
+            manifest=dict(schema='onggi.manifest.v1',bytes=1,files=[dict(path='f',size=1,list='sha256:'+'b'*64)])
+            raw=json.dumps(manifest).encode();md='sha256:'+hashlib.sha256(raw).hexdigest()
+            row.update(trial_root=str(root),stored_config=self.config(arm),file_lists={'f':'sha256:'+'b'*64},
+                target_inventory=cfg['input_inventory'],source_inventory_after=cfg['input_inventory'],
+                index=dict(stored_entries=1,framed_entries=0,composites=0,objects=[]),
+                cli=dict(manifest=md,stats=dict(files=1,bytes=1,skipped=None)),
+                manifest_witness=dict(sha256=md[7:],base64=base64.b64encode(raw).decode()))
+            env=dict(GOMAXPROCS='32',GOMEMLIMIT=None,LC_ALL='C',TZ='UTC',TMPDIR=str(root/'tmp'))
+            row['push'].update(argv=['nice','-n','19']+m.push_argv(cfg,arm,root),status='succeeded',exit_code=0,environment=env)
+            row['pull']=dict(argv=['nice','-n','19',cfg['onggi'],'pull','--store',str(root/'store'),'--workers','8',
+                '--json',md,str(root/'output')],status='succeeded',exit_code=0,environment=env,elapsed_s=1)
+        smoke['summary']=m.summarize(rows,1)
+        self.assertTrue(m.check_smoke(smoke,'a'*64,cfg))
         for mutate in [lambda c:c.update(trials=[]),lambda c:c['trials'][0].update(flat_lists_equal=False),
                        lambda c:c['trials'].reverse(),lambda c:c.update(frozen_sha256='b'*64),
-                       lambda c:c['summary']['F'].update(valid=False)]:
+                       lambda c:c['summary']['F'].update(valid=False),
+                       lambda c:c['trials'][2].pop('stored_config'),
+                       lambda c:c['trials'][2]['index'].update(composites=1),
+                       lambda c:c['trials'][1].update(target_inventory=[]),
+                       lambda c:c['trials'][2]['file_lists'].update(f='different-list')]:
             c=copy.deepcopy(smoke);mutate(c)
-            with self.assertRaises(ValueError):m.check_smoke(c,'a'*64)
+            with self.assertRaises(ValueError):m.check_smoke(c,'a'*64,cfg)
+
+    @unittest.skipUnless(sys.platform=='linux' and os.environ.get('ONGGI_TEST_BIN') and shutil.which('nice'),
+                         'Actual Linux Onggi CLI required')
+    def test_unmodified_product_explicitly_refuses_identity_adapter(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'input';source.mkdir();(source/'f.rbln').write_bytes(b'opaque test')
+            cfg=self.cfg();cfg.update(onggi=str(Path(os.environ['ONGGI_TEST_BIN']).resolve()),source_dir=str(source))
+            (root/'tmp').mkdir()
+            actual=subprocess.run(m.push_argv(cfg,'I',root),capture_output=True,text=True)
+            self.assertNotEqual(actual.returncode,0)
+            self.assertIn('sub-chunk max 1048576 exceeds chunk min 1024',actual.stderr)
+            print('Expected unmodified-product refusal: '+actual.stderr.strip())
 
     @unittest.skipUnless(sys.platform=='linux' and os.environ.get('ONGGI_TEST_BIN') and shutil.which('nice'),
                          'Actual Linux Onggi CLI required')
     def test_real_multifile_fixture_preserves_flat_lists_and_frames(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result=m.fixture(Path(os.environ['ONGGI_TEST_BIN']).resolve(),Path(tmp))
+            root=Path(tmp);repo=Path(__file__).resolve().parents[2]
+            built=reference.build(repo,root/'reference')
+            fixture=root/'fixture';fixture.mkdir()
+            result=m.fixture(Path(built['binary']),fixture,root/'reference/reference-manifest.json')
             self.assertTrue(result['valid'],json.dumps(result))
             self.assertEqual(len(result['trials']),4)
             by={r['arm']:r for r in result['trials']}

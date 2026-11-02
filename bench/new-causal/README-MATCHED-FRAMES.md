@@ -1,6 +1,6 @@
 # Matched frame controls (issue90)
 
-Status: **source under review; no new model cohort run**. Historical causal.py,
+Status: **source/reference build under review; no new model cohort run**. Historical causal.py,
 its measured source identity and all earlier raw results are unchanged.
 
 The missing control is flat fine CDC with the same encoding opportunity as
@@ -15,6 +15,28 @@ uses four explicit policies, all zstd/64MiB packs/eight workers/four uploads:
 | I |1/4/16KiB|64/256/1024KiB identity|off|
 | F |1/4/16KiB|64/256/1024KiB identity|256KiB|
 | H |16/64/256KiB|1/4/16KiB|256KiB|
+
+The production store rejects this identity setting because its sub-chunk
+maximum exceeds the top-level minimum. The first draft's real CI fixture
+failed at I; this was an implementation failure, not a model result. The
+reference builder now copies pinned1e3c74f Git source into a separate fresh
+tree and changes exactly one guard in that copy:
+
+```go
+// Product:
+if c.Sub.Max > p.Min {
+// Experimental reference:
+if c.Sub.Max > p.Min && c.Sub.Min < p.Max {
+```
+
+This admits only the additional case where the minimum sub-size is at least
+the maximum parent chunk, so every sub-split is an identity. All non-identity
+oversized sub-chunkers remain rejected. No product source file is edited;
+the executed reference is **a modified experimental build**, not an existing
+unchanged-core capability. Its manifest preserves every original/reference
+source hash, the exact one-line patch, generator hash, Go/check commands and
+binary hash. It runs Go vet/race tests before building. All four policies
+use this same reference binary; F/H processing code is otherwise unchanged.
 
 The selected kinds are atom-prefill/atom-decode/atom-other in every policy
 where sub-splitting is enabled. For I/F the minimum sub-size exceeds every
@@ -39,20 +61,25 @@ Local source checks:
 
 ```sh
 python3 -m unittest discover -s bench/new-causal -p test_matched_frames.py -v
-ONGGI_TEST_BIN=/absolute/onggi python3 -m unittest discover -s bench/new-causal -p test_matched_frames.py -v
-python3 bench/new-causal/matched_frames.py fixture --onggi /absolute/onggi --output /owned/new-fixture
+ONGGI_TEST_BIN=/absolute/unmodified-onggi python3 -m unittest discover -s bench/new-causal -p test_matched_frames.py -v
+python3 bench/new-causal/flat_frame_reference.py --repo /absolute/product-checkout --output /owned/new-reference
+python3 bench/new-causal/matched_frames.py fixture --onggi /owned/new-reference/onggi --output /owned/new-fixture
 ```
 
 The explicit CLI fixture is correctness-only synthetic data, not model
-performance. Existing CI already builds a real CLI and discovers all tests.
-Linux/GNUtime/nice and the supplied binary are required; nothing installs tools,
+performance. Existing CI builds a product CLI and discovers all tests. The
+new test first checks its expected guard refusal, then builds the separate
+reference and verifies its four-policy roundtrip/list/frame witnesses. The
+reference source comes from Git blobs, not untracked local files or cached
+Python bytecode. Linux/GNUtime/nice/Git/Go and the supplied binary are required; nothing installs tools,
 contacts a remote host or allocates a device.
 
 For a model cohort, create an external `status=not_run` configuration declaring
 `dataset_kind=model`, source_dir, the complete sorted input_inventory
 (path,bytes,sha256), onggi path/binary_sha256, core_revision,
 binary_build_provenance, limits_description, workers8, gomaxprocs32 and a
-positive free_margin_bytes. Bind the actual historical family before freezing;
+positive free_margin_bytes, and reference_manifest_path for the built experimental
+reference receipt. Bind the actual historical family before freezing;
 count/size checks cannot establish that an arbitrary inventory is that family.
 Caller preflight must separately prove core/build provenance and resources.
 
