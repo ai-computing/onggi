@@ -1,0 +1,15 @@
+{
+  "manifest": "sha256:8d606f1fa008c6b70d0f95bc181aaedb83c1084b7d61717f1fd493075ffbe6ae",
+  "ref": "b",
+  "stats": {
+    "files": 1,
+    "bytes": 15228048882,
+    "new_bytes": 149094548,
+    "packs": 1,
+    "pack_bytes": 3567290,
+    "skipped": null,
+    "duration_ns": 23188320725,
+    "files_total": 1,
+    "bytes_total": 15228048882
+  }
+}

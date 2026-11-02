@@ -1,0 +1,614 @@
+{
+  "verified": true,
+  "label": "io-smoke",
+  "n": 1,
+  "trials": 2,
+  "files": 110,
+  "status": "succeeded",
+  "traced": true,
+  "summary": {
+    "P": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          111.615922911
+        ],
+        "median": 111.615922911,
+        "q1": 111.615922911,
+        "q3": 111.615922911
+      },
+      "validated_s": {
+        "values": [
+          123.284419733
+        ],
+        "median": 123.284419733,
+        "q1": 123.284419733,
+        "q3": 123.284419733
+      },
+      "user_s": {
+        "values": [
+          316.19
+        ],
+        "median": 316.19,
+        "q1": 316.19,
+        "q3": 316.19
+      },
+      "system_s": {
+        "values": [
+          266.99
+        ],
+        "median": 266.99,
+        "q1": 266.99,
+        "q3": 266.99
+      },
+      "max_rss_kib": {
+        "values": [
+          2518080
+        ],
+        "median": 2518080,
+        "q1": 2518080,
+        "q3": 2518080
+      }
+    },
+    "R": {
+      "valid": true,
+      "command_s": {
+        "values": [
+          11.044354781
+        ],
+        "median": 11.044354781,
+        "q1": 11.044354781,
+        "q3": 11.044354781
+      },
+      "validated_s": {
+        "values": [
+          19.484241813
+        ],
+        "median": 19.484241813,
+        "q1": 19.484241813,
+        "q3": 19.484241813
+      },
+      "user_s": {
+        "values": [
+          7.9
+        ],
+        "median": 7.9,
+        "q1": 7.9,
+        "q3": 7.9
+      },
+      "system_s": {
+        "values": [
+          15.72
+        ],
+        "median": 15.72,
+        "q1": 15.72,
+        "q3": 15.72
+      },
+      "max_rss_kib": {
+        "values": [
+          2519784
+        ],
+        "median": 2519784,
+        "q1": 2519784,
+        "q3": 2519784
+      }
+    }
+  },
+  "scope": "Exact export bytes and recorded output/hash/inode/clock witnesses; model files absent, no independent full-byte rehash",
+  "logical_io": {
+    "P": {
+      "base": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "cache": {
+        "read_bytes": {
+          "values": [
+            10364627831
+          ],
+          "median": 10364627831,
+          "q1": 10364627831,
+          "q3": 10364627831
+        },
+        "write_bytes": {
+          "values": [
+            174
+          ],
+          "median": 174,
+          "q1": 174,
+          "q3": 174
+        },
+        "fsync_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_base": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_target": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "staging": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "store": {
+        "read_bytes": {
+          "values": [
+            212367401
+          ],
+          "median": 212367401,
+          "q1": 212367401,
+          "q3": 212367401
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "target": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            15228048882
+          ],
+          "median": 15228048882,
+          "q1": 15228048882,
+          "q3": 15228048882
+        },
+        "fsync_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "ftruncate_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        }
+      }
+    },
+    "R": {
+      "base": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "cache": {
+        "read_bytes": {
+          "values": [
+            182533770
+          ],
+          "median": 182533770,
+          "q1": 182533770,
+          "q3": 182533770
+        },
+        "write_bytes": {
+          "values": [
+            174
+          ],
+          "median": 174,
+          "q1": 174,
+          "q3": 174
+        },
+        "fsync_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_base": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "source_target": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "staging": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "store": {
+        "read_bytes": {
+          "values": [
+            424406626
+          ],
+          "median": 424406626,
+          "q1": 424406626,
+          "q3": 424406626
+        },
+        "write_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "fsync_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "ftruncate_calls": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        }
+      },
+      "target": {
+        "read_bytes": {
+          "values": [
+            0
+          ],
+          "median": 0,
+          "q1": 0,
+          "q3": 0
+        },
+        "write_bytes": {
+          "values": [
+            218191861
+          ],
+          "median": 218191861,
+          "q1": 218191861,
+          "q3": 218191861
+        },
+        "fsync_calls": {
+          "values": [
+            1
+          ],
+          "median": 1,
+          "q1": 1,
+          "q3": 1
+        },
+        "ftruncate_calls": {
+          "values": [
+            2
+          ],
+          "median": 2,
+          "q1": 2,
+          "q3": 2
+        }
+      }
+    }
+  },
+  "physical_io": null,
+  "io_scope": "Successful syscall return lengths during traced deployment command only; sync/fullSHA outside traces",
+  "archive_sha256": "c8f6828a18473e6a88f94f76edf5bb310516716b6712b953a9e27589acb03198",
+  "control": {
+    "verified": true,
+    "cpu_jobs_uid_cleaned": 2,
+    "control_files": 59
+  },
+  "provenance": {
+    "verified": true,
+    "source_revision": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+    "canonical_source_files": 67,
+    "binary_sha256": "e6b8ee52a69c7cf9fe970cc1df08e93eab9c175c061baccb078725e549a15ae5",
+    "go_version": "go1.25.1 linux/amd64",
+    "build_job_uid_cleaned": true
+  },
+  "acceptance_verifier": {
+    "commit": "a45b292d5fcffe94e1ab48e43ddfbce376c2d307",
+    "sources": [
+      {
+        "path": "bench/new-causal/verify_timing.py",
+        "git_blob_sha256": "cc4d9b41ff92787d28c1790a71cdee1ed786765fdc5e64a9c53e2bb2e40139e8"
+      },
+      {
+        "path": "bench/new-causal/verify_io.py",
+        "git_blob_sha256": "53f884e54b43bbff26bd8876c5568590bda05d874cebe77ac7552e96c132d301"
+      },
+      {
+        "path": "bench/new-causal/verify_publication.py",
+        "git_blob_sha256": "133d95c3a14ed4f0a3f69329fdcd508d526af98879a585bc0f16e4b204902d10"
+      }
+    ],
+    "independent_payload_rehash": false
+  }
+}

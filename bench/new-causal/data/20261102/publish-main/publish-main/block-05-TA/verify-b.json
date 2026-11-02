@@ -1,0 +1,58 @@
+{
+  "argv": [
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/verify-b"
+  ],
+  "elapsed_s": 25.494914963,
+  "environment": {
+    "GOMAXPROCS": "32",
+    "GOMEMLIMIT": null,
+    "LC_ALL": "C",
+    "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/tmp",
+    "TZ": "UTC"
+  },
+  "executed_argv": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/verify-b.resources",
+    "nice",
+    "-n",
+    "19",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+    "pull",
+    "--store",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/store",
+    "--workers",
+    "8",
+    "--json",
+    "b",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/verify-b"
+  ],
+  "exit_code": 0,
+  "gnu_time": "\tCommand being timed: \"nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/store --workers 8 --json b /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/publish-main/block-05-TA/verify-b\"\n\tUser time (seconds): 47.13\n\tSystem time (seconds): 129.84\n\tPercent of CPU this job got: 694%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:25.49\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 1739752\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 2618677\n\tVoluntary context switches: 341886\n\tInvoluntary context switches: 3072\n\tSwaps: 0\n\tFile system inputs: 131336\n\tFile system outputs: 29742792\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+  "monotonic_end_ns": 1578435834676060,
+  "monotonic_start_ns": 1578410339761097,
+  "process_io": null,
+  "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+  "resources": {
+    "filesystem_input_blocks": 131336,
+    "filesystem_output_blocks": 29742792,
+    "max_rss_kib": 1739752,
+    "system_s": 129.84,
+    "user_s": 47.13
+  },
+  "status": "succeeded",
+  "traced": false,
+  "utc_start": "2026-11-02T07:10:35.464584+00:00"
+}

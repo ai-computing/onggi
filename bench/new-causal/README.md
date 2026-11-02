@@ -1,9 +1,10 @@
 # CPU causal cohorts (issue #84)
 
 Real model timing: **complete, five arms each n=5**, plus excluded smoke.
-Same-cache traced I/O is terminal at the worker but exact trace export/reparse
-is pending; publication ablations remain running. Their verification is not
-inferred from timing. See [the timing report](REPORT-TIMING-20261102.md)
+Same-complete-target-cache traced I/O (two arms,n=5 each) and two-file
+publication (five arms,n=5 each) are now exactly exported and independently
+verified. See [the control report](REPORT-CPU-CONTROLS-20261102.md). Their
+verification and scope are separate from timing. See [the timing report](REPORT-TIMING-20261102.md)
 and `data/20261102/`. This runner changes no runtime code, allocates no device,
 compiles no model, contacts no node and modifies no manuscript evidence.
 
@@ -161,8 +162,8 @@ temporary disk space. Raw traces are not committed uncompressed.
 
 The packer/verifier have synthetic and mutation checks, including wrong-run R
 attribution, an empty aggregate, a smoke disguised as main, changed parts and
-path escape. **Actual model I/O remains unverified until its exact package is
-exported and this verifier passes.** It is a separate diagnostic; its traced
+path escape. **The retained smoke and main exact packages now pass independent export and
+reparse.** It is a separate diagnostic; its traced
 latencies never replace or pool with untraced timing. Do not run a multi-GB
 trace export concurrently with publication/timing measurements.
 
