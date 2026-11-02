@@ -1,0 +1,90 @@
+# Prepared literal-range patch reference (issue95)
+
+This benchmark supplies a deliberately simple, sound composition: a publisher
+precomputes target literals, an exclusive private base retains same-offset
+bytes, and a correct verified target is published. It is a comparison control,
+not a production patch format, ownership service, optimized codec or new
+matching algorithm. **Real-model measurement: not_run.**
+
+Python3.10+ stdlib and regular files on one filesystem are sufficient. The
+filesystem must support hard links for exclusive target publication. No SDK,
+accelerator, cluster, network or installation is involved in these local tests:
+
+```sh
+python3 -B -m unittest discover -s bench/range-patch -v
+```
+
+## Representation and operations
+
+An externally supplied keep plan is a sorted JSON array of `[offset,length]`
+pairs. These are same-offset byte ranges, with positive lengths and no overlap.
+It can be derived from existing artifact metadata; the reference does not
+discover matching ranges itself. Preparation actually compares each declared
+keep range in the base and target. Remaining target bytes become consecutive
+raw literals in `payload.bin`; `manifest.json` records original/target sizes
+and SHA256s, keep ranges, literal offset/length/payload location/digest and the
+complete payload digest. Every target byte is either kept or a literal.
+
+```sh
+python3 -B bench/range-patch/literal_patch.py prepare \
+  --base /private/input/base --target /private/input/target \
+  --keep /private/input/keep.json --output /private/NEW-PATCH
+python3 -B bench/range-patch/literal_patch.py apply \
+  --base /private/verified-base --patch /private/NEW-PATCH \
+  --manifest-sha256 PUBLISHED_MANIFEST_SHA256 \
+  --exclusive --output /private/NEW-TARGET
+```
+
+The manifest SHA comes from the actual prepare receipt and must be retained in
+the independently frozen application config, like a published artifact root.
+Do not recover it from a possibly changed manifest at application time.
+
+Preparation reads/hashes full source files, verifies every keep interval,
+writes/synchronizes payload then writes/synchronizes the completion manifest.
+It exposes source reads, raw literal/total patch bytes and elapsed time.
+The input files and preparation paths must be immutable/private. Failed
+preparation is retained without a completion manifest; existing paths are
+never overwritten. A1-TiB file and64-MiB manifest limit bound this reference.
+
+Application requires the caller to own the base and output parent exclusively;
+`--exclusive` declares that precondition, it does not discover leases. Symlink
+files, hard-linked bases and cross-filesystem applications are refused. The
+patch must remain immutable. Before mutation the reference verifies the pinned
+manifest, complete payload/literals and complete base identity. It then
+withdraws the base into a private work file, writes raw literals, truncates,
+fsyncs and hashes the complete target. An exclusive hard link publishes the
+verified file, followed by removal of the work name. It never overwrites an
+existing or racing output. Before-commit errors retain any work file without
+publishing a new target; rollback is not promised. An unlink error after
+successful publication reports the committed target plus cleanup error and
+retained work path. Directory crash durability is not claimed.
+
+## Fair comparison and evidence limits
+
+- A valid model cohort still needs pinned source/input/keep-plan/patch/config,
+  actual base ownership and identity, an excluded smoke, complete attempt
+  outcomes and independently verified repeats. Local fixture durations are
+  not model performance. Freeze admission before observing timing.
+- The reference receives precomputed ranges/literals. Charge that publication,
+  additional storage and retention; do not call its online application a
+  preparation-inclusive result. Raw literals do not share the product's
+  compression/frame encoding. This is a direct executor control, not a
+  codec-matched storage superiority test or a complete xdelta/rsync replacement.
+- Application includes full base verification, patch verification, target
+  writes/sync and complete target SHA. A compared materializer must receive
+  the same integrity/completion contract and timing boundary. Do not compare
+  this total with another method's command-only time and attribute the gap
+  solely to its executor. Exposed phase times do not excuse unequal contracts.
+- Counters describe logical Python file reads/writes. They exclude filesystem
+  readahead, writeback, physical I/O and network framing. Metadata I/O is not
+  included in payload counters. Use a separately validated tracer for syscall
+  attribution. Failed applications retain actual state and recovery cost.
+- A sound range patch already provides positional retention under owner
+  permission. Any broader benefit from a family store, base discovery or
+  distribution needs separate experiments against this feasible composition.
+
+Fixtures cover edits, shifted/reordered targets, growth/shrink/identity/empty
+files, multi-buffer literals, wrong/corrupt/truncated input, truthful ownership
+refusal, path aliases, output races and errors before/after commit. Passing
+them does not establish real-model latency, lifecycle benefit or concurrency
+beyond these forced schedules.
