@@ -24,6 +24,18 @@ class MatchedFramesTests(unittest.TestCase):
         with self.assertRaises(ValueError):reference.patch_store_source(b'unexpected source')
         with self.assertRaises(ValueError):reference.patch_store_source(before+before)
 
+    def test_changed_generator_is_rejected_before_its_code_executes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=Path(__file__).parent
+            for name in ['matched_frames.py','causal.py','flat_frame_reference.py']:
+                shutil.copyfile(source/name,root/name)
+            with (root/'flat_frame_reference.py').open('a') as stream:
+                stream.write('\nraise RuntimeError("MUTATED_REFERENCE_EXECUTED")\n')
+            actual=subprocess.run([sys.executable,'-B',str(root/'matched_frames.py'),'--help'],capture_output=True,text=True)
+            self.assertNotEqual(actual.returncode,0)
+            self.assertNotIn('MUTATED_REFERENCE_EXECUTED',actual.stderr)
+            self.assertIn('Unexpected reference generator source',actual.stderr)
+
     @unittest.skipUnless(shutil.which('git'),'Git source checkout required')
     def test_reference_generation_preserves_product_and_changes_one_guard(self):
         repo=Path(__file__).resolve().parents[2]

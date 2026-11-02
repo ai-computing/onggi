@@ -22,8 +22,11 @@ if hashlib.sha256(_bytes).hexdigest()!=HELPER_SHA:raise ValueError('Unexpected h
 h=types.ModuleType('matched_frames_checked_helper');h.__file__=str(_helper)
 exec(compile(_bytes,str(_helper),'exec'),h.__dict__)
 _reference=Path(__file__).with_name('flat_frame_reference.py')
+REFERENCE_SHA='59e3b967d2a651340838aed97a944808ee1bf533df5a45a406039b53e78c0c25'
+_reference_bytes=_reference.read_bytes()
+if hashlib.sha256(_reference_bytes).hexdigest()!=REFERENCE_SHA:raise ValueError('Unexpected reference generator source')
 reference=types.ModuleType('checked_reference_builder');reference.__file__=str(_reference)
-exec(compile(_reference.read_bytes(),str(_reference),'exec'),reference.__dict__)
+exec(compile(_reference_bytes,str(_reference),'exec'),reference.__dict__)
 ARMS=['D','I','F','H']
 SUB_KINDS=['atom-prefill','atom-decode','atom-other']
 FINE=dict(Min=1024,Avg=4096,Max=16384)
