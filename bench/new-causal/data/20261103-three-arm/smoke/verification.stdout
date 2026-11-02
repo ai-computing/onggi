@@ -1,0 +1,178 @@
+{
+  "valid": true,
+  "fixture": false,
+  "model_evidence": true,
+  "label": "smoke",
+  "trials": 3,
+  "n_per_arm": 1,
+  "frozen_sha256": "3587418712c4ca8c86dee4f29c4c5f2a449b6d0a95a35bbb01ccc3e1a5c0b97d",
+  "driver_sha256": "4613b8936144f4a13e22e9e47a4df700a73062e44615a6438741bd3d14634a53",
+  "source_revision": "1e99504a26c209a2dfba19d23c906b1899415ce3",
+  "timing": {
+    "P": {
+      "command_s": {
+        "values": [
+          47.064507137
+        ],
+        "median": 47.064507137,
+        "q1": 47.064507137,
+        "q3": 47.064507137
+      },
+      "durable_s": {
+        "values": [
+          47.066110191
+        ],
+        "median": 47.066110191,
+        "q1": 47.066110191,
+        "q3": 47.066110191
+      },
+      "validated_s": {
+        "values": [
+          58.421975938
+        ],
+        "median": 58.421975938,
+        "q1": 58.421975938,
+        "q3": 58.421975938
+      },
+      "donor_validation_s": {
+        "values": [
+          21.667641527
+        ],
+        "median": 21.667641527,
+        "q1": 21.667641527,
+        "q3": 21.667641527
+      }
+    },
+    "C": {
+      "command_s": {
+        "values": [
+          36.147956863
+        ],
+        "median": 36.147956863,
+        "q1": 36.147956863,
+        "q3": 36.147956863
+      },
+      "durable_s": {
+        "values": [
+          36.148797396
+        ],
+        "median": 36.148797396,
+        "q1": 36.148797396,
+        "q3": 36.148797396
+      },
+      "validated_s": {
+        "values": [
+          47.388341683
+        ],
+        "median": 47.388341683,
+        "q1": 47.388341683,
+        "q3": 47.388341683
+      },
+      "donor_validation_s": {
+        "values": [
+          15.327357923
+        ],
+        "median": 15.327357923,
+        "q1": 15.327357923,
+        "q3": 15.327357923
+      }
+    },
+    "R": {
+      "command_s": {
+        "values": [
+          6.043442798
+        ],
+        "median": 6.043442798,
+        "q1": 6.043442798,
+        "q3": 6.043442798
+      },
+      "durable_s": {
+        "values": [
+          6.044168344
+        ],
+        "median": 6.044168344,
+        "q1": 6.044168344,
+        "q3": 6.044168344
+      },
+      "validated_s": {
+        "values": [
+          14.572148442
+        ],
+        "median": 14.572148442,
+        "q1": 14.572148442,
+        "q3": 14.572148442
+      },
+      "donor_validation_s": {
+        "values": [
+          0.000154536
+        ],
+        "median": 0.000154536,
+        "q1": 0.000154536,
+        "q3": 0.000154536
+      }
+    }
+  },
+  "worker_reported_timing": {
+    "P": {
+      "preparation_s": {
+        "values": [
+          76.758303192
+        ],
+        "median": 76.758303192,
+        "q1": 76.758303192,
+        "q3": 76.758303192
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          135.180545383
+        ],
+        "median": 135.180545383,
+        "q1": 135.180545383,
+        "q3": 135.180545383
+      }
+    },
+    "C": {
+      "preparation_s": {
+        "values": [
+          75.807676794
+        ],
+        "median": 75.807676794,
+        "q1": 75.807676794,
+        "q3": 75.807676794
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          123.196270347
+        ],
+        "median": 123.196270347,
+        "q1": 123.196270347,
+        "q3": 123.196270347
+      }
+    },
+    "R": {
+      "preparation_s": {
+        "values": [
+          75.593130945
+        ],
+        "median": 75.593130945,
+        "q1": 75.593130945,
+        "q3": 75.593130945
+      },
+      "preparation_inclusive_s": {
+        "values": [
+          90.165544366
+        ],
+        "median": 90.165544366,
+        "q1": 90.165544366,
+        "q3": 90.165544366
+      }
+    }
+  },
+  "preparation_scope": "Worker-reported, consistency-only: preparation start timestamp absent; not independently reconstructed",
+  "logical_io": null,
+  "physical_io": null,
+  "scope": "Exact source/command/output-hash/inode/clock witnesses and trace replay; absent model bytes not independently rehashed",
+  "archive_sha256": "7618241b73110841cba1c2178285817e137f78be0a0ee9fae5096b18df7afcb1",
+  "files": 25,
+  "control_provenance": "Separate CPU Job/Pod UID cleanup, build and source receipts required"
+}

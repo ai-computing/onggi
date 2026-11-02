@@ -1,0 +1,78 @@
+{
+  "job_uid": "d07e974d-0f2c-4fd1-926c-86fefdf540b4",
+  "name": "cdx-resident-trio88-smoke",
+  "job_absent": true,
+  "pods_absent": true,
+  "observations": [
+    {
+      "name": "cdx-resident-trio88-smoke-grq99",
+      "uid": "c0d7f843-d84a-4345-b893-0c5fa4171502",
+      "phase": "Succeeded",
+      "containers": [
+        {
+          "containerID": "containerd://826846c3eb9bd9a7e32e18e6d50ec30ad8d6534f15c6b3f9eadbd115e4542966",
+          "image": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+          "imageID": "docker.io/library/ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+          "lastState": {},
+          "name": "run",
+          "ready": false,
+          "restartCount": 0,
+          "started": false,
+          "state": {
+            "terminated": {
+              "containerID": "containerd://826846c3eb9bd9a7e32e18e6d50ec30ad8d6534f15c6b3f9eadbd115e4542966",
+              "exitCode": 0,
+              "finishedAt": "2026-11-02T15:20:59Z",
+              "reason": "Completed",
+              "startedAt": "2026-11-02T15:12:11Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "name": "owned"
+            },
+            {
+              "mountPath": "/host-libs",
+              "name": "libs",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/host-usrlib",
+              "name": "usrlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/lib/python3.10",
+              "name": "stdlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/python3.10",
+              "name": "python3-10",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/time",
+              "name": "time",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/strace",
+              "name": "strace",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ],
+      "log": "{\"stage\": \"prepare\", \"event\": \"started\", \"argv\": [\"/usr/bin/python3.10\", \"-B\", \"/home/gspark/workspace/codex_resident_delivery_20261102/trio88-stage-1e99504/three_arm.py\", \"prepare\", \"--legacy\", \"/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/io-frozen.json\", \"--driver\", \"/home/gspark/workspace/codex_resident_delivery_20261102/trio88-green/three-arm-call\", \"--output\", \"/home/gspark/workspace/codex_resident_delivery_20261102/trio88-model-1e99504\"]}\n{\"status\": \"not_run\", \"valid\": null, \"trials\": 0}\n{\"stage\": \"smoke\", \"event\": \"started\", \"utc\": \"2026-11-02T15:13:16.284854+00:00\"}\n{\"stage\": \"smoke\", \"event\": \"finished\", \"exit_code\": 0, \"stdout\": \"{\\\"status\\\": \\\"succeeded\\\", \\\"valid\\\": true, \\\"trials\\\": 3}\\n\", \"stderr\": \"\"}\n",
+      "log_stderr": ""
+    }
+  ]
+}

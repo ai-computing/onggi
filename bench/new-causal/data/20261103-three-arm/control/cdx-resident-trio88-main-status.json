@@ -1,0 +1,559 @@
+{
+  "job": {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "creationTimestamp": "2026-11-02T15:22:04Z",
+      "generation": 1,
+      "labels": {
+        "experiment": "trio88-cpu",
+        "owner": "codex"
+      },
+      "name": "cdx-resident-trio88-main",
+      "namespace": "codex-resident-delivery-20261102",
+      "resourceVersion": "116004849",
+      "uid": "6b882249-9a12-4243-a9a8-66b297f46f11"
+    },
+    "spec": {
+      "activeDeadlineSeconds": 7200,
+      "backoffLimit": 0,
+      "completionMode": "NonIndexed",
+      "completions": 1,
+      "manualSelector": false,
+      "parallelism": 1,
+      "podReplacementPolicy": "TerminatingOrFailed",
+      "selector": {
+        "matchLabels": {
+          "batch.kubernetes.io/controller-uid": "6b882249-9a12-4243-a9a8-66b297f46f11"
+        }
+      },
+      "suspend": false,
+      "template": {
+        "metadata": {
+          "creationTimestamp": null,
+          "labels": {
+            "batch.kubernetes.io/controller-uid": "6b882249-9a12-4243-a9a8-66b297f46f11",
+            "batch.kubernetes.io/job-name": "cdx-resident-trio88-main",
+            "controller-uid": "6b882249-9a12-4243-a9a8-66b297f46f11",
+            "experiment": "trio88-cpu",
+            "job-name": "cdx-resident-trio88-main",
+            "owner": "codex"
+          }
+        },
+        "spec": {
+          "automountServiceAccountToken": false,
+          "containers": [
+            {
+              "command": [
+                "/usr/bin/python3.10",
+                "-B",
+                "/home/gspark/workspace/codex_resident_delivery_20261102/trio88_model_worker.py",
+                "main"
+              ],
+              "env": [
+                {
+                  "name": "PYTHONDONTWRITEBYTECODE",
+                  "value": "1"
+                },
+                {
+                  "name": "PYTHONNOUSERSITE",
+                  "value": "1"
+                },
+                {
+                  "name": "LD_LIBRARY_PATH",
+                  "value": "/host-libs:/host-usrlib"
+                },
+                {
+                  "name": "PATH",
+                  "value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                }
+              ],
+              "image": "ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "run",
+              "resources": {
+                "limits": {
+                  "cpu": "12",
+                  "memory": "32Gi"
+                },
+                "requests": {
+                  "cpu": "4",
+                  "memory": "8Gi"
+                }
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "capabilities": {
+                  "add": [
+                    "SYS_PTRACE"
+                  ],
+                  "drop": [
+                    "ALL"
+                  ]
+                },
+                "runAsGroup": 1002,
+                "runAsNonRoot": true,
+                "runAsUser": 1002
+              },
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File",
+              "volumeMounts": [
+                {
+                  "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                  "name": "owned"
+                },
+                {
+                  "mountPath": "/host-libs",
+                  "name": "libs",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/host-usrlib",
+                  "name": "usrlib",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/lib/python3.10",
+                  "name": "stdlib",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/python3.10",
+                  "name": "python3-10",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/time",
+                  "name": "time",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/strace",
+                  "name": "strace",
+                  "readOnly": true
+                }
+              ]
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-001"
+          },
+          "restartPolicy": "Never",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "type": "Directory"
+              },
+              "name": "owned"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib/x86_64-linux-gnu",
+                "type": "Directory"
+              },
+              "name": "libs"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib",
+                "type": "Directory"
+              },
+              "name": "usrlib"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib/python3.10",
+                "type": "Directory"
+              },
+              "name": "stdlib"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/python3.10",
+                "type": "File"
+              },
+              "name": "python3-10"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/time",
+                "type": "File"
+              },
+              "name": "time"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/strace",
+                "type": "File"
+              },
+              "name": "strace"
+            }
+          ]
+        }
+      },
+      "ttlSecondsAfterFinished": 900
+    },
+    "status": {
+      "completionTime": "2026-11-02T15:56:13Z",
+      "conditions": [
+        {
+          "lastProbeTime": "2026-11-02T15:56:13Z",
+          "lastTransitionTime": "2026-11-02T15:56:13Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "SuccessCriteriaMet"
+        },
+        {
+          "lastProbeTime": "2026-11-02T15:56:13Z",
+          "lastTransitionTime": "2026-11-02T15:56:13Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "Complete"
+        }
+      ],
+      "ready": 0,
+      "startTime": "2026-11-02T15:22:04Z",
+      "succeeded": 1,
+      "terminating": 0,
+      "uncountedTerminatedPods": {}
+    }
+  },
+  "pods": [
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2026-11-02T15:22:04Z",
+        "generateName": "cdx-resident-trio88-main-",
+        "labels": {
+          "batch.kubernetes.io/controller-uid": "6b882249-9a12-4243-a9a8-66b297f46f11",
+          "batch.kubernetes.io/job-name": "cdx-resident-trio88-main",
+          "controller-uid": "6b882249-9a12-4243-a9a8-66b297f46f11",
+          "experiment": "trio88-cpu",
+          "job-name": "cdx-resident-trio88-main",
+          "owner": "codex"
+        },
+        "name": "cdx-resident-trio88-main-8gxwt",
+        "namespace": "codex-resident-delivery-20261102",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-resident-trio88-main",
+            "uid": "6b882249-9a12-4243-a9a8-66b297f46f11"
+          }
+        ],
+        "resourceVersion": "116004848",
+        "uid": "49dc5fb1-b529-40fd-8500-e91ae947e57b"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "/usr/bin/python3.10",
+              "-B",
+              "/home/gspark/workspace/codex_resident_delivery_20261102/trio88_model_worker.py",
+              "main"
+            ],
+            "env": [
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "PYTHONNOUSERSITE",
+                "value": "1"
+              },
+              {
+                "name": "LD_LIBRARY_PATH",
+                "value": "/host-libs:/host-usrlib"
+              },
+              {
+                "name": "PATH",
+                "value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              }
+            ],
+            "image": "ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "run",
+            "resources": {
+              "limits": {
+                "cpu": "12",
+                "memory": "32Gi"
+              },
+              "requests": {
+                "cpu": "4",
+                "memory": "8Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "add": [
+                  "SYS_PTRACE"
+                ],
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "runAsGroup": 1002,
+              "runAsNonRoot": true,
+              "runAsUser": 1002
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "name": "owned"
+              },
+              {
+                "mountPath": "/host-libs",
+                "name": "libs",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-usrlib",
+                "name": "usrlib",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/lib/python3.10",
+                "name": "stdlib",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/python3.10",
+                "name": "python3-10",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/time",
+                "name": "time",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/strace",
+                "name": "strace",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-001",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "type": "Directory"
+            },
+            "name": "owned"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib/x86_64-linux-gnu",
+              "type": "Directory"
+            },
+            "name": "libs"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib",
+              "type": "Directory"
+            },
+            "name": "usrlib"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib/python3.10",
+              "type": "Directory"
+            },
+            "name": "stdlib"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/python3.10",
+              "type": "File"
+            },
+            "name": "python3-10"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/time",
+              "type": "File"
+            },
+            "name": "time"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/strace",
+              "type": "File"
+            },
+            "name": "strace"
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T15:56:12Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T15:22:04Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T15:56:11Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T15:56:11Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T15:22:04Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://dfcdd6129956dc9d527b88ec060e8a725dadb0881bb70bb7ec31873c90af1876",
+            "image": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+            "imageID": "docker.io/library/ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+            "lastState": {},
+            "name": "run",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://dfcdd6129956dc9d527b88ec060e8a725dadb0881bb70bb7ec31873c90af1876",
+                "exitCode": 0,
+                "finishedAt": "2026-11-02T15:56:10Z",
+                "reason": "Completed",
+                "startedAt": "2026-11-02T15:22:06Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "name": "owned"
+              },
+              {
+                "mountPath": "/host-libs",
+                "name": "libs",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-usrlib",
+                "name": "usrlib",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/lib/python3.10",
+                "name": "stdlib",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/python3.10",
+                "name": "python3-10",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/time",
+                "name": "time",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/strace",
+                "name": "strace",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.183",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.183"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.1.42",
+        "podIPs": [
+          {
+            "ip": "10.0.1.42"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-11-02T15:22:04Z"
+      }
+    }
+  ],
+  "logs": [
+    {
+      "pod": "cdx-resident-trio88-main-8gxwt",
+      "uid": "49dc5fb1-b529-40fd-8500-e91ae947e57b",
+      "phase": "Succeeded",
+      "log": "{\"stage\": \"main\", \"event\": \"started\", \"utc\": \"2026-11-02T15:22:06.999768+00:00\"}\n{\"stage\": \"main\", \"event\": \"finished\", \"exit_code\": 0, \"stdout\": \"{\\\"status\\\": \\\"succeeded\\\", \\\"valid\\\": true, \\\"trials\\\": 15}\\n\", \"stderr\": \"\"}\n",
+      "stderr": ""
+    }
+  ]
+}

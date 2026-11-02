@@ -1,0 +1,378 @@
+{
+  "job": {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "creationTimestamp": "2026-11-02T14:52:36Z",
+      "generation": 1,
+      "labels": {
+        "experiment": "trio88-build",
+        "owner": "codex"
+      },
+      "name": "cdx-resident-trio88-green",
+      "namespace": "codex-resident-delivery-20261102",
+      "resourceVersion": "115970975",
+      "uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449"
+    },
+    "spec": {
+      "activeDeadlineSeconds": 900,
+      "backoffLimit": 0,
+      "completionMode": "NonIndexed",
+      "completions": 1,
+      "manualSelector": false,
+      "parallelism": 1,
+      "podReplacementPolicy": "TerminatingOrFailed",
+      "selector": {
+        "matchLabels": {
+          "batch.kubernetes.io/controller-uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449"
+        }
+      },
+      "suspend": false,
+      "template": {
+        "metadata": {
+          "creationTimestamp": null,
+          "labels": {
+            "batch.kubernetes.io/controller-uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449",
+            "batch.kubernetes.io/job-name": "cdx-resident-trio88-green",
+            "controller-uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449",
+            "experiment": "resident-delivery-build",
+            "job-name": "cdx-resident-trio88-green",
+            "owner": "codex"
+          }
+        },
+        "spec": {
+          "automountServiceAccountToken": false,
+          "containers": [
+            {
+              "command": [
+                "sh",
+                "-c",
+                "set -eu\nmkdir /work/trio88-green/evidence\ngo version > /work/trio88-green/evidence/go-version.txt\nset +e\ngo test -mod=readonly -race -count=1 -v /work/trio88-green/three_arm_call.go /work/trio88-green/three_arm_call_test.go > /work/trio88-green/evidence/tests.log 2>&1\nrc=$?\nset -e\nprintf '%s\n' \"$rc\" > /work/trio88-green/evidence/test-exit.txt\ncat /work/trio88-green/evidence/tests.log\ntest \"$rc\" -eq 0\ngofmt -d /work/trio88-green/three_arm_call.go /work/trio88-green/three_arm_call_test.go > /work/trio88-green/evidence/gofmt.diff\ngo vet /work/trio88-green/three_arm_call.go > /work/trio88-green/evidence/vet.log 2>&1\nCGO_ENABLED=0 go build -trimpath -mod=readonly -o /work/trio88-green/three-arm-call /work/trio88-green/three_arm_call.go > /work/trio88-green/evidence/build.log 2>&1\nsha256sum /work/trio88-green/three-arm-call > /work/trio88-green/evidence/binary-sha256.txt\necho completed > /work/trio88-green/evidence/status.txt\n"
+              ],
+              "env": [
+                {
+                  "name": "GOCACHE",
+                  "value": "/work/trio88-go-cache"
+                },
+                {
+                  "name": "GOMODCACHE",
+                  "value": "/work/go-mod"
+                },
+                {
+                  "name": "GOPROXY",
+                  "value": "off"
+                },
+                {
+                  "name": "GOSUMDB",
+                  "value": "off"
+                },
+                {
+                  "name": "GOTOOLCHAIN",
+                  "value": "local"
+                }
+              ],
+              "image": "golang@sha256:c423747fbd96fd8f0b1102d947f51f9b266060217478e5f9bf86f145969562ee",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "build",
+              "resources": {
+                "limits": {
+                  "cpu": "8",
+                  "memory": "16Gi"
+                },
+                "requests": {
+                  "cpu": "2",
+                  "memory": "4Gi"
+                }
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "capabilities": {
+                  "drop": [
+                    "ALL"
+                  ]
+                },
+                "runAsGroup": 1002,
+                "runAsNonRoot": true,
+                "runAsUser": 1002,
+                "seccompProfile": {
+                  "type": "RuntimeDefault"
+                }
+              },
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File",
+              "volumeMounts": [
+                {
+                  "mountPath": "/work",
+                  "name": "work"
+                }
+              ],
+              "workingDir": "/work/onggi-source"
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-001"
+          },
+          "restartPolicy": "Never",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "type": "Directory"
+              },
+              "name": "work"
+            }
+          ]
+        }
+      },
+      "ttlSecondsAfterFinished": 900
+    },
+    "status": {
+      "completionTime": "2026-11-02T14:52:52Z",
+      "conditions": [
+        {
+          "lastProbeTime": "2026-11-02T14:52:52Z",
+          "lastTransitionTime": "2026-11-02T14:52:52Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "SuccessCriteriaMet"
+        },
+        {
+          "lastProbeTime": "2026-11-02T14:52:52Z",
+          "lastTransitionTime": "2026-11-02T14:52:52Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "Complete"
+        }
+      ],
+      "ready": 0,
+      "startTime": "2026-11-02T14:52:36Z",
+      "succeeded": 1,
+      "terminating": 0,
+      "uncountedTerminatedPods": {}
+    }
+  },
+  "pods": [
+    {
+      "metadata": {
+        "creationTimestamp": "2026-11-02T14:52:36Z",
+        "generateName": "cdx-resident-trio88-green-",
+        "labels": {
+          "batch.kubernetes.io/controller-uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449",
+          "batch.kubernetes.io/job-name": "cdx-resident-trio88-green",
+          "controller-uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449",
+          "experiment": "resident-delivery-build",
+          "job-name": "cdx-resident-trio88-green",
+          "owner": "codex"
+        },
+        "name": "cdx-resident-trio88-green-zqtxh",
+        "namespace": "codex-resident-delivery-20261102",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-resident-trio88-green",
+            "uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449"
+          }
+        ],
+        "resourceVersion": "115970974",
+        "uid": "521020af-c65a-4f7f-8e6c-a47d4190e651"
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T14:52:51Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T14:52:36Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T14:52:50Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T14:52:50Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T14:52:36Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://b23cf72fd3498bcd04019ab59d8dae8904ebfb24be25fac75e1b77f1a4c22df7",
+            "image": "sha256:80d0c273b68be554ca551c61b4a22ef66baae074f3a9562636139ba01972e5b1",
+            "imageID": "docker.io/library/golang@sha256:c423747fbd96fd8f0b1102d947f51f9b266060217478e5f9bf86f145969562ee",
+            "lastState": {},
+            "name": "build",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://b23cf72fd3498bcd04019ab59d8dae8904ebfb24be25fac75e1b77f1a4c22df7",
+                "exitCode": 0,
+                "finishedAt": "2026-11-02T14:52:49Z",
+                "reason": "Completed",
+                "startedAt": "2026-11-02T14:52:38Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.183",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.183"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.1.156",
+        "podIPs": [
+          {
+            "ip": "10.0.1.156"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-11-02T14:52:36Z"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "sh",
+              "-c",
+              "set -eu\nmkdir /work/trio88-green/evidence\ngo version > /work/trio88-green/evidence/go-version.txt\nset +e\ngo test -mod=readonly -race -count=1 -v /work/trio88-green/three_arm_call.go /work/trio88-green/three_arm_call_test.go > /work/trio88-green/evidence/tests.log 2>&1\nrc=$?\nset -e\nprintf '%s\n' \"$rc\" > /work/trio88-green/evidence/test-exit.txt\ncat /work/trio88-green/evidence/tests.log\ntest \"$rc\" -eq 0\ngofmt -d /work/trio88-green/three_arm_call.go /work/trio88-green/three_arm_call_test.go > /work/trio88-green/evidence/gofmt.diff\ngo vet /work/trio88-green/three_arm_call.go > /work/trio88-green/evidence/vet.log 2>&1\nCGO_ENABLED=0 go build -trimpath -mod=readonly -o /work/trio88-green/three-arm-call /work/trio88-green/three_arm_call.go > /work/trio88-green/evidence/build.log 2>&1\nsha256sum /work/trio88-green/three-arm-call > /work/trio88-green/evidence/binary-sha256.txt\necho completed > /work/trio88-green/evidence/status.txt\n"
+            ],
+            "env": [
+              {
+                "name": "GOCACHE",
+                "value": "/work/trio88-go-cache"
+              },
+              {
+                "name": "GOMODCACHE",
+                "value": "/work/go-mod"
+              },
+              {
+                "name": "GOPROXY",
+                "value": "off"
+              },
+              {
+                "name": "GOSUMDB",
+                "value": "off"
+              },
+              {
+                "name": "GOTOOLCHAIN",
+                "value": "local"
+              }
+            ],
+            "image": "golang@sha256:c423747fbd96fd8f0b1102d947f51f9b266060217478e5f9bf86f145969562ee",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "build",
+            "resources": {
+              "limits": {
+                "cpu": "8",
+                "memory": "16Gi"
+              },
+              "requests": {
+                "cpu": "2",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "runAsGroup": 1002,
+              "runAsNonRoot": true,
+              "runAsUser": 1002,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/work",
+                "name": "work"
+              }
+            ],
+            "workingDir": "/work/onggi-source"
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-001",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "type": "Directory"
+            },
+            "name": "work"
+          }
+        ]
+      },
+      "log": "=== RUN   TestThreeArmRealPaths/C\n=== RUN   TestThreeArmRealPaths/R\n--- PASS: TestThreeArmRealPaths (0.85s)\n    --- PASS: TestThreeArmRealPaths/P (0.19s)\n    --- PASS: TestThreeArmRealPaths/C (0.16s)\n    --- PASS: TestThreeArmRealPaths/R (0.12s)\n=== RUN   TestThreeArmRejectsUnknownPolicy\n--- PASS: TestThreeArmRejectsUnknownPolicy (0.00s)\n=== RUN   TestThreeArmRejectsOverlappingOutput\n--- PASS: TestThreeArmRejectsOverlappingOutput (0.00s)\nPASS\nok  \tcommand-line-arguments\t1.903s\n",
+      "log_error": ""
+    }
+  ]
+}

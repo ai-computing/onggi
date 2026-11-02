@@ -1,0 +1,14 @@
+=== RUN   TestThreeArmRealPaths
+=== RUN   TestThreeArmRealPaths/P
+=== RUN   TestThreeArmRealPaths/C
+=== RUN   TestThreeArmRealPaths/R
+--- PASS: TestThreeArmRealPaths (0.85s)
+    --- PASS: TestThreeArmRealPaths/P (0.19s)
+    --- PASS: TestThreeArmRealPaths/C (0.16s)
+    --- PASS: TestThreeArmRealPaths/R (0.12s)
+=== RUN   TestThreeArmRejectsUnknownPolicy
+--- PASS: TestThreeArmRejectsUnknownPolicy (0.00s)
+=== RUN   TestThreeArmRejectsOverlappingOutput
+--- PASS: TestThreeArmRejectsOverlappingOutput (0.00s)
+PASS
+ok  	command-line-arguments	1.903s

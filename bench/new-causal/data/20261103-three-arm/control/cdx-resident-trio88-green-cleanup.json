@@ -1,0 +1,42 @@
+{
+  "job_uid": "a1537e8e-3488-4ba8-9973-c58f1cc04449",
+  "name": "cdx-resident-trio88-green",
+  "job_absent": true,
+  "pods_absent": true,
+  "observations": [
+    {
+      "name": "cdx-resident-trio88-green-zqtxh",
+      "uid": "521020af-c65a-4f7f-8e6c-a47d4190e651",
+      "phase": "Succeeded",
+      "containers": [
+        {
+          "containerID": "containerd://b23cf72fd3498bcd04019ab59d8dae8904ebfb24be25fac75e1b77f1a4c22df7",
+          "image": "sha256:80d0c273b68be554ca551c61b4a22ef66baae074f3a9562636139ba01972e5b1",
+          "imageID": "docker.io/library/golang@sha256:c423747fbd96fd8f0b1102d947f51f9b266060217478e5f9bf86f145969562ee",
+          "lastState": {},
+          "name": "build",
+          "ready": false,
+          "restartCount": 0,
+          "started": false,
+          "state": {
+            "terminated": {
+              "containerID": "containerd://b23cf72fd3498bcd04019ab59d8dae8904ebfb24be25fac75e1b77f1a4c22df7",
+              "exitCode": 0,
+              "finishedAt": "2026-11-02T14:52:49Z",
+              "reason": "Completed",
+              "startedAt": "2026-11-02T14:52:38Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/work",
+              "name": "work"
+            }
+          ]
+        }
+      ],
+      "log": "=== RUN   TestThreeArmRealPaths\n=== RUN   TestThreeArmRealPaths/P\n=== RUN   TestThreeArmRealPaths/C\n=== RUN   TestThreeArmRealPaths/R\n--- PASS: TestThreeArmRealPaths (0.85s)\n    --- PASS: TestThreeArmRealPaths/P (0.19s)\n    --- PASS: TestThreeArmRealPaths/C (0.16s)\n    --- PASS: TestThreeArmRealPaths/R (0.12s)\n=== RUN   TestThreeArmRejectsUnknownPolicy\n--- PASS: TestThreeArmRejectsUnknownPolicy (0.00s)\n=== RUN   TestThreeArmRejectsOverlappingOutput\n--- PASS: TestThreeArmRejectsOverlappingOutput (0.00s)\nPASS\nok  \tcommand-line-arguments\t1.903s\n",
+      "log_stderr": ""
+    }
+  ]
+}

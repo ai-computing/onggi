@@ -1,0 +1,42 @@
+[
+  {
+    "path": "binary-sha256.txt",
+    "bytes": 100,
+    "sha256": "86f81601467f3a314898af4f2710ce83596118ee263040e042eeddde9e3982f5"
+  },
+  {
+    "path": "build.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "go-version.txt",
+    "bytes": 32,
+    "sha256": "b6fb5596d2012530ab21387717217c56c6240d9d2a8384d99f7ef12443157bf8"
+  },
+  {
+    "path": "gofmt.diff",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "status.txt",
+    "bytes": 10,
+    "sha256": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a"
+  },
+  {
+    "path": "test-exit.txt",
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  {
+    "path": "tests.log",
+    "bytes": 548,
+    "sha256": "aca87082a9af43ae0b583c73c713848d05ecc883ed92ef872b05c3db38156e74"
+  },
+  {
+    "path": "vet.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

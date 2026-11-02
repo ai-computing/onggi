@@ -1,0 +1,175 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "cdx-resident-trio88-main",
+    "namespace": "codex-resident-delivery-20261102",
+    "labels": {
+      "owner": "codex",
+      "experiment": "trio88-cpu"
+    }
+  },
+  "spec": {
+    "backoffLimit": 0,
+    "activeDeadlineSeconds": 7200,
+    "ttlSecondsAfterFinished": 900,
+    "template": {
+      "metadata": {
+        "labels": {
+          "owner": "codex",
+          "experiment": "trio88-cpu"
+        }
+      },
+      "spec": {
+        "restartPolicy": "Never",
+        "automountServiceAccountToken": false,
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "containers": [
+          {
+            "name": "run",
+            "image": "ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+            "imagePullPolicy": "IfNotPresent",
+            "command": [
+              "/usr/bin/python3.10",
+              "-B",
+              "/home/gspark/workspace/codex_resident_delivery_20261102/trio88_model_worker.py",
+              "main"
+            ],
+            "env": [
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "PYTHONNOUSERSITE",
+                "value": "1"
+              },
+              {
+                "name": "LD_LIBRARY_PATH",
+                "value": "/host-libs:/host-usrlib"
+              },
+              {
+                "name": "PATH",
+                "value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "4",
+                "memory": "8Gi"
+              },
+              "limits": {
+                "cpu": "12",
+                "memory": "32Gi"
+              }
+            },
+            "securityContext": {
+              "runAsUser": 1002,
+              "runAsGroup": 1002,
+              "runAsNonRoot": true,
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ],
+                "add": [
+                  "SYS_PTRACE"
+                ]
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "owned",
+                "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "readOnly": false
+              },
+              {
+                "name": "libs",
+                "mountPath": "/host-libs",
+                "readOnly": true
+              },
+              {
+                "name": "usrlib",
+                "mountPath": "/host-usrlib",
+                "readOnly": true
+              },
+              {
+                "name": "stdlib",
+                "mountPath": "/usr/lib/python3.10",
+                "readOnly": true
+              },
+              {
+                "name": "python3-10",
+                "mountPath": "/usr/bin/python3.10",
+                "readOnly": true
+              },
+              {
+                "name": "time",
+                "mountPath": "/usr/bin/time",
+                "readOnly": true
+              },
+              {
+                "name": "strace",
+                "mountPath": "/usr/bin/strace",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "owned",
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "type": "Directory"
+            }
+          },
+          {
+            "name": "libs",
+            "hostPath": {
+              "path": "/usr/lib/x86_64-linux-gnu",
+              "type": "Directory"
+            }
+          },
+          {
+            "name": "usrlib",
+            "hostPath": {
+              "path": "/usr/lib",
+              "type": "Directory"
+            }
+          },
+          {
+            "name": "stdlib",
+            "hostPath": {
+              "path": "/usr/lib/python3.10",
+              "type": "Directory"
+            }
+          },
+          {
+            "name": "python3-10",
+            "hostPath": {
+              "path": "/usr/bin/python3.10",
+              "type": "File"
+            }
+          },
+          {
+            "name": "time",
+            "hostPath": {
+              "path": "/usr/bin/time",
+              "type": "File"
+            }
+          },
+          {
+            "name": "strace",
+            "hostPath": {
+              "path": "/usr/bin/strace",
+              "type": "File"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

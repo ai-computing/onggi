@@ -1,0 +1,78 @@
+{
+  "job_uid": "1cab10fc-bf2c-4430-a364-3892ec78a088",
+  "name": "cdx-resident-trio88-fixture",
+  "job_absent": true,
+  "pods_absent": true,
+  "observations": [
+    {
+      "name": "cdx-resident-trio88-fixture-k8lkh",
+      "uid": "348d37e6-ed63-4a81-9362-934fd2dfa1d7",
+      "phase": "Succeeded",
+      "containers": [
+        {
+          "containerID": "containerd://3192ecee11664b2b6636deb6da279b69e7acf1734126dd82a344a89609364dc0",
+          "image": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+          "imageID": "docker.io/library/ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+          "lastState": {},
+          "name": "run",
+          "ready": false,
+          "restartCount": 0,
+          "started": false,
+          "state": {
+            "terminated": {
+              "containerID": "containerd://3192ecee11664b2b6636deb6da279b69e7acf1734126dd82a344a89609364dc0",
+              "exitCode": 0,
+              "finishedAt": "2026-11-02T15:10:14Z",
+              "reason": "Completed",
+              "startedAt": "2026-11-02T15:10:13Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "name": "owned"
+            },
+            {
+              "mountPath": "/host-libs",
+              "name": "libs",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/host-usrlib",
+              "name": "usrlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/lib/python3.10",
+              "name": "stdlib",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/python3.10",
+              "name": "python3-10",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/time",
+              "name": "time",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            },
+            {
+              "mountPath": "/usr/bin/strace",
+              "name": "strace",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ],
+      "log": "{\"exit_code\": 0, \"stdout\": \"{\\\"status\\\": \\\"succeeded\\\", \\\"valid\\\": true, \\\"trials\\\": 3}\\n\", \"stderr\": \"\"}\n",
+      "log_stderr": ""
+    }
+  ]
+}
