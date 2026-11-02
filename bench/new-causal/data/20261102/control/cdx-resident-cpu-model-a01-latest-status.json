@@ -1,0 +1,1182 @@
+{
+  "job": {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "creationTimestamp": "2026-11-02T03:45:02Z",
+      "generation": 1,
+      "labels": {
+        "experiment": "resident-delivery-cpu",
+        "owner": "codex"
+      },
+      "name": "cdx-resident-cpu-model-a01",
+      "namespace": "codex-resident-delivery-20261102",
+      "resourceVersion": "115619129",
+      "uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc"
+    },
+    "spec": {
+      "activeDeadlineSeconds": 3600,
+      "backoffLimit": 0,
+      "completionMode": "NonIndexed",
+      "completions": 1,
+      "manualSelector": false,
+      "parallelism": 1,
+      "podReplacementPolicy": "TerminatingOrFailed",
+      "selector": {
+        "matchLabels": {
+          "batch.kubernetes.io/controller-uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc"
+        }
+      },
+      "suspend": false,
+      "template": {
+        "metadata": {
+          "creationTimestamp": null,
+          "labels": {
+            "batch.kubernetes.io/controller-uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc",
+            "batch.kubernetes.io/job-name": "cdx-resident-cpu-model-a01",
+            "controller-uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc",
+            "experiment": "rngd-binding-conformance",
+            "job-name": "cdx-resident-cpu-model-a01",
+            "owner": "codex"
+          }
+        },
+        "spec": {
+          "automountServiceAccountToken": false,
+          "containers": [
+            {
+              "command": [
+                "/usr/bin/python3.10",
+                "/home/gspark/workspace/codex_resident_delivery_20261102/stage/cpu_prepare_model_v2.py"
+              ],
+              "env": [
+                {
+                  "name": "PYTHONDONTWRITEBYTECODE",
+                  "value": "1"
+                },
+                {
+                  "name": "OMP_NUM_THREADS",
+                  "value": "4"
+                },
+                {
+                  "name": "MKL_NUM_THREADS",
+                  "value": "4"
+                },
+                {
+                  "name": "LD_LIBRARY_PATH",
+                  "value": "/host-libs:/host-usrlib"
+                },
+                {
+                  "name": "PATH",
+                  "value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/host-bin"
+                },
+                {
+                  "name": "PYTHONNOUSERSITE",
+                  "value": "1"
+                },
+                {
+                  "name": "PYTHONPATH",
+                  "value": "/home/gspark/workspace/codex_resident_delivery_20261102/runtime-source/src:/home/gspark/workspace/codex_resident_delivery_20261102/runtime-source/bench"
+                }
+              ],
+              "image": "ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "run",
+              "resources": {
+                "limits": {
+                  "cpu": "12",
+                  "memory": "32Gi"
+                },
+                "requests": {
+                  "cpu": "4",
+                  "memory": "8Gi"
+                }
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "capabilities": {
+                  "add": [
+                    "SYS_PTRACE"
+                  ]
+                }
+              },
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File",
+              "volumeMounts": [
+                {
+                  "mountPath": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+                  "name": "source-views",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/host-libs",
+                  "name": "host-libs",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/host-usrlib",
+                  "name": "host-usrlib",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/host-bin",
+                  "name": "host-bin",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/lib/python3/dist-packages",
+                  "name": "dist",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/local/lib/python3.10/dist-packages",
+                  "name": "local-dist",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/venvs/furiosa-2026.4",
+                  "name": "rngd-sdk",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/run/swap",
+                  "name": "assigned",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/dev/shm",
+                  "name": "shm",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_rngd_opt_20261023",
+                  "name": "prior-opt",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_onggi_integration_20261030",
+                  "name": "onggi-build",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+                  "name": "work",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+                  "name": "own-cache",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+                  "name": "source",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+                  "name": "published",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/var/lib/kubelet/device-plugins",
+                  "name": "device-checkpoint",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030",
+                  "name": "binding-work",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+                  "name": "binding-source",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+                  "name": "binding-kit",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/python3.10",
+                  "name": "host-python",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/lib/python3.10",
+                  "name": "host-python-stdlib",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+                  "name": "new-work",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                  "name": "owned"
+                },
+                {
+                  "mountPath": "/usr/bin/time",
+                  "name": "cpu-tool-time",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/strace",
+                  "name": "cpu-tool-strace",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/rsync",
+                  "name": "cpu-tool-rsync",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/home/gspark/rbln-llama8b-pd",
+                  "name": "atom-source",
+                  "readOnly": true
+                },
+                {
+                  "mountPath": "/usr/bin/xdelta3",
+                  "name": "xdelta-existing",
+                  "readOnly": true
+                }
+              ]
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-001"
+          },
+          "restartPolicy": "Never",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+                "type": "Directory"
+              },
+              "name": "source-views"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib/x86_64-linux-gnu",
+                "type": "Directory"
+              },
+              "name": "host-libs"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib",
+                "type": "Directory"
+              },
+              "name": "host-usrlib"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin",
+                "type": "Directory"
+              },
+              "name": "host-bin"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib/python3/dist-packages",
+                "type": "Directory"
+              },
+              "name": "dist"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/local/lib/python3.10/dist-packages",
+                "type": "Directory"
+              },
+              "name": "local-dist"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/venvs/furiosa-2026.4",
+                "type": "Directory"
+              },
+              "name": "rngd-sdk"
+            },
+            {
+              "emptyDir": {},
+              "name": "assigned"
+            },
+            {
+              "emptyDir": {
+                "medium": "Memory",
+                "sizeLimit": "16Gi"
+              },
+              "name": "shm"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_rngd_opt_20261023",
+                "type": "Directory"
+              },
+              "name": "prior-opt"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_onggi_integration_20261030",
+                "type": "Directory"
+              },
+              "name": "onggi-build"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+                "type": "Directory"
+              },
+              "name": "work"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+                "type": "Directory"
+              },
+              "name": "own-cache"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+                "type": "Directory"
+              },
+              "name": "source"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+                "type": "Directory"
+              },
+              "name": "published"
+            },
+            {
+              "hostPath": {
+                "path": "/var/lib/kubelet/device-plugins",
+                "type": "Directory"
+              },
+              "name": "device-checkpoint"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_binding_conformance_20261030",
+                "type": "Directory"
+              },
+              "name": "binding-work"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+                "type": "Directory"
+              },
+              "name": "binding-source"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+                "type": "Directory"
+              },
+              "name": "binding-kit"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/python3.10",
+                "type": "File"
+              },
+              "name": "host-python"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/lib/python3.10",
+                "type": "Directory"
+              },
+              "name": "host-python-stdlib"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+                "type": "Directory"
+              },
+              "name": "new-work"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "type": "Directory"
+              },
+              "name": "owned"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/time",
+                "type": "File"
+              },
+              "name": "cpu-tool-time"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/strace",
+                "type": "File"
+              },
+              "name": "cpu-tool-strace"
+            },
+            {
+              "hostPath": {
+                "path": "/usr/bin/rsync",
+                "type": "File"
+              },
+              "name": "cpu-tool-rsync"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/rbln-llama8b-pd",
+                "type": "Directory"
+              },
+              "name": "atom-source"
+            },
+            {
+              "hostPath": {
+                "path": "/home/gspark/workspace/claude_onggi_paper_20261030/tools/xdelta3-3.1.0/xdelta3",
+                "type": "File"
+              },
+              "name": "xdelta-existing"
+            }
+          ]
+        }
+      },
+      "ttlSecondsAfterFinished": 900
+    },
+    "status": {
+      "completionTime": "2026-11-02T03:55:51Z",
+      "conditions": [
+        {
+          "lastProbeTime": "2026-11-02T03:55:51Z",
+          "lastTransitionTime": "2026-11-02T03:55:51Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "SuccessCriteriaMet"
+        },
+        {
+          "lastProbeTime": "2026-11-02T03:55:51Z",
+          "lastTransitionTime": "2026-11-02T03:55:51Z",
+          "message": "Reached expected number of succeeded pods",
+          "reason": "CompletionsReached",
+          "status": "True",
+          "type": "Complete"
+        }
+      ],
+      "ready": 0,
+      "startTime": "2026-11-02T03:45:02Z",
+      "succeeded": 1,
+      "terminating": 0,
+      "uncountedTerminatedPods": {}
+    }
+  },
+  "pods": [
+    {
+      "metadata": {
+        "creationTimestamp": "2026-11-02T03:45:02Z",
+        "generateName": "cdx-resident-cpu-model-a01-",
+        "labels": {
+          "batch.kubernetes.io/controller-uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc",
+          "batch.kubernetes.io/job-name": "cdx-resident-cpu-model-a01",
+          "controller-uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc",
+          "experiment": "rngd-binding-conformance",
+          "job-name": "cdx-resident-cpu-model-a01",
+          "owner": "codex"
+        },
+        "name": "cdx-resident-cpu-model-a01-s2xnr",
+        "namespace": "codex-resident-delivery-20261102",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Job",
+            "name": "cdx-resident-cpu-model-a01",
+            "uid": "8b5cac4c-7cc4-44da-b619-fe60a3d846bc"
+          }
+        ],
+        "resourceVersion": "115619128",
+        "uid": "dac24237-b83d-4e8d-802f-eeb2a77ce7f7"
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T03:55:50Z",
+            "status": "False",
+            "type": "PodReadyToStartContainers"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T03:45:02Z",
+            "reason": "PodCompleted",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T03:55:49Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T03:55:49Z",
+            "reason": "PodCompleted",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2026-11-02T03:45:02Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://ed66336baa531606cd5f9ed431bab55d575d645428e7bd83b52aaa9ad47423e5",
+            "image": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+            "imageID": "docker.io/library/ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+            "lastState": {},
+            "name": "run",
+            "ready": false,
+            "restartCount": 0,
+            "started": false,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://ed66336baa531606cd5f9ed431bab55d575d645428e7bd83b52aaa9ad47423e5",
+                "exitCode": 0,
+                "finishedAt": "2026-11-02T03:55:48Z",
+                "reason": "Completed",
+                "startedAt": "2026-11-02T03:45:05Z"
+              }
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+                "name": "source-views",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-libs",
+                "name": "host-libs",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-usrlib",
+                "name": "host-usrlib",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/host-bin",
+                "name": "host-bin",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/lib/python3/dist-packages",
+                "name": "dist",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/local/lib/python3.10/dist-packages",
+                "name": "local-dist",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/venvs/furiosa-2026.4",
+                "name": "rngd-sdk",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/run/swap",
+                "name": "assigned",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/dev/shm",
+                "name": "shm",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_rngd_opt_20261023",
+                "name": "prior-opt",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_onggi_integration_20261030",
+                "name": "onggi-build",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+                "name": "work",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+                "name": "own-cache",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+                "name": "source",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+                "name": "published",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/var/lib/kubelet/device-plugins",
+                "name": "device-checkpoint",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030",
+                "name": "binding-work",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+                "name": "binding-source",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+                "name": "binding-kit",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/python3.10",
+                "name": "host-python",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/lib/python3.10",
+                "name": "host-python-stdlib",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+                "name": "new-work",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "name": "owned"
+              },
+              {
+                "mountPath": "/usr/bin/time",
+                "name": "cpu-tool-time",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/strace",
+                "name": "cpu-tool-strace",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/rsync",
+                "name": "cpu-tool-rsync",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/home/gspark/rbln-llama8b-pd",
+                "name": "atom-source",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              },
+              {
+                "mountPath": "/usr/bin/xdelta3",
+                "name": "xdelta-existing",
+                "readOnly": true,
+                "recursiveReadOnly": "Disabled"
+              }
+            ]
+          }
+        ],
+        "hostIP": "10.254.184.183",
+        "hostIPs": [
+          {
+            "ip": "10.254.184.183"
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "10.0.1.113",
+        "podIPs": [
+          {
+            "ip": "10.0.1.113"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2026-11-02T03:45:02Z"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+          {
+            "command": [
+              "/usr/bin/python3.10",
+              "/home/gspark/workspace/codex_resident_delivery_20261102/stage/cpu_prepare_model_v2.py"
+            ],
+            "env": [
+              {
+                "name": "PYTHONDONTWRITEBYTECODE",
+                "value": "1"
+              },
+              {
+                "name": "OMP_NUM_THREADS",
+                "value": "4"
+              },
+              {
+                "name": "MKL_NUM_THREADS",
+                "value": "4"
+              },
+              {
+                "name": "LD_LIBRARY_PATH",
+                "value": "/host-libs:/host-usrlib"
+              },
+              {
+                "name": "PATH",
+                "value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/host-bin"
+              },
+              {
+                "name": "PYTHONNOUSERSITE",
+                "value": "1"
+              },
+              {
+                "name": "PYTHONPATH",
+                "value": "/home/gspark/workspace/codex_resident_delivery_20261102/runtime-source/src:/home/gspark/workspace/codex_resident_delivery_20261102/runtime-source/bench"
+              }
+            ],
+            "image": "ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "run",
+            "resources": {
+              "limits": {
+                "cpu": "12",
+                "memory": "32Gi"
+              },
+              "requests": {
+                "cpu": "4",
+                "memory": "8Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "add": [
+                  "SYS_PTRACE"
+                ]
+              }
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+                "name": "source-views",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-libs",
+                "name": "host-libs",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-usrlib",
+                "name": "host-usrlib",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/host-bin",
+                "name": "host-bin",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/lib/python3/dist-packages",
+                "name": "dist",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/local/lib/python3.10/dist-packages",
+                "name": "local-dist",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/venvs/furiosa-2026.4",
+                "name": "rngd-sdk",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/run/swap",
+                "name": "assigned",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/dev/shm",
+                "name": "shm",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_rngd_opt_20261023",
+                "name": "prior-opt",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_onggi_integration_20261030",
+                "name": "onggi-build",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+                "name": "work",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+                "name": "own-cache",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+                "name": "source",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+                "name": "published",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/lib/kubelet/device-plugins",
+                "name": "device-checkpoint",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030",
+                "name": "binding-work",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+                "name": "binding-source",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+                "name": "binding-kit",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/python3.10",
+                "name": "host-python",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/lib/python3.10",
+                "name": "host-python-stdlib",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+                "name": "new-work",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/workspace/codex_resident_delivery_20261102",
+                "name": "owned"
+              },
+              {
+                "mountPath": "/usr/bin/time",
+                "name": "cpu-tool-time",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/strace",
+                "name": "cpu-tool-strace",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/rsync",
+                "name": "cpu-tool-rsync",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/home/gspark/rbln-llama8b-pd",
+                "name": "atom-source",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/usr/bin/xdelta3",
+                "name": "xdelta-existing",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "etri-001",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-001"
+        },
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_swap_benchmark_20261023/fixtures",
+              "type": "Directory"
+            },
+            "name": "source-views"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib/x86_64-linux-gnu",
+              "type": "Directory"
+            },
+            "name": "host-libs"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib",
+              "type": "Directory"
+            },
+            "name": "host-usrlib"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin",
+              "type": "Directory"
+            },
+            "name": "host-bin"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib/python3/dist-packages",
+              "type": "Directory"
+            },
+            "name": "dist"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/local/lib/python3.10/dist-packages",
+              "type": "Directory"
+            },
+            "name": "local-dist"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/venvs/furiosa-2026.4",
+              "type": "Directory"
+            },
+            "name": "rngd-sdk"
+          },
+          {
+            "emptyDir": {},
+            "name": "assigned"
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "16Gi"
+            },
+            "name": "shm"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_rngd_opt_20261023",
+              "type": "Directory"
+            },
+            "name": "prior-opt"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_onggi_integration_20261030",
+              "type": "Directory"
+            },
+            "name": "onggi-build"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030",
+              "type": "Directory"
+            },
+            "name": "work"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/cache",
+              "type": "Directory"
+            },
+            "name": "own-cache"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/runtime-source",
+              "type": "Directory"
+            },
+            "name": "source"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_npu_20261030/artifacts-v2",
+              "type": "Directory"
+            },
+            "name": "published"
+          },
+          {
+            "hostPath": {
+              "path": "/var/lib/kubelet/device-plugins",
+              "type": "Directory"
+            },
+            "name": "device-checkpoint"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_binding_conformance_20261030",
+              "type": "Directory"
+            },
+            "name": "binding-work"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_binding_conformance_20261030/runtime-source",
+              "type": "Directory"
+            },
+            "name": "binding-source"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_binding_conformance_20261030/conformance-source",
+              "type": "Directory"
+            },
+            "name": "binding-kit"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/python3.10",
+              "type": "File"
+            },
+            "name": "host-python"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/lib/python3.10",
+              "type": "Directory"
+            },
+            "name": "host-python-stdlib"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_ccgrid_b2_20261102",
+              "type": "Directory"
+            },
+            "name": "new-work"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/codex_resident_delivery_20261102",
+              "type": "Directory"
+            },
+            "name": "owned"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/time",
+              "type": "File"
+            },
+            "name": "cpu-tool-time"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/strace",
+              "type": "File"
+            },
+            "name": "cpu-tool-strace"
+          },
+          {
+            "hostPath": {
+              "path": "/usr/bin/rsync",
+              "type": "File"
+            },
+            "name": "cpu-tool-rsync"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/rbln-llama8b-pd",
+              "type": "Directory"
+            },
+            "name": "atom-source"
+          },
+          {
+            "hostPath": {
+              "path": "/home/gspark/workspace/claude_onggi_paper_20261030/tools/xdelta3-3.1.0/xdelta3",
+              "type": "File"
+            },
+            "name": "xdelta-existing"
+          }
+        ]
+      },
+      "log": "{\"status\": \"completed\", \"npu_requested\": 0, \"question\": \"same-cache materialization writes, repeated local baselines and matched chunking\", \"started_unix_ns\": 1793591105606643698, \"inputs\": [{\"original\": \"/home/gspark/rbln-llama8b-pd/decode_S256_B2_lm.rbln\", \"copy\": \"/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/base/decode_S256_B2_lm.rbln\", \"bytes\": 15238278850, \"sha256\": \"8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332\", \"copy_and_hash_s\": 29.8140752}, {\"original\": \"/home/gspark/rbln-llama8b-pd/decode_S256_B8_lm.rbln\", \"copy\": \"/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/target/decode_S256_B8_lm.rbln\", \"bytes\": 15228048882, \"sha256\": \"304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d\", \"copy_and_hash_s\": 29.741689101}], \"finished_unix_ns\": 1793591748815794210, \"free_bytes\": 336006950912, \"tools\": {\"time\": \"7310b9b4c51a8f4d26c1af0da250f03a49ec8a8141033123e79196ad18f6c81b\", \"strace\": \"38a5c75cb29dd85ddd7780d54f5bf595554d7a1b5c42524b23065f5dc4c4b01d\", \"rsync\": \"f029cadc3f0b1c879bf8dfb899f434703c13ee53197d27da5d17bf0faf1f1318\", \"xdelta3\": \"fb861f85195a3e6afedd9d5d7ab42273855f9dacb5893b1b6069412d2c574c0f\"}}\n",
+      "log_error": ""
+    }
+  ]
+}

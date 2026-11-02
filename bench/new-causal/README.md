@@ -1,8 +1,10 @@
 # CPU causal cohorts (issue #84)
 
-Real model experiments: **not_run**. This directory supplies a runner and local
-CPU/file tests. It does not change runtime code, allocate a device, compile a
-model, contact a node, or modify manuscript evidence.
+Real model timing: **complete, five arms each n=5**, plus excluded smoke.
+Same-cache traced I/O and publication ablations remain pending/running; their
+completion is not inferred from timing. See [the timing report](REPORT-TIMING-20261102.md)
+and `data/20261102/`. This runner changes no runtime code, allocates no device,
+compiles no model, contacts no node and modifies no manuscript evidence.
 
 The frozen protocol is the 2026-11-02 CPU causal ablation note. Primary inputs
 are the exact original-named `decode_S256_B2_lm.rbln` (15,238,278,850 B) and

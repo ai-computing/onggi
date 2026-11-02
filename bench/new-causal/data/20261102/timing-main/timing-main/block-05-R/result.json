@@ -1,0 +1,129 @@
+{
+  "arm": "R",
+  "base_copy_proof": [
+    {
+      "allocated_bytes": 15238283264,
+      "bytes": 15238278850,
+      "copy_dev": 64512,
+      "copy_ino": 25171282,
+      "independent_inode": true,
+      "nlink": 1,
+      "path": "decode_S256_B2_lm.rbln",
+      "sha256": "8919e9fea5c9fddc6f5941dbd80364790eeff1cc55b13c153c1a14991ee59332",
+      "source_dev": 64512,
+      "source_ino": 25170289
+    }
+  ],
+  "cli": {
+    "manifest": "sha256:99ba4e88392ad77d36a629b94d904ac904269950e43270d1b020383b1619225a",
+    "stats": {
+      "base": "sha256:cb89543f89e887897be3673c61fed3c582ec7f307f7e816063bc0e1d687322bf",
+      "base_best": 15009857021,
+      "bytes": 15228048882,
+      "cache_bytes": 0,
+      "cached": 0,
+      "duration_ns": 5883755359,
+      "files": 1,
+      "local_bytes": 0,
+      "peer_bytes": 0,
+      "peer_chunks": 0,
+      "ranges": 1,
+      "read_bytes": 3567290,
+      "reused": 15009857021
+    }
+  },
+  "cli_bytes_scope": "logical target size; never observed file writes",
+  "command": {
+    "argv": [
+      "nice",
+      "-n",
+      "19",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+      "pull",
+      "--store",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/store",
+      "--workers",
+      "8",
+      "--json",
+      "--base",
+      "sha256:cb89543f89e887897be3673c61fed3c582ec7f307f7e816063bc0e1d687322bf",
+      "--base-dir",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/base",
+      "sha256:99ba4e88392ad77d36a629b94d904ac904269950e43270d1b020383b1619225a",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/output"
+    ],
+    "elapsed_s": 6.093458091,
+    "environment": {
+      "GOMAXPROCS": "32",
+      "GOMEMLIMIT": null,
+      "LC_ALL": "C",
+      "TMPDIR": "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/tmp",
+      "TZ": "UTC"
+    },
+    "executed_argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/deploy.resources",
+      "nice",
+      "-n",
+      "19",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi",
+      "pull",
+      "--store",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/store",
+      "--workers",
+      "8",
+      "--json",
+      "--base",
+      "sha256:cb89543f89e887897be3673c61fed3c582ec7f307f7e816063bc0e1d687322bf",
+      "--base-dir",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/base",
+      "sha256:99ba4e88392ad77d36a629b94d904ac904269950e43270d1b020383b1619225a",
+      "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/output"
+    ],
+    "exit_code": 0,
+    "gnu_time": "\tCommand being timed: \"nice -n 19 /home/gspark/workspace/codex_resident_delivery_20261102/bin/onggi pull --store /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/store --workers 8 --json --base sha256:cb89543f89e887897be3673c61fed3c582ec7f307f7e816063bc0e1d687322bf --base-dir /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/base sha256:99ba4e88392ad77d36a629b94d904ac904269950e43270d1b020383b1619225a /home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-05-R/output\"\n\tUser time (seconds): 4.14\n\tSystem time (seconds): 3.95\n\tPercent of CPU this job got: 132%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:06.09\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 2631008\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 952344\n\tVoluntary context switches: 2579\n\tInvoluntary context switches: 27\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 426192\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "monotonic_end_ns": 1569590458049353,
+    "monotonic_start_ns": 1569584364591262,
+    "process_io": null,
+    "process_io_reason": "no validated pre-exit per-process snapshot; unavailable",
+    "resources": {
+      "filesystem_input_blocks": 0,
+      "filesystem_output_blocks": 426192,
+      "max_rss_kib": 2631008,
+      "system_s": 3.95,
+      "user_s": 4.14
+    },
+    "status": "succeeded",
+    "traced": false,
+    "utc_start": "2026-11-02T04:43:29.489414+00:00"
+  },
+  "consume_treatment_valid": true,
+  "durable_s": 6.094914627,
+  "free_bytes_before_command": 320758435840,
+  "logical_io": null,
+  "output_hash_equal": true,
+  "output_inventory": [
+    {
+      "bytes": 15228048882,
+      "path": "decode_S256_B8_lm.rbln",
+      "sha256": "304ff369a72c21afbbc84b7b09639503cd0e6327320a3ec23664d75e6c13460d"
+    }
+  ],
+  "preparation_inclusive_s": 64.35521075,
+  "preparation_s": 31.737767952,
+  "publication": "not applicable: prepublished source",
+  "retained_artifact_bytes": 15228054333,
+  "status": "succeeded",
+  "sync_end_ns": 1569590459505889,
+  "sync_s": 0.000603027,
+  "sync_start_ns": 1569590458902862,
+  "synced_files": 1,
+  "valid": true,
+  "validated_s": 14.720595579,
+  "validation_end_ns": 1569599085186841,
+  "validation_s": 8.625680212,
+  "validation_start_ns": 1569590459506629,
+  "warm_source_verification_s": 17.896590797
+}

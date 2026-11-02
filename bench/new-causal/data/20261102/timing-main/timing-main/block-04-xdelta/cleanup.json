@@ -1,0 +1,9 @@
+{
+  "elapsed_s": 4.48726615,
+  "policy": "remove successful trial artifact trees; retain raw evidence",
+  "removed": [
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-04-xdelta/base",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-04-xdelta/output",
+    "/home/gspark/workspace/codex_resident_delivery_20261102/cpu-model-a01/timing-main/block-04-xdelta/tmp"
+  ]
+}

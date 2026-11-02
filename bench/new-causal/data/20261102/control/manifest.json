@@ -1,0 +1,95 @@
+{
+  "files": [
+    {
+      "path": "cdx-resident-cpu-model-a01-job.json",
+      "bytes": 13482,
+      "sha256": "bdfd5ed4dc9cd6ec011f9ab736c423709aec6391289663757999da07ee3ce9da"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-create.json",
+      "bytes": 160,
+      "sha256": "98db480d172edd73ee048eb3a623d6bdd004fbc76a9df9101cd275a7b24a9ce9"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-cleanup.json",
+      "bytes": 8524,
+      "sha256": "6c4c6fd98ab98d8e2f3965207c96851951477c04e6733da8e51074768eb8a7dd"
+    },
+    {
+      "path": "cdx-resident-cpu-model-a01-latest-status.json",
+      "bytes": 41097,
+      "sha256": "b66286f4790a4602f5ed1170b9930c48e7e67c83dbed3d254248d049b57dc31d"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-job.json",
+      "bytes": 13528,
+      "sha256": "025889988bb9f6a888a9b8eb8134fe959b337ccc1934bd5045b4472dbb90ce91"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-create.json",
+      "bytes": 163,
+      "sha256": "27663bd7679f2fc18608a0e0833001619168b74dad508b02ce24800fa14b860d"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-cleanup.json",
+      "bytes": 7379,
+      "sha256": "c129d5a47fffab71ad3f2c1a62cc3796c0320612d7b6ded388b9ef86ad8a5a34"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-smoke-latest-status.json",
+      "bytes": 40060,
+      "sha256": "2d6f563128e2706bc97fdfd5596608df2debb09124572ca823c0b96c40986795"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-job.json",
+      "bytes": 13526,
+      "sha256": "b641adc11b1cf2de58617b671d87621b2197cb58ed77d41345b63ab02c514705"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-create.json",
+      "bytes": 162,
+      "sha256": "91fb94084e763541a7253b9a53f762233a83d311963e31b6698c3d4dc985b39c"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-cleanup.json",
+      "bytes": 7377,
+      "sha256": "a41d110cb24e00c9ed6ef8887c49292cabf25c4c687e1de0e6ac1da9fcf44d2b"
+    },
+    {
+      "path": "cdx-resident-cpu-timing-main-latest-status.json",
+      "bytes": 40050,
+      "sha256": "609a57441fd0cd1af75a106775f42b281df96c4f2b51d11bc93ee0ef68c57330"
+    },
+    {
+      "path": "cpu_run_matrix.py",
+      "bytes": 1059,
+      "sha256": "8c46692d965f2ecc62261f96781242cbb3d4e1c7b63bae5b9c1166980962da24"
+    },
+    {
+      "path": "cpu_followup_controller.py",
+      "bytes": 5091,
+      "sha256": "9cfeebb193f0bf3fbda4f60fc96e933698a270a2cf4b1789d7c31fe6b937c63f"
+    },
+    {
+      "path": "cpu-matrix-stage-manifest.json",
+      "bytes": 180,
+      "sha256": "99533aa9a45eb2046065313e6926e511e11ee8c379fffe9b5b6fa44307057eb7"
+    },
+    {
+      "path": "cpu-model-v2-stage-manifest.json",
+      "bytes": 210,
+      "sha256": "8834ef94cabcb2f71aaa1e1ef62a8721571297dd2c2dc1470afd270971c26c53"
+    },
+    {
+      "path": "collect_cpu_cohort.py",
+      "bytes": 3032,
+      "sha256": "c7236ec327dee16c7a0857f4f54dd42336ddfd37539128d22bc47be7d262c3f1"
+    },
+    {
+      "path": "check_cpu_export.py",
+      "bytes": 5724,
+      "sha256": "d67be55de852a583384521729b167a3cbca3ac8028f481f153d0174c629f3111"
+    }
+  ],
+  "scope": "Exact timing/preparation controller records; IO/publication still pending, not part of completed timing claim"
+}
