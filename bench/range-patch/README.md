@@ -59,6 +59,45 @@ publishing a new target; rollback is not promised. An unlink error after
 successful publication reports the committed target plus cleanup error and
 retained work path. Directory crash durability is not claimed.
 
+## Prepare from the measured core's public diff
+
+`diff_keep.py` connects the existing **legacy FileDiff** output (the measured
+core's `onggi diff --ranges --json`) to this reference. It does not parse opaque
+model files or implement matching. Freeze the actual diff bytes and complete
+base/target SHA256s independently before invoking it:
+
+```sh
+python3 -B bench/range-patch/diff_keep.py \
+  --base /immutable/base.bin --target /immutable/target.bin \
+  --base-path decode_S256_B2_lm.rbln --target-path decode_S256_B8_lm.rbln \
+  --diff /frozen/diff.json --diff-sha256 FROZEN_DIFF_SHA256 \
+  --base-sha256 FROZEN_BASE_SHA256 --target-sha256 FROZEN_TARGET_SHA256 \
+  --output /private/NEW-PATCH
+```
+
+The artifact paths are exact selected `files[].base/path` names, independent
+of physical source filenames. The adapter refuses another pair, duplicate
+paths, missing changed ranges, inconsistent counters, invalid coverage and
+keeps beyond the actual base size. It complements changed ranges, verifies
+complete input pins, then lets the reference compare every kept byte. Empty,
+grown, shrunk, moved-only and identical files have explicit handling. Newer
+switchplan schemas are deliberately refused, not silently interpreted.
+
+The NEW package includes `keep.json` and `preparation.json`. The receipt binds
+diff/keep/input/source SHA256s, patch manifest identity and measured preparation
+costs. `preparation_total_seconds` includes metadata processing, extra full
+input verification, patch construction and keep-file writing; it ends before
+receipt serialization/write. That extra input verification is also counted
+separately and must be charged. The diff's original publication cost and its
+producer/binary/config identity still need separate frozen records: this
+adapter cannot infer them from a diff hash. The patch manifest remains the
+application pin; do not use metadata alone as byte-equality evidence.
+
+Linux CI additionally sets `ONGGI_TEST_BIN` to test the actual Go push/diff →
+adapter → patch application path on synthetic opaque bytes. Without this env,
+that one integration test is skipped; all Python real-file tests still run.
+No model cohort, online comparative timing or device operation is run here.
+
 ## Fair comparison and evidence limits
 
 - A valid model cohort still needs pinned source/input/keep-plan/patch/config,

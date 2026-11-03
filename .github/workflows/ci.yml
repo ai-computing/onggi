@@ -32,6 +32,8 @@ jobs:
           python3 bench/new-causal/verify_timing.py timing-smoke
           python3 bench/new-causal/verify_timing.py timing-main
       - name: prepared literal-patch reference (real file fixtures, no model)
+        env:
+          ONGGI_TEST_BIN: ${{ github.workspace }}/onggi
         run: python3 -B -m unittest discover -s bench/range-patch -v
 
   # The s3 driver against real S3 servers: the backend conformance suite, then a CLI round trip.
