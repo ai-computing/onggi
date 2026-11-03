@@ -103,6 +103,42 @@ this does not override an earlier failure or relax the trace parser.
 
 ## Fair comparison and evidence limits
 
+`cohort.py` implements the common-readiness R/L executor comparison. Freeze an
+explicit config with complete input identities, actual complete target cache,
+prepared patch root, driver SHA, external build receipt pins and source revision.
+`COHORT-PLAN.md` gives its fixed conditions. Model mode admits only the
+preregistered complete decode batch-2→batch-8 pair on Linux; fixtures remain
+labeled synthetic. Independent input/build/host admission is still required.
+
+```sh
+python3 -B bench/range-patch/cohort.py freeze --config CONFIG --output NEW-FROZEN
+python3 -B bench/range-patch/cohort.py run --frozen NEW-FROZEN --output NEW-SMOKE --stage smoke
+python3 -B bench/range-patch/cohort.py run --frozen NEW-FROZEN --output NEW-MAIN --stage main \
+  --smoke-path NEW-SMOKE/cohort.json --smoke-sha256 INDEPENDENT_SMOKE_SHA256
+```
+
+An attempt copies/fsyncs a private base and its method's local seed, then starts
+the online clock before integrity work. R verifies the base, invokes the actual
+admitted materializer and syncs/full-hashes its private output. L invokes the
+actual reference CLI with internal base/payload/full-target checks. Both prove
+donor inode transfer before exclusive consumer publication. A separate complete
+SHA audit follows the common endpoint. Python vs Go initialization and each
+method's actual validation work remain charged; no executor-only attribution
+is implied. Command timeouts kill the direct single-process method; a model Job
+also needs the outer active deadline for preparation and verification.
+
+Excluded smoke is RL; main has five paired blocks RL/LR/RL/LR/RL. Main rechecks
+the pinned smoke's actual method/identity/clock witnesses. Failures stop and
+retain work without retry or valid-subset aggregation. A frozen successful-data
+cleanup choice removes only known new private trial children after audit while
+retaining raw results/stdout/stderr. Method cleanup and audit are separate from
+online readiness. Logical retained path bytes count stage/ready hard-link
+aliases twice and are explicitly not physical occupancy; use the separate
+owner-sequence experiment for retained-state economics.
+
+Linux CI builds the existing three-arm driver and runs actual synthetic R/L
+smoke and five paired blocks. This validates the runner, not model latency.
+
 - A valid model cohort still needs pinned source/input/keep-plan/patch/config,
   actual base ownership and identity, an excluded smoke, complete attempt
   outcomes and independently verified repeats. Local fixture durations are

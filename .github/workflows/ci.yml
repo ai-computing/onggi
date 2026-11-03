@@ -36,7 +36,10 @@ jobs:
         if: ${{ !cancelled() && steps.build_cli.outcome == 'success' }}
         env:
           ONGGI_TEST_BIN: ${{ github.workspace }}/onggi
-        run: python3 -B -m unittest discover -s bench/range-patch -v
+          ONGGI_TEST_DRIVER: ${{ runner.temp }}/three-arm-call
+        run: |
+          go build -trimpath -o "$ONGGI_TEST_DRIVER" ./bench/new-causal/three_arm_call.go
+          python3 -B -m unittest discover -s bench/range-patch -v
       - name: retained synthetic causal fixture for trace diagnostics
         if: ${{ !cancelled() && steps.build_cli.outcome == 'success' }}
         run: python3 -B bench/new-causal/causal.py fixture --onggi ./onggi --output "$RUNNER_TEMP/onggi-causal-diagnostic"
