@@ -8,6 +8,7 @@ from pathlib import Path
 import random
 import re
 import shutil
+import stat
 import statistics
 import subprocess
 import sys
@@ -66,7 +67,20 @@ def guard(output, cfg):
                 'output overlaps an immutable source')
 
 
+def existing_store(root):
+    root = Path(root)
+    for name in ['.','tmp','refs','config','config/st','config/st/store']:
+        try:
+            mode = (root/name).lstat().st_mode
+        except OSError as error:
+            raise ValueError('origin/cache must already have a regular store layout') from error
+        require(stat.S_ISREG(mode) if name == 'config/st/store' else stat.S_ISDIR(mode),
+                'origin/cache must already have a regular store layout')
+
+
 def check_frozen(cfg):
+    existing_store(cfg['store'])
+    existing_store(cfg['cache_dir'])
     require(cfg.get('dataset_kind') in ['fixture','model'], 'dataset scope missing')
     if cfg['dataset_kind'] == 'model':
         require(sys.platform == 'linux' and all(cfg[k+'_inventory'] == MODEL_PAIR[k] for k in MODEL_PAIR),
@@ -168,6 +182,8 @@ def execute(cfg, argv, directory):
 def trial(cfg, arm, directory):
     require(arm in ['R','L'], 'unknown treatment')
     guard(directory, cfg)
+    # bfs.Open would otherwise create tmp/refs in a mistyped immutable origin.
+    existing_store(cfg['store'])
     directory = Path(directory).resolve()
     directory.mkdir()
     row = dict(arm=arm, status='running', valid=False, dataset_kind=cfg['dataset_kind'])

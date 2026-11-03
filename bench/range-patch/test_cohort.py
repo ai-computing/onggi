@@ -30,6 +30,10 @@ class CohortTest(unittest.TestCase):
         target.write_bytes(b'AAAAxxxxCCCC')
         (self.root/'store/record').write_bytes(b'immutable store fixture')
         (self.root/'cache/record').write_bytes(b'immutable cache fixture')
+        for name in ['store','cache']:
+            for relative in ['tmp','refs','config/st']:
+                (self.root/name/relative).mkdir(parents=True,exist_ok=True)
+            (self.root/name/'config/st/store').write_text('{}',encoding='utf-8')
         diff = self.root/'diff.json'
         diff.write_text(json.dumps(dict(files=[dict(path='target.bin', base='base.bin', size=12,
             same=8, moved=0, new=4, changed_runs=1, largest_run=4, changed=[[4,4]])])), encoding='utf-8')
@@ -156,6 +160,23 @@ class CohortTest(unittest.TestCase):
         self.assertIsNone(row['exit_code'])
         self.assertTrue((directory/'command.json').is_file())
         self.assertTrue((directory/'deploy.stderr').is_file())
+
+    def test_ordinary_origin_refused_before_driver_can_create_directories(self):
+        cfg = self.fixture()
+        ordinary = self.root/'ordinary'
+        ordinary.mkdir()
+        (ordinary/'sentinel').write_bytes(b'keep immutable')
+        cfg['store'] = str(ordinary)
+        before = sorted(p.relative_to(ordinary).as_posix() for p in ordinary.rglob('*'))
+        with self.assertRaises(ValueError):
+            c.trial(cfg,'R',self.root/'must-not-run')
+        self.assertFalse((self.root/'must-not-run').exists())
+        self.assertEqual(sorted(p.relative_to(ordinary).as_posix() for p in ordinary.rglob('*')),before)
+        self.assertEqual((ordinary/'sentinel').read_bytes(),b'keep immutable')
+        config = self.root/'ordinary-config.json'
+        config.write_text(json.dumps(cfg),encoding='utf-8')
+        with self.assertRaises(ValueError):
+            c.freeze(config,self.root/'ordinary-frozen.json')
 
     @unittest.skipUnless(os.environ.get('ONGGI_TEST_BIN') and os.environ.get('ONGGI_TEST_DRIVER'), 'Linux Go binaries required')
     def test_real_go_rl_smoke_main_and_full_aggregate(self):
