@@ -97,6 +97,9 @@ Linux CI additionally sets `ONGGI_TEST_BIN` to test the actual Go push/diff →
 adapter → patch application path on synthetic opaque bytes. Without this env,
 that one integration test is skipped; all Python real-file tests still run.
 No model cohort, online comparative timing or device operation is run here.
+The prepared-patch step also runs after unrelated test failures. A separate
+synthetic causal diagnostic retains its raw traces in the workflow artifact;
+this does not override an earlier failure or relax the trace parser.
 
 ## Fair comparison and evidence limits
 

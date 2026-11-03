@@ -1,7 +1,6 @@
 # Diff-to-patch preparation
 
 Continuation of issue95/PR96; real-model timing remains **not_run**.
-The user has authorized continuing the experiment implementation and verification.
 
 Use the existing measured-core `onggi diff --ranges --json` FileDiff format.
 Do not add another matcher, SDK parser, controller, remote call or dependency.
@@ -35,3 +34,15 @@ Implementation plan (inline, Python3.10+ stdlib):
 Fairness: record diff publication and extra full-input verification separately
 from patch construction and later online application. Raw literals remain a
 direct-executor control, not a codec-matched storage superiority experiment.
+
+Validation ledger: local26pass+real-Go1skip. First Linux run41551086659 failed
+in the unchanged existing causal fixture before the new integration step:
+cached-plain reported an unparsed copy_file_range, despite exact output bytes.
+That parser correctly refused incomplete attribution. Full failed CI log is
+retained separately; its warning truncates the line and the unit fixture's
+temporary directory was already deleted. Do not claim a root cause or parser
+fix. CI now runs the independent prepared-patch test even after that failure,
+and runs a separately retained synthetic causal fixture with original traces
+uploaded for diagnosis. Original tests and frozen causal.py remain unchanged;
+any failing test still fails the workflow. This is diagnostic capture, not a
+retry-to-green policy or model evidence.
