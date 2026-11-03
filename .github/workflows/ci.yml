@@ -23,6 +23,7 @@ jobs:
       - name: chunker benchmark (reported, not gated yet)
         run: go test -run xxx -bench . -benchtime 3x ./pkg/chunker
       - name: build linux/amd64 CLI
+        id: build_cli
         run: CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o onggi ./cmd/onggi && ./onggi version
       - name: CPU causal checks and retained timing evidence
         env:
@@ -31,6 +32,28 @@ jobs:
           python3 -m unittest discover -s bench/new-causal -p 'test*.py' -v
           python3 bench/new-causal/verify_timing.py timing-smoke
           python3 bench/new-causal/verify_timing.py timing-main
+      - name: prepared literal-patch reference (real file fixtures, no model)
+        if: ${{ !cancelled() && steps.build_cli.outcome == 'success' }}
+        env:
+          ONGGI_TEST_BIN: ${{ github.workspace }}/onggi
+          ONGGI_TEST_DRIVER: ${{ runner.temp }}/three-arm-call
+        run: |
+          go build -trimpath -o "$ONGGI_TEST_DRIVER" ./bench/new-causal/three_arm_call.go
+          python3 -B -m unittest discover -s bench/range-patch -v
+      - name: retained synthetic causal fixture for trace diagnostics
+        if: ${{ !cancelled() && steps.build_cli.outcome == 'success' }}
+        run: python3 -B bench/new-causal/causal.py fixture --onggi ./onggi --output "$RUNNER_TEMP/onggi-causal-diagnostic"
+      - name: retain synthetic trace diagnostic originals
+        if: ${{ !cancelled() && steps.build_cli.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: causal-traces-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/onggi-causal-diagnostic/**/*.trace.*
+            ${{ runner.temp }}/onggi-causal-diagnostic/**/result.json
+            ${{ runner.temp }}/onggi-causal-diagnostic/fixture-result.json
+          if-no-files-found: error
+          retention-days: 7
 
   # The s3 driver against real S3 servers: the backend conformance suite, then a CLI round trip.
   # (MinIO community edition is archived and no longer ships binaries, so CI uses these two.)
