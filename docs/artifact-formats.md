@@ -120,7 +120,8 @@ All four prefill variants (56.5 GB), compared with the HF source blobs:
 - The share of HF source bytes found is 0.0 % at both sizes.
 
 The variants hold the same bytes rearranged in runs of a few KiB, which finer chunks recover. Their bytes do not occur
-in the HF source at these sizes. The store sub-chunks new ATOM chunks at 4 KiB (two-level chunking).
+in the HF source at these sizes. The store sub-chunks new chunks at 4 KiB (two-level chunking; since #74 for every file of at least 1 MiB, see
+[sub-chunk-policy.md](sub-chunk-policy.md)).
 
 **What remains after 4 KiB sub-chunking** (#9). A decode build shares 87 % of its bytes with a prefill build at 4 KiB,
 so the "second weight layout" seen at 64 KiB is mostly the same bytes in a different order.

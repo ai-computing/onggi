@@ -230,9 +230,13 @@ type Config struct {
 	// Sub, when set, makes push split every chunk the store lacks into content-defined
 	// sub-chunks (two-level chunking, #15). Stores created before it have none.
 	Sub *chunker.Params `json:"sub_chunker,omitempty"`
-	// SubKinds limits sub-chunking to these file kinds (by name, pkg/layout); empty means all.
-	// Weights that equal their HF source dedup whole at 64 KiB, and finer chunks only add metadata.
+	// SubKinds limits sub-chunking to these file kinds (by name, pkg/layout). Stores created
+	// before #74 record it; it is kept for them and excludes SubMinFile.
 	SubKinds []layout.Kind `json:"sub_kinds,omitempty"`
+	// SubMinFile limits sub-chunking to files of at least this many bytes, whatever their name or
+	// format (#74). With neither SubKinds nor SubMinFile, every file gets sub-chunks; that is also
+	// what binaries from before #74 do on a store that records only SubMinFile.
+	SubMinFile int64 `json:"sub_min_file,omitempty"`
 	// Frame, when set, makes push compress consecutive new chunks of a sub-chunked file
 	// together, up to this many raw bytes (#52). Stores created before it have none.
 	Frame   int64     `json:"frame,omitempty"`

@@ -25,7 +25,7 @@ import (
 )
 
 type storeFlags struct {
-	url, durability, min, avg, max, sub, subKinds, packSize, frame *string
+	url, durability, min, avg, max, sub, subKinds, subMinFile, packSize, frame *string
 }
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
@@ -36,7 +36,8 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 		avg:        fs.String("avg", "64KiB", "average chunk size (only when creating a store)"),
 		max:        fs.String("max", "256KiB", "maximum chunk size (only when creating a store)"),
 		sub:        fs.String("sub", "4KiB", "average sub-chunk size for two-level chunking, 0 for one level (only when creating a store)"),
-		subKinds:   fs.String("sub-kinds", "atom-prefill,atom-decode,atom-other", "file kinds that get sub-chunks, or all (only when creating a store)"),
+		subKinds:   fs.String("sub-kinds", "", "file kinds (pkg/layout, by name) that get sub-chunks, or all; overrides --sub-min-file (only when creating a store; the behaviour before #74)"),
+		subMinFile: fs.String("sub-min-file", "1MiB", "sub-chunk new chunks of files of at least this size, whatever their name or format (only when creating a store)"),
 		packSize:   fs.String("pack-size", "64MiB", "pack object size (only when creating a store)"),
 		frame:      fs.String("frame", "256KiB", "compress new chunks of sub-chunked files together up to this size, 0 for one by one (only when creating a store)"),
 	}
@@ -95,7 +96,15 @@ func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error
 			}
 			c.Frame = int64(fr)
 		}
-		if *f.subKinds != "all" {
+		switch *f.subKinds {
+		case "all":
+		case "":
+			mf, err := size(*f.subMinFile)
+			if err != nil {
+				return nil, nil, err
+			}
+			c.SubMinFile = int64(mf)
+		default:
 			for _, k := range strings.Split(*f.subKinds, ",") {
 				c.SubKinds = append(c.SubKinds, layout.Kind(strings.TrimSpace(k)))
 			}
@@ -226,7 +235,7 @@ func pull(args []string, stdout, stderr io.Writer) int {
 		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
 		if err == nil {
 			o.Cache, err = store.OpenWith(ctx, cb, store.Create{Chunker: s.Config.Chunker, Sub: s.Config.Sub,
-				SubKinds: s.Config.SubKinds, PackSize: s.Config.PackSize})
+				SubKinds: s.Config.SubKinds, SubMinFile: s.Config.SubMinFile, PackSize: s.Config.PackSize})
 		}
 		if err != nil {
 			fmt.Fprintln(stderr, "onggi: node cache:", err)
@@ -311,9 +320,12 @@ func ls(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "\nstore: %d chunks in %d packs, %s; chunker %s/%s/%s; durability %s\n", chunks, packs, human(packBytes),
 		human(int64(c.Min)), human(int64(c.Avg)), human(int64(c.Max)), s.B.Caps().Durability)
 	if sc := s.Config.Sub; sc != nil {
-		kinds := "all kinds"
-		if len(s.Config.SubKinds) > 0 {
-			kinds = fmt.Sprint(s.Config.SubKinds)
+		kinds := "every file"
+		switch {
+		case len(s.Config.SubKinds) > 0:
+			kinds = "kinds " + fmt.Sprint(s.Config.SubKinds)
+		case s.Config.SubMinFile > 0:
+			kinds = "files of at least " + human(s.Config.SubMinFile)
 		}
 		fmt.Fprintf(stdout, "two-level: %d chunks held as sub-chunks of %s/%s/%s (%s)\n", s.Composites(),
 			human(int64(sc.Min)), human(int64(sc.Avg)), human(int64(sc.Max)), kinds)

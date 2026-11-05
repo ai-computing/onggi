@@ -76,7 +76,7 @@ func csiNode(args []string, stderr io.Writer) int {
 				return nil, err
 			}
 			return store.OpenWith(ctx, cb, store.Create{Chunker: s.Config.Chunker, Sub: s.Config.Sub,
-				SubKinds: s.Config.SubKinds, PackSize: s.Config.PackSize})
+				SubKinds: s.Config.SubKinds, SubMinFile: s.Config.SubMinFile, PackSize: s.Config.PackSize})
 		}
 		cache, err := openCache(ctx)
 		if err == nil {

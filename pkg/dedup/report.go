@@ -21,10 +21,11 @@ import (
 // Options controls a report.
 type Options struct {
 	Params     chunker.Params
-	Workers    int   // files chunked at once
-	MinSize    int64 // skip smaller files
-	Pairs      int   // pairwise shares among this many largest files (0: none)
-	FixedBlock int   // also measure fixed-size blocks of this many bytes (0: no)
+	Workers    int       // files chunked at once
+	MinSize    int64     // skip smaller files
+	Pairs      int       // pairwise shares among this many largest files (0: none)
+	FixedBlock int       // also measure fixed-size blocks of this many bytes (0: no)
+	Classify   *Classify // also report each file's placement class (#74); nil: no
 }
 
 // File is one input file's result.
@@ -34,6 +35,8 @@ type File struct {
 	Bytes    int64       `json:"bytes"`
 	NewBytes int64       `json:"new_bytes"` // bytes not seen in any earlier file
 	Chunks   int         `json:"chunks"`
+	Class    string      `json:"class,omitempty"`  // placement class (classify.go), with Options.Classify
+	Shares   *Shares     `json:"shares,omitempty"` // what the class was decided from
 	ids      []int32
 	sizes    []int32
 }
@@ -67,6 +70,7 @@ type Report struct {
 	Pairs       []Pair         `json:"pairs,omitempty"`
 	Fixed       *FixedResult   `json:"fixed_block,omitempty"`
 	Skipped     []string       `json:"skipped,omitempty"` // symlinks and unreadable entries
+	Classify    *Classify      `json:"classify,omitempty"`
 }
 
 // FixedResult is the same measurement with fixed-size blocks, for comparison.
@@ -126,7 +130,10 @@ type chunkList struct {
 	hashes [][32]byte
 	sizes  []int32
 	fixed  [][32]byte
-	err    error
+	// fine chunks of every coarse chunk, with Options.Classify
+	fine      []uint64
+	fineSizes []int32
+	err       error
 }
 
 func chunkFile(path string, o Options) (cl chunkList) {
@@ -154,6 +161,9 @@ func chunkFile(path string, o Options) (cl chunkList) {
 		}
 		cl.hashes = append(cl.hashes, sha256.Sum256(ch))
 		cl.sizes = append(cl.sizes, int32(len(ch)))
+		if o.Classify != nil {
+			splitFine(o.Classify.Fine, ch, &cl)
+		}
 	}
 	if fixed != nil {
 		cl.fixed = fixed.done()
@@ -199,6 +209,16 @@ func Run(files []File, skipped []string, o Options, progress func(done, total in
 	}
 	if o.Workers < 1 {
 		o.Workers = 1
+	}
+	var place *placement
+	if c := o.Classify; c != nil {
+		if err := c.Fine.Validate(); err != nil {
+			return nil, err
+		}
+		var err error
+		if place, err = newPlacement(c, o, len(files)); err != nil {
+			return nil, err
+		}
 	}
 	lists := make([]chunkList, len(files))
 	ready := make([]chan struct{}, len(files))
@@ -274,6 +294,9 @@ func Run(files []File, skipped []string, o Options, progress func(done, total in
 				fixedUnique += size
 			}
 		}
+		if place != nil {
+			place.add(i, cl, f.ids)
+		}
 		f.Chunks = len(cl.hashes)
 		g.Files++
 		g.Bytes += f.Bytes
@@ -294,6 +317,10 @@ func Run(files []File, skipped []string, o Options, progress func(done, total in
 	}
 	if o.FixedBlock > 0 {
 		rep.Fixed = &FixedResult{Block: o.FixedBlock, UniqueBytes: fixedUnique, Ratio: ratio(fixedBytes, fixedUnique)}
+	}
+	if place != nil {
+		place.finish(files)
+		rep.Classify = o.Classify
 	}
 	rep.Pairs = pairs(files, o.Pairs)
 	rep.Files = files
