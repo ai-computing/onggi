@@ -110,6 +110,7 @@ func push(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	sf := addStoreFlags(fs)
 	ref := fs.String("ref", "", "set this ref to the new manifest")
+	profileFile := fs.String("profile", "", "exact compatibility profile JSON to bind to the artifact")
 	workers := fs.Int("workers", runtime.NumCPU(), "files chunked at once")
 	uploads := fs.Int("uploads", 4, "packs uploaded at once")
 	compress := fs.String("compress", "auto", "how new chunks are stored: auto (zstd or byte planes + Huffman, whichever is smaller), zstd, none")
@@ -125,13 +126,22 @@ func push(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 2
 	}
+	var profile *store.Profile
+	if *profileFile != "" {
+		p, err := readProfileFile(*profileFile)
+		if err != nil {
+			fmt.Fprintln(stderr, "onggi:", err)
+			return 2
+		}
+		profile = &p
+	}
 	ctx := context.Background()
 	s, refs, err := sf.open(ctx)
 	if err != nil {
 		fmt.Fprintln(stderr, "onggi:", err)
 		return 1
 	}
-	o := store.PushOptions{Workers: *workers, Uploads: *uploads, TempDir: *tmp, Compress: mode}
+	o := store.PushOptions{Workers: *workers, Uploads: *uploads, TempDir: *tmp, Compress: mode, Profile: profile}
 	start := time.Now()
 	if !*quiet {
 		o.Progress = func(st store.PushStats) {

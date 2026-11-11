@@ -30,6 +30,7 @@ type PushOptions struct {
 	Uploads  int               // packs uploaded at once
 	TempDir  string            // where packs are assembled before upload
 	Labels   map[string]string // stored in the manifest
+	Profile  *Profile          // optional exact compatibility declaration
 	Compress codec.Mode        // how new chunks are stored; "" means none
 	Progress func(PushStats)   // called after each file
 }
@@ -65,6 +66,11 @@ type sealed struct {
 // Push stores the directory tree under root and returns the manifest digest. Only chunks the
 // store does not hold are uploaded.
 func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Digest, PushStats, error) {
+	if o.Profile != nil {
+		if err := o.Profile.Validate(); err != nil {
+			return digest.Digest{}, PushStats{}, err
+		}
+	}
 	start := time.Now()
 	// a lease keeps GC from sweeping chunks this push deduplicates against (ADR-0005)
 	release, err := s.Lease(ctx, "push")
@@ -307,7 +313,7 @@ func (s *Store) Push(ctx context.Context, root string, o PushOptions) (digest.Di
 	}
 
 	// chunk lists, then the manifest: the commit point for the artifact's content.
-	m := Manifest{Schema: "onggi.manifest.v1", Created: time.Now().UTC(), Chunker: s.Config.Chunker, Labels: o.Labels}
+	m := Manifest{Schema: "onggi.manifest.v1", Created: time.Now().UTC(), Chunker: s.Config.Chunker, Labels: o.Labels, Profile: o.Profile}
 	for i, f := range files {
 		data := encodeList(lists[i])
 		d := digest.Of(data)
