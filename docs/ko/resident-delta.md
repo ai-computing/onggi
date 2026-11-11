@@ -1,0 +1,85 @@
+# Onggi에서 NPU 상주 가중치 갱신까지
+
+2026-10-30 · [English](../resident-delta.md)
+
+Onggi가 변경된 파일 범위를 찾고 전달하면, 서빙 런타임이 이를 가중치 텐서에 대응시켜 NPU에 반영합니다.
+RNGD의 행 단위 갱신 구현은 [rngd-pd PR #29](https://github.com/ai-computing/rngd-pd/pull/29)에 있습니다.
+Onggi의 Go 저장 엔진에 NPU 로더를 넣은 것은 아니며, 해당 PR은 이 기록 시점에 병합 전입니다.
+
+## Onggi의 현재 구현 범위
+
+현재는 **P2: 중복 제거 저장소와 노드 배포·CSI 경로까지 구현된 단계**입니다.
+POSIX/S3 저장·복원, 해시 검증, 변경 범위 diff, 기존 파일 재사용, 노드 캐시·peer 전송,
+lease로 보호하는 GC, 읽기 전용 CSI volume이 동작하며 검증 기록이 있습니다.
+main에는 복원 동시성 제한과 실패 시 lease 소유권 보존 수정도 반영돼 있습니다.
+
+P3의 Kubernetes artifact/ref API, 컴파일 팜·호환성 planner와 P4의 배치·자동 확장에 따른
+prefetch·prewarm은 아직 계획 단계입니다. 프로세스가 비정상 종료하며 보수적으로 남긴 lease의
+자동 정리도 남은 과제입니다. [연계 단계](../integration.md#order)와
+[CSI 안전성 검증](../validation-2026-10-23.md)을 참고하세요.
+
+준비된 B/S 그래프 선택과 NPU 상주 가중치 갱신은 서빙 런타임이 담당합니다.
+
+## 현재 구현된 흐름
+
+1. 변경 전·후의 불변 체크포인트를 Onggi ref로 게시합니다.
+2. `onggi diff --ranges --json`으로 변경된 파일 범위를 조회합니다.
+3. rngd-pd가 범위를 safetensors 행으로 세분화하고 체크포인트를 검증합니다.
+4. 바뀐 행과 복구용 데이터를 준비한 뒤, 기존 RNGD 버퍼와 디코드 그래프를 유지하며 갱신합니다.
+5. 진행 중인 요청을 비운 갱신 경계 이후에는 새 KV로 요청을 시작합니다.
+
+Projection은 전치되므로 원본 행이 NPU 텐서의 열이 됩니다. LM head는 연속 행을 유지하되 packed chunk 경계에서
+나눠 복사합니다. 변경이 빽빽하거나 잘게 흩어지면 전체 텐서 갱신으로 전환합니다. 값 몇 개가 바뀌어도 선택된 행은
+통째로 갱신하며, NPU의 임의 바이트를 직접 수정하는 방식은 아닙니다. 실패 시 이전 상태를 복구하고, 복구마저 실패하면
+서빙을 차단합니다. CSI 파일 복원 자체가 이 장치 갱신을 수행하지는 않습니다.
+
+명령과 Python API는 [영문 실행 예시](../resident-delta.md#the-implemented-path)를 참고하세요.
+Ref는 실제 체크포인트 디렉터리와 일치해야 하며 계획·적용 중에는 둘 다 변경하면 안 됩니다.
+
+## RNGD 실측
+
+2026-10-23, RNGD 한 장, Llama-3.1-8B-Instruct, B4/S256, fusion 8/mesh 2,
+furiosa-torch **2026.2.0**, Torch 2.11.0+cpu에서 측정했습니다. 세 fixture 각각에서 기존·개선 구현이
+`new → base → new → base`를 수행했고, **24회 갱신·768개 토큰**이 별도 전체 새 로딩 결과와 일치했습니다.
+개선 구현은 기존 공유 가중치·LM 버퍼와 컴파일 모듈을 유지했고 초기 설정 뒤 그래프 준비를 호출하지 않았습니다.
+
+| 변경 부분 | 논리 전송량, 기존 → 개선 | 전체 갱신 중앙값 | 첫 토큰까지 중앙값 |
+| --- | ---: | ---: | ---: |
+| Down projection 전체 | 117,440,512 → 117,440,512 B | 0.687 → 1.149초 | 0.918 → 1.475초 |
+| Down projection 64행 | 117,440,512 → 1,835,008 B | 0.874 → 0.523초 | 1.232 → 0.832초 |
+| LM head 8행 | 1,050,673,152 → 65,536 B | 1.018 → 0.299초 | 1.315 → 0.587초 |
+
+전체 갱신은 Onggi 비교·계획·체크포인트 처리·장치 반영을 포함합니다. 첫 토큰 시간은 여기에 8토큰 프롬프트의
+첫 출력 시간을 더합니다. 느린 첫 갱신을 포함한 4회 모두로 중앙값을 계산했습니다. 전송량은 논리 BF16 데이터 크기이며
+PCIe/DMA 실측값이 아닙니다. 공유 호스트 부하가 달랐고 전체 텐서 대조군은 더 느렸으므로, 전체 텐서 갱신이나 디코드
+속도가 빨라졌다고 주장하지 않습니다. [모든 갱신 표본](../data/resident-delta-20261023.json)과
+[고정 리비전·전체 토큰·재현 조건·원본 해시](https://github.com/ai-computing/rngd-pd/blob/75252049416ee65397113afbcaddc11d71a7f6d2/experiments/2026-10-23-rngd-row-update.md)를 공개했습니다.
+
+## SDK 2026.4로 옮기는 방안
+
+SDK 2026.4는 DMA·스트림 오버헤드 개선을 포함하므로 다음 검증 대상으로 적절합니다.
+다만 Furiosa-LLM은 2026.4 드라이버를 요구하며 모델 로딩도 FXB 방식으로 바뀌었습니다.
+[공식 릴리스 노트](https://developer.furiosa.ai/latest/en/whatsnew/release-2026.4.0.html),
+[업그레이드 안내](https://developer.furiosa.ai/latest/en/get_started/upgrade_guide.html)를 참고하세요.
+
+2026-10-30 읽기 전용 점검에서 SDK 2026.4.0·Torch 2.10.0+cpu 전용 환경과 2026.4 드라이버·펌웨어 패키지를
+확인했습니다. Torch/Furiosa와 rngd-pd 버전 어댑터 import는 통과했습니다. 그러나 기존 캐시 로더가 사용하는
+`furiosa.native_torch`, `ir.Edf`, `EdfModule`은 없어졌습니다. **SDK 버전만 바꿔서는 기존 EDF 캐시를 로드할 수 없습니다.**
+설치된 패키지 버전과 현재 로드된 커널 드라이버 버전도 구별해야 합니다. 후자는 이번 점검에서 독립 확인하지 못했습니다.
+[점검 결과](../data/sdk264-preflight-20261030.json).
+
+후속 [로더 이식 PR #31](https://github.com/ai-computing/rngd-pd/pull/31)은 SDK·Torch 버전을 확인하는
+원자적 native Runnable 캐시를 추가합니다. 별도 프로세스에서 중복·입력 재사용·빈 출력과, 중간 위치에서 시작하는
+비연속 입력 view를 정확히 복원하는 native 검증이 통과했습니다. Llama-3.1-8B의 B4/S256/**group2**에서
+projection·LM 행 갱신 후 새 전체 로딩과 토큰이 일치하고, 버퍼·컴파일 모듈 유지와 native 복사 중단 후 복구도
+확인했습니다. group8은 현재 컴파일러의 memory explosion 오류로 검증되지 않은 설정입니다.
+최초 전체 로딩은 약 19~21초이며, 부분 갱신 검증이 최초 적재나 이전 SDK 대비 속도 향상을 뜻하지는 않습니다.
+[2026.4 재현 조건과 전체 측정 결과](https://github.com/ai-computing/rngd-pd/blob/0bc244db0239bddfdda005454809aee0812877d8/experiments/2026-10-30-rngd-sdk264.md).
+이 캐시는 Furiosa-LLM의 FXB 로더와 별개이며, 앞의 preflight는 이식 전 기준 로더에 대한 기록입니다.
+
+이식된 캐시는 버전별 결과물을 분리하고 SDK·Torch 호환성을 확인합니다. 2026.2 측정값을 2026.4 결과로 표시하거나
+캐시 폴더 이름만 바꾸면 안 됩니다. 읽기 전용 preflight와 이후 할당된 카드에서 수행한 검증은 별도 기록입니다.
+공용 SDK·드라이버 설치는 변경하지 않았으며, 이후 실행 중인 커널 모듈의 srcversion과 설치 모듈의 일치도 확인했습니다.
+
+Onggi는 FXB도 해석하지 않는 파일로 저장·복원할 수 있습니다. 런타임의 호환성 선택과 상주 가중치 교체는 별도 통합이며,
+파일 중복 제거만으로 자동 제공되지는 않습니다.

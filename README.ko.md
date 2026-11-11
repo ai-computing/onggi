@@ -44,6 +44,11 @@ Onggi는 미리 컴파일한 변형과 가중치를 기존 청크와 함께 일�
 다르며, 가중치를 내장한 ATOM 그래프에는 해당 컴파일 결과물이 필요합니다. 자동 호환성 선택·예열·배치 연동은 후속 작업입니다.
 [연계 설계](docs/ko/integration.md)를 참고하세요.
 
+[상주 델타 갱신 기록](docs/ko/resident-delta.md)은 실제 Onggi 범위 조회와 RNGD 행 단위 갱신을 연결합니다.
+Projection 64행은 논리 전송량 117MB → 1.84MB, LM 8행은 1.05GB → 64KiB로 줄었고,
+768개 토큰이 새 전체 로딩과 일치했습니다. 이 실측은 SDK 2026.2 기준이며, SDK 2026.4 점검 결과와
+별도 [실행 파일·캐시 로더 이식 작업](https://github.com/ai-computing/rngd-pd/pull/31)도 함께 기록했습니다.
+
 ## 빠른 시작
 
 ```bash

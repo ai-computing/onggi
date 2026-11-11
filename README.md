@@ -48,6 +48,13 @@ weights and ATOM device-input weights have different runtime capabilities; ATOM 
 require their corresponding compiled artifacts. Automated compatibility selection, prewarm and placement hooks
 remain integration work; see [integration](docs/integration.md).
 
+The [resident-delta integration record](docs/resident-delta.md) connects actual
+Onggi ranges to RNGD row updates: 64 projection rows reduced logical upload
+117 MB → 1.84 MB, and eight LM rows reduced 1.05 GB → 64 KiB, with 768 generated
+tokens equal to fresh loads. Those measurements use SDK 2026.2; the record also
+documents the SDK 2026.4 preflight and the separate
+[native cache-loader migration](https://github.com/ai-computing/rngd-pd/pull/31).
+
 ## Quick start
 
 ```bash
