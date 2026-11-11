@@ -49,7 +49,7 @@ func TestOwnership(t *testing.T) {
 	if !bytes.Equal(readFile(t, filepath.Join(dB, "model.bin")), aligned) {
 		t.Fatal("B is wrong")
 	}
-	// A released and idle, B idle: C consumes the least recently used idle sibling (A)
+	// Release marks A used now, so B is the least recently used idle sibling: C consumes B, not A
 	if _, _, _, err := m.Release("vol-a"); err != nil {
 		t.Fatal(err)
 	}
@@ -61,14 +61,22 @@ func TestOwnership(t *testing.T) {
 	if !bytes.Equal(readFile(t, filepath.Join(dC, "model.bin")), third) {
 		t.Fatal("C is wrong")
 	}
-	_, errA := os.Stat(dA)
-	_, errB := os.Stat(dB)
-	if errA == nil && errB == nil {
-		t.Fatal("C consumed no idle sibling")
+	if _, err := os.Stat(dB); !os.IsNotExist(err) {
+		t.Fatal("C did not consume B, the least recently used idle sibling")
 	}
-	if errB != nil {
-		if !bytes.Equal(readFile(t, filepath.Join(dA, "model.bin")), base) {
-			t.Fatal("A changed although B was consumed")
-		}
+	if !bytes.Equal(readFile(t, filepath.Join(dA, "model.bin")), base) {
+		t.Fatal("A changed although it was not the victim")
+	}
+	// next, the released A is the least recently used idle sibling and is the one consumed
+	time.Sleep(20 * time.Millisecond)
+	dB2, err := m.Ensure(ctx, mB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(dA); !os.IsNotExist(err) {
+		t.Fatal("the released sibling A was not consumed when it became the victim")
+	}
+	if !bytes.Equal(readFile(t, filepath.Join(dB2, "model.bin")), aligned) {
+		t.Fatal("B (second time) is wrong")
 	}
 }

@@ -376,7 +376,9 @@ func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *
 	// Copy: a base that stays where it is seeds the files Keep did not produce
 	var release func()
 	var seedBase *keepPlan
-	if offer != nil && len(offer.Readable) > 0 && offer.BaseCopy != store.BaseCopyNever {
+	// The chunk store of this engine is local, so reading a sibling instead of the store is chosen
+	// only when asked for explicitly (BaseCopyAlways); BaseCopyRemote means "only for a remote store".
+	if offer != nil && len(offer.Readable) > 0 && offer.BaseCopy == store.BaseCopyAlways {
 		var most keepPlan
 		for _, b := range offer.Readable {
 			if p, err := e.plan(a, idxs, b); err == nil && p.same > most.same {
