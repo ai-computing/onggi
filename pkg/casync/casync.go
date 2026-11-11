@@ -16,6 +16,7 @@
 package casync
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -83,6 +84,8 @@ type FileEntry struct {
 	Size  int64  `json:"size"`
 	Mode  uint32 `json:"mode"`
 	Index string `json:"index"`
+	// IndexSHA256 is the SHA-256 of the index file, so the manifest digest covers the content.
+	IndexSHA256 string `json:"index_sha256"`
 }
 
 // Artifact is the content of artifact.json.
@@ -134,18 +137,16 @@ func (e *Engine) Publish(ctx context.Context, dir string) (digest.Digest, error)
 			return digest.Digest{}, fmt.Errorf("chop %s: %w", rel, err)
 		}
 		name := fmt.Sprintf("%d.caibx", i)
-		f, err := os.Create(filepath.Join(tmp, name))
-		if err != nil {
+		var buf bytes.Buffer
+		if _, err := idx.WriteTo(&buf); err != nil {
 			return digest.Digest{}, err
 		}
-		if _, err := idx.WriteTo(f); err != nil {
-			f.Close()
+		if err := os.WriteFile(filepath.Join(tmp, name), buf.Bytes(), 0o644); err != nil {
 			return digest.Digest{}, err
 		}
-		if err := f.Close(); err != nil {
-			return digest.Digest{}, err
-		}
-		a.Files = append(a.Files, FileEntry{Path: rel, Size: fi.Size(), Mode: uint32(fi.Mode().Perm()), Index: name})
+		isum := sha256.Sum256(buf.Bytes())
+		a.Files = append(a.Files, FileEntry{Path: rel, Size: fi.Size(), Mode: uint32(fi.Mode().Perm()), Index: name,
+			IndexSHA256: hex.EncodeToString(isum[:])})
 	}
 	data, _ := json.Marshal(a)
 	sum := sha256.Sum256(data)
@@ -183,12 +184,14 @@ func (e *Engine) Load(d digest.Digest) (*Artifact, []desync.Index, error) {
 	}
 	idxs := make([]desync.Index, len(a.Files))
 	for i, f := range a.Files {
-		r, err := os.Open(filepath.Join(dir, f.Index))
+		raw, err := os.ReadFile(filepath.Join(dir, f.Index))
 		if err != nil {
 			return nil, nil, err
 		}
-		idxs[i], err = desync.IndexFromReader(r)
-		r.Close()
+		if isum := sha256.Sum256(raw); hex.EncodeToString(isum[:]) != f.IndexSHA256 {
+			return nil, nil, fmt.Errorf("%s: index does not match the manifest", f.Path)
+		}
+		idxs[i], err = desync.IndexFromReader(bytes.NewReader(raw))
 		if err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", f.Path, err)
 		}
