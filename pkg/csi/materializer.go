@@ -497,11 +497,16 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 		Readable: readable, Hold: hold}, claimed
 }
 
-// idle says whether artifact d may be consumed: materialized, no volume, no pull, unused for
-// RebaseIdle. The caller holds m.mu.
+// idle says whether artifact d may be consumed: materialized, no volume, no pull, and, on a node
+// without a capacity, unused for RebaseIdle. With a capacity the victim is the artifact eviction
+// would delete anyway, so waiting would only lose its bytes: no lease is all it needs.
+// The caller holds m.mu.
 func (m *Materializer) idle(d digest.Digest, now time.Time) bool {
 	if m.busy(d) || !isDir(m.Dir(d)) {
 		return false
+	}
+	if m.MaxArtifacts > 0 {
+		return true
 	}
 	return now.Sub(m.lastUsed(d)) >= m.RebaseIdle
 }

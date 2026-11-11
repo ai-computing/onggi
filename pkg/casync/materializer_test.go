@@ -80,3 +80,38 @@ func TestOwnership(t *testing.T) {
 		t.Fatal("B (second time) is wrong")
 	}
 }
+
+// TestVictimNeedsNoIdleWindow: with a capacity, the eviction victim is consumed as soon as no
+// lease holds it, even if it was used a moment ago and the idle window is long.
+func TestVictimNeedsNoIdleWindow(t *testing.T) {
+	ctx := context.Background()
+	e, root := setup(t)
+	base, aligned, _ := variants()
+	mA, _ := e.Publish(ctx, publish(t, e, root, "a", base))
+	mB, _ := e.Publish(ctx, publish(t, e, root, "b", aligned))
+	m := &csi.Materializer{Root: filepath.Join(root, "node"), Pull: e.Pull, RebaseIdle: time.Hour,
+		MaxArtifacts: 1}
+	if err := m.Init(); err != nil {
+		t.Fatal(err)
+	}
+	dA, err := m.Ensure(ctx, mA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Acquire("vol-a", mA, "/pods/a"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, _, err := m.Release("vol-a"); err != nil {
+		t.Fatal(err)
+	}
+	dB, err := m.Ensure(ctx, mB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(dA); !os.IsNotExist(err) {
+		t.Fatal("the just-released victim was not consumed")
+	}
+	if !bytes.Equal(readFile(t, filepath.Join(dB, "model.bin")), aligned) {
+		t.Fatal("B is wrong")
+	}
+}

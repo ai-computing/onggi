@@ -415,7 +415,8 @@ func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *
 				most = p
 			}
 		}
-		if most.same > 0 {
+		// the same threshold as Keep (Algorithm 1): a sibling that holds less is not worth reading
+		if most.same > 0 && float64(most.same) >= minSame*float64(st.Bytes) {
 			ok := true
 			release = func() {}
 			if offer.Hold != nil {
