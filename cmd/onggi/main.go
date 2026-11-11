@@ -23,6 +23,7 @@ const usage = `onggi — content-addressed store for model weights and compiled 
 usage:
   onggi push    --store S [--ref NAME] <dir>     store a directory; only missing chunks are uploaded
   onggi pull    --store S <ref|sha256:...> <dir> restore an artifact, every chunk hash-checked
+  onggi prepare --store S --request FILE --dir DIR <ref>... select compatible files and prepare atomically
   onggi ls      --store S                        refs and store totals
   onggi inspect --store S <ref|sha256:...>       files of an artifact
   onggi diff    --store S <base> <ref>           what turning base into ref keeps, copies and fetches
@@ -55,6 +56,8 @@ func main() {
 		os.Exit(push(os.Args[2:], os.Stdout, os.Stderr))
 	case "pull":
 		os.Exit(pull(os.Args[2:], os.Stdout, os.Stderr))
+	case "prepare":
+		os.Exit(prepare(os.Args[2:], os.Stdout, os.Stderr))
 	case "ls":
 		os.Exit(ls(os.Args[2:], os.Stdout, os.Stderr))
 	case "inspect":

@@ -113,6 +113,21 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	// open every file under a temporary name, sized up front
 	handles := make([]*os.File, len(m.Files))
 	finals := make([]string, len(m.Files))
+	reserved := map[string]bool{}
+	names := map[string]bool{}
+	for i, f := range m.Files {
+		p, err := safeJoin(dest, f.Path)
+		if err != nil {
+			return st, err
+		}
+		if names[p] {
+			return st, fmt.Errorf("duplicate file path %q in manifest", f.Path)
+		}
+		names[p], finals[i] = true, p
+		for q := p; q != filepath.Clean(dest); q = filepath.Dir(q) {
+			reserved[q] = true
+		}
+	}
 	defer func() {
 		for _, h := range handles {
 			if h != nil {
@@ -122,16 +137,22 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		}
 	}()
 	for i, f := range m.Files {
-		p, err := safeJoin(dest, f.Path)
-		if err != nil {
-			return st, err
-		}
+		p := finals[i]
 		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 			return st, err
 		}
-		h, err := os.Create(p + ".onggi-partial")
-		if err != nil {
-			return st, err
+		var h *os.File
+		for {
+			var err error
+			h, err = os.CreateTemp(filepath.Dir(p), ".onggi-partial-*")
+			if err != nil {
+				return st, err
+			}
+			if !reserved[h.Name()] {
+				break
+			}
+			h.Close()
+			os.Remove(h.Name())
 		}
 		handles[i], finals[i] = h, p
 		if err := h.Truncate(f.Size); err != nil {
