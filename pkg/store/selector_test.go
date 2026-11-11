@@ -140,3 +140,26 @@ func TestReadSpansJoinsNeighbours(t *testing.T) {
 		t.Fatalf("read %d of %d chunks, %d failed", len(got), len(jobs), bad)
 	}
 }
+
+// Reading a base chunk by chunk and in joined ranges gives the same artifact and the same bytes.
+func TestBaseRangeDoesNotChangeTheResult(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(96, 8<<20)
+	v := append(random(97, 17952), w...)
+	b, nm, src := rebaseFixture(t, s, map[string][]byte{"rank0.engine": w}, map[string][]byte{"rank0.engine": v})
+	never := func(Base) (string, bool) { return "", false }
+	var local [2]int64
+	for i, r := range []int64{1, 0} {
+		out := t.TempDir()
+		st, err := s.Pull(ctx, nm, out, PullOptions{Bases: []Base{b}, Claim: never, BaseRange: r})
+		if err != nil {
+			t.Fatal(err)
+		}
+		sameTree(t, src, out)
+		local[i] = st.LocalBytes
+	}
+	if local[0] != local[1] || local[0] < int64(len(w))*9/10 {
+		t.Fatalf("bytes read from the base: chunk by chunk %d, joined %d", local[0], local[1])
+	}
+}

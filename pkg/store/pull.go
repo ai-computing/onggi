@@ -43,6 +43,9 @@ type PullOptions struct {
 	VerifyKept bool
 	// BaseCopy says when a base that is not taken over is read where it is (#58).
 	BaseCopy BaseCopy
+	// BaseRange is the largest single read from a base's files (0: MaxRange). Chunks that follow
+	// one another are read together up to this; 1 reads chunk by chunk.
+	BaseRange int64
 }
 
 // BaseCopy is the rule for reading a base that stays intact.
@@ -126,6 +129,9 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	if o.MaxRange <= 0 {
 		o.MaxRange = 16 << 20
 	}
+	if o.BaseRange <= 0 {
+		o.BaseRange = o.MaxRange
+	}
 	m, err := s.ReadManifest(ctx, manifest)
 	if err != nil {
 		return PullStats{}, err
@@ -181,7 +187,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 					return st, err
 				}
 				if o.VerifyKept {
-					st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.MaxRange)
+					st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.BaseRange)
 					st.Reused -= st.Repaired
 				}
 			}
@@ -190,7 +196,7 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		copyBase := o.BaseCopy == BaseCopyAlways || o.BaseCopy == BaseCopyRemote && !s.B.Caps().Local
 		if !claimed && okMost && copyBase {
 			st.LocalBase = most.base.Manifest.String()
-			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.MaxRange); err != nil {
+			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.BaseRange); err != nil {
 				return st, err
 			}
 		}

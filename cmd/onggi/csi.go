@@ -110,14 +110,8 @@ func csiNode(args []string, stderr io.Writer) int {
 	mounter := csi.NewMounter()
 	m.RebaseIdle, m.Unmount = *rebaseIdle, mounter.Unmount
 	m.MaxArtifacts, m.VerifyKept = *maxArtifacts, *verifyKept
-	switch *baseCopy {
-	case "remote":
-		m.BaseCopy = store.BaseCopyRemote
-	case "always":
-		m.BaseCopy = store.BaseCopyAlways
-	case "never":
-		m.BaseCopy = store.BaseCopyNever
-	default:
+	var ok bool
+	if m.BaseCopy, ok = parseBaseCopy(*baseCopy); !ok {
 		logger.Printf("-base-copy: %q is not remote, always or never", *baseCopy)
 		return 2
 	}

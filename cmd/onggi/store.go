@@ -192,6 +192,10 @@ func pull(args []string, stdout, stderr io.Writer) int {
 	peers := fs.String("peers", "", "comma-separated peer URLs (onggi peer serve) asked for chunks before the store")
 	baseRef := fs.String("base", "", "an artifact already restored in --base-dir that the pull may turn into this one, writing only what differs; its files are moved away (#41)")
 	baseDir := fs.String("base-dir", "", "the directory holding --base")
+	baseIntact := fs.Bool("base-intact", false, "never move --base's files away: read from them where they are")
+	baseCopy := fs.String("base-copy", "always", "read a base that is not taken over where it is: always, remote (only if the store is not local), never")
+	baseRange := fs.Int64("base-range", 0, "largest single read from the base's files in bytes (0: 16 MiB; 1: chunk by chunk)")
+	verifyKept := fs.Bool("verify-kept", false, "read back and hash-check every chunk left in place when --base is taken over")
 	asJSON := fs.Bool("json", false, "print JSON")
 	if err := fs.Parse(args); err != nil || fs.NArg() != 2 {
 		fmt.Fprintln(stderr, "usage: onggi pull --store S [--cache DIR] [--peers URLS] [--base REF --base-dir DIR] <ref|sha256:...> <dir>")
@@ -220,8 +224,14 @@ func pull(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		o.Bases = []store.Base{{Manifest: bd, Dir: *baseDir}}
-		o.Claim = func(b store.Base) (string, bool) { return b.Dir, true }
+		o.Claim = func(b store.Base) (string, bool) { return b.Dir, !*baseIntact }
 	}
+	var ok bool
+	if o.BaseCopy, ok = parseBaseCopy(*baseCopy); !ok {
+		fmt.Fprintf(stderr, "onggi: --base-copy: %q is not always, remote or never\n", *baseCopy)
+		return 2
+	}
+	o.VerifyKept, o.BaseRange = *verifyKept, *baseRange
 	if *cacheDir != "" {
 		cb, err := bfs.Open(*cacheDir, backend.DurabilityNone)
 		if err == nil {
@@ -429,4 +439,17 @@ func diff(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	return 0
+}
+
+// parseBaseCopy maps a --base-copy value to the rule.
+func parseBaseCopy(v string) (store.BaseCopy, bool) {
+	switch v {
+	case "always":
+		return store.BaseCopyAlways, true
+	case "remote":
+		return store.BaseCopyRemote, true
+	case "never":
+		return store.BaseCopyNever, true
+	}
+	return store.BaseCopyAlways, false
 }
