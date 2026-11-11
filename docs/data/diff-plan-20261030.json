@@ -1,0 +1,896 @@
+{
+  "schema": 1,
+  "scope": "CPU CLI comparison only; no NPU or end-to-end serving timing. Six interleaved pairs per ref direction, every sample retained. Shared host and warm filesystem; no cold-cache control.",
+  "binary_source_commits": {
+    "baseline": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+    "candidate": "216df102436cce459fc76de9407661f548896490"
+  },
+  "environment": {
+    "captured_utc": 1793325724.1049228,
+    "platform": "Linux-6.8.0-40-generic-x86_64-with-glibc2.35",
+    "logical_cpus": 96,
+    "post_run_load": [
+      11.98046875,
+      10.79345703125,
+      8.01025390625
+    ],
+    "refs": {
+      "base": "sha256:fd0c9319e62fe7e91d67cb315353eeec784d2ba6b37e9dc460cd0354a2abb4ae",
+      "sparse": "sha256:fab1cc99fa82cc7ac986dd482e163b01568e62c2971f30c11895aeaa928e8457",
+      "lm": "sha256:ababa06bb5a897b4fcde8c8aba53fe705fc8423fd0427c6e8359fddfab46fafd"
+    }
+  },
+  "validation": {
+    "go": "go version go1.27.3 linux/amd64",
+    "source": {
+      "baseline": {
+        "commit": "05c97605b07882f9ceaaeb90b94878f8923f81cf",
+        "sha256": {
+          "pkg/store/diff.go": "f17475422367a7dc844f72720c1dc8ed59192415ea41e17db3b1fcd69893552e",
+          "pkg/store/pull.go": "121cc45111093223ac1042a29b21b81087292eb90e9b12d700ba9e8c902b0ef6",
+          "pkg/store/store.go": "d4936274c20ccb12abdd8ce801c0969e6db8d05b19f11ba16c8560acf83309e0"
+        }
+      },
+      "candidate": {
+        "commit": "93fa36707ccb541f764bf2b7613f536c9366bfed",
+        "sha256": {
+          "pkg/store/diff.go": "6321209270813aaa2c8275a8f0db287946538e24f94a32c968fe6362022edc83",
+          "pkg/store/pull.go": "121cc45111093223ac1042a29b21b81087292eb90e9b12d700ba9e8c902b0ef6",
+          "pkg/store/store.go": "d4936274c20ccb12abdd8ce801c0969e6db8d05b19f11ba16c8560acf83309e0",
+          "bench/diff.py": "0a2bce13618c54bb39813df0e4d71ca21264ed1da38978e9ec121028c22bed28"
+        }
+      }
+    },
+    "gofmt_clean": true,
+    "race_passed": true,
+    "vet_passed": true,
+    "npu_allocated": false
+  },
+  "initial_profile": [
+    {
+      "case": "sparse",
+      "round": 0,
+      "diff_s": 0.35316270985640585,
+      "plan_s": 0.005724379094317555,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 117440512,
+        "changed_bytes": 2018387,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "model.layers.0.mlp.down_proj.weight"
+        ]
+      }
+    },
+    {
+      "case": "sparse",
+      "round": 1,
+      "diff_s": 0.332979230908677,
+      "plan_s": 0.009509160183370113,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 117440512,
+        "changed_bytes": 2018387,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "model.layers.0.mlp.down_proj.weight"
+        ]
+      }
+    },
+    {
+      "case": "sparse",
+      "round": 2,
+      "diff_s": 0.36496871104463935,
+      "plan_s": 0.012540724826976657,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 117440512,
+        "changed_bytes": 2018387,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "model.layers.0.mlp.down_proj.weight"
+        ]
+      }
+    },
+    {
+      "case": "lm",
+      "round": 0,
+      "diff_s": 0.3381879448425025,
+      "plan_s": 0.009490879951044917,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 1050673152,
+        "changed_bytes": 255619,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "lm_head.weight"
+        ]
+      }
+    },
+    {
+      "case": "lm",
+      "round": 1,
+      "diff_s": 0.3642662561032921,
+      "plan_s": 0.008064037887379527,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 1050673152,
+        "changed_bytes": 255619,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "lm_head.weight"
+        ]
+      }
+    },
+    {
+      "case": "lm",
+      "round": 2,
+      "diff_s": 0.33247967693023384,
+      "plan_s": 0.007793386001139879,
+      "summary": {
+        "tensors": 1,
+        "upload_bytes": 1050673152,
+        "changed_bytes": 255619,
+        "total_bytes": 16060522496,
+        "header_changes": [],
+        "removed": [],
+        "names": [
+          "lm_head.weight"
+        ]
+      }
+    }
+  ],
+  "runs": {
+    "base-sparse": {
+      "schema": 1,
+      "scope": "CLI wall time including process start; no NPU execution",
+      "gomaxprocs": 4,
+      "refs": [
+        "base",
+        "sparse"
+      ],
+      "binary_sha256": {
+        "baseline": "811d770afb82b5534e2c87109fb0ed7690521136f02f392e45d706b3e9786381",
+        "candidate": "4fdb928bcb27772937f7861049e34cb5b36589913c6f3d82dec61120fa53cfca"
+      },
+      "medians": {
+        "baseline": 0.29521275346633047,
+        "candidate": 0.2695950110210106
+      },
+      "exact_diff_json": true,
+      "samples": [
+        {
+          "round": 0,
+          "build": "baseline",
+          "seconds": 0.2937230849638581,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 0,
+          "build": "candidate",
+          "seconds": 0.30449764081276953,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 1,
+          "build": "candidate",
+          "seconds": 0.2614228480961174,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 1,
+          "build": "baseline",
+          "seconds": 0.2967024219688028,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 2,
+          "build": "baseline",
+          "seconds": 0.30719437496736646,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 2,
+          "build": "candidate",
+          "seconds": 0.25410721311345696,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 3,
+          "build": "candidate",
+          "seconds": 0.2696829221677035,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 3,
+          "build": "baseline",
+          "seconds": 0.27621611999347806,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 4,
+          "build": "baseline",
+          "seconds": 0.33341146912425756,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 4,
+          "build": "candidate",
+          "seconds": 0.26950709987431765,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 5,
+          "build": "candidate",
+          "seconds": 0.28165885899215937,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        },
+        {
+          "round": 5,
+          "build": "baseline",
+          "seconds": 0.2705443501472473,
+          "stdout_sha256": "55dd80153d2fed5849aae67dc04eff930c2eb66e30628245a05b9c6d2a42f624"
+        }
+      ],
+      "diff": {
+        "files": [
+          {
+            "path": "config.json",
+            "base": "config.json",
+            "size": 855,
+            "same": 855,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 855,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00001-of-00004.safetensors",
+            "base": "model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "same": 4974680285,
+            "moved": 0,
+            "new": 2018387,
+            "same_blocks": 4974675248,
+            "changed_runs": 1,
+            "largest_run": 2018387,
+            "changed": [
+              [
+                1050641786,
+                2018387
+              ]
+            ]
+          },
+          {
+            "path": "model-00002-of-00004.safetensors",
+            "base": "model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "same": 4999802720,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4999802720,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00003-of-00004.safetensors",
+            "base": "model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "same": 4915916176,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4915916176,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00004-of-00004.safetensors",
+            "base": "model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "same": 1168138808,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 1168138808,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model.safetensors.index.json",
+            "base": "model.safetensors.index.json",
+            "size": 23950,
+            "same": 23950,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 23950,
+            "changed_runs": 0,
+            "largest_run": 0
+          }
+        ],
+        "size": 16060581181,
+        "same": 16058562794,
+        "moved": 0,
+        "new": 2018387,
+        "new_stored": 1356643,
+        "same_blocks": 16058557757,
+        "changed_runs": 1,
+        "largest_run": 2018387
+      }
+    },
+    "sparse-base": {
+      "schema": 1,
+      "scope": "CLI wall time including process start; no NPU execution",
+      "gomaxprocs": 4,
+      "refs": [
+        "sparse",
+        "base"
+      ],
+      "binary_sha256": {
+        "baseline": "811d770afb82b5534e2c87109fb0ed7690521136f02f392e45d706b3e9786381",
+        "candidate": "4fdb928bcb27772937f7861049e34cb5b36589913c6f3d82dec61120fa53cfca"
+      },
+      "medians": {
+        "baseline": 0.2877075480064377,
+        "candidate": 0.2481178204761818
+      },
+      "exact_diff_json": true,
+      "samples": [
+        {
+          "round": 0,
+          "build": "baseline",
+          "seconds": 0.2635784880258143,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 0,
+          "build": "candidate",
+          "seconds": 0.24468964897096157,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 1,
+          "build": "candidate",
+          "seconds": 0.25500489096157253,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 1,
+          "build": "baseline",
+          "seconds": 0.3290048809722066,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 2,
+          "build": "baseline",
+          "seconds": 0.261296046897769,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 2,
+          "build": "candidate",
+          "seconds": 0.24578991904854774,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 3,
+          "build": "candidate",
+          "seconds": 0.2570791100151837,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 3,
+          "build": "baseline",
+          "seconds": 0.28983658202923834,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 4,
+          "build": "baseline",
+          "seconds": 0.310787859139964,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 4,
+          "build": "candidate",
+          "seconds": 0.24188850400969386,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 5,
+          "build": "candidate",
+          "seconds": 0.25044572190381587,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        },
+        {
+          "round": 5,
+          "build": "baseline",
+          "seconds": 0.2855785139836371,
+          "stdout_sha256": "3ba17373cf653f4441d9a063ff040d5b4da0b628c3601590e09a4900df22963b"
+        }
+      ],
+      "diff": {
+        "files": [
+          {
+            "path": "config.json",
+            "base": "config.json",
+            "size": 855,
+            "same": 855,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 855,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00001-of-00004.safetensors",
+            "base": "model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "same": 4974680285,
+            "moved": 0,
+            "new": 2018387,
+            "same_blocks": 4974675248,
+            "changed_runs": 1,
+            "largest_run": 2018387,
+            "changed": [
+              [
+                1050641786,
+                2018387
+              ]
+            ]
+          },
+          {
+            "path": "model-00002-of-00004.safetensors",
+            "base": "model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "same": 4999802720,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4999802720,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00003-of-00004.safetensors",
+            "base": "model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "same": 4915916176,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4915916176,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00004-of-00004.safetensors",
+            "base": "model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "same": 1168138808,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 1168138808,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model.safetensors.index.json",
+            "base": "model.safetensors.index.json",
+            "size": 23950,
+            "same": 23950,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 23950,
+            "changed_runs": 0,
+            "largest_run": 0
+          }
+        ],
+        "size": 16060581181,
+        "same": 16058562794,
+        "moved": 0,
+        "new": 2018387,
+        "new_stored": 1348291,
+        "same_blocks": 16058557757,
+        "changed_runs": 1,
+        "largest_run": 2018387
+      }
+    },
+    "base-lm": {
+      "schema": 1,
+      "scope": "CLI wall time including process start; no NPU execution",
+      "gomaxprocs": 4,
+      "refs": [
+        "base",
+        "lm"
+      ],
+      "binary_sha256": {
+        "baseline": "811d770afb82b5534e2c87109fb0ed7690521136f02f392e45d706b3e9786381",
+        "candidate": "4fdb928bcb27772937f7861049e34cb5b36589913c6f3d82dec61120fa53cfca"
+      },
+      "medians": {
+        "baseline": 0.2849036930128932,
+        "candidate": 0.24844361399300396
+      },
+      "exact_diff_json": true,
+      "samples": [
+        {
+          "round": 0,
+          "build": "baseline",
+          "seconds": 0.2861944390460849,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 0,
+          "build": "candidate",
+          "seconds": 0.22786860004998744,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 1,
+          "build": "candidate",
+          "seconds": 0.2550858829636127,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 1,
+          "build": "baseline",
+          "seconds": 0.2836129469797015,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 2,
+          "build": "baseline",
+          "seconds": 0.25940753100439906,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 2,
+          "build": "candidate",
+          "seconds": 0.24180134502239525,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 3,
+          "build": "candidate",
+          "seconds": 0.2555666270200163,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 3,
+          "build": "baseline",
+          "seconds": 0.257815188029781,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 4,
+          "build": "baseline",
+          "seconds": 0.34039749298244715,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 4,
+          "build": "candidate",
+          "seconds": 0.26692141802050173,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 5,
+          "build": "candidate",
+          "seconds": 0.2385039960499853,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        },
+        {
+          "round": 5,
+          "build": "baseline",
+          "seconds": 0.3208329488988966,
+          "stdout_sha256": "9484207dd749e5d292751d1ea7d4e1f18d2642daf93af559a158de04e5148c12"
+        }
+      ],
+      "diff": {
+        "files": [
+          {
+            "path": "config.json",
+            "base": "config.json",
+            "size": 855,
+            "same": 855,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 855,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00001-of-00004.safetensors",
+            "base": "model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "same": 4976698672,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4976698672,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00002-of-00004.safetensors",
+            "base": "model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "same": 4999802720,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4999802720,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00003-of-00004.safetensors",
+            "base": "model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "same": 4915916176,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4915916176,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00004-of-00004.safetensors",
+            "base": "model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "same": 1167883189,
+            "moved": 0,
+            "new": 255619,
+            "same_blocks": 1167876664,
+            "changed_runs": 1,
+            "largest_run": 255619,
+            "changed": [
+              [
+                98610600,
+                255619
+              ]
+            ]
+          },
+          {
+            "path": "model.safetensors.index.json",
+            "base": "model.safetensors.index.json",
+            "size": 23950,
+            "same": 23950,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 23950,
+            "changed_runs": 0,
+            "largest_run": 0
+          }
+        ],
+        "size": 16060581181,
+        "same": 16060325562,
+        "moved": 0,
+        "new": 255619,
+        "new_stored": 178602,
+        "same_blocks": 16060319037,
+        "changed_runs": 1,
+        "largest_run": 255619
+      }
+    },
+    "lm-base": {
+      "schema": 1,
+      "scope": "CLI wall time including process start; no NPU execution",
+      "gomaxprocs": 4,
+      "refs": [
+        "lm",
+        "base"
+      ],
+      "binary_sha256": {
+        "baseline": "811d770afb82b5534e2c87109fb0ed7690521136f02f392e45d706b3e9786381",
+        "candidate": "4fdb928bcb27772937f7861049e34cb5b36589913c6f3d82dec61120fa53cfca"
+      },
+      "medians": {
+        "baseline": 0.2829346969956532,
+        "candidate": 0.25943780795205384
+      },
+      "exact_diff_json": true,
+      "samples": [
+        {
+          "round": 0,
+          "build": "baseline",
+          "seconds": 0.2829620218835771,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 0,
+          "build": "candidate",
+          "seconds": 0.25369232008233666,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 1,
+          "build": "candidate",
+          "seconds": 0.23418794688768685,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 1,
+          "build": "baseline",
+          "seconds": 0.26954976306296885,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 2,
+          "build": "baseline",
+          "seconds": 0.29506970988586545,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 2,
+          "build": "candidate",
+          "seconds": 0.2614331010263413,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 3,
+          "build": "candidate",
+          "seconds": 0.2870143479667604,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 3,
+          "build": "baseline",
+          "seconds": 0.2829073721077293,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 4,
+          "build": "baseline",
+          "seconds": 0.26961279287934303,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 4,
+          "build": "candidate",
+          "seconds": 0.25744251487776637,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 5,
+          "build": "candidate",
+          "seconds": 0.31298139900900424,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        },
+        {
+          "round": 5,
+          "build": "baseline",
+          "seconds": 0.29167532990686595,
+          "stdout_sha256": "17d0935f0a19fd0fe888ef0d9bcce41280354de64aa44082b5b72438c919f098"
+        }
+      ],
+      "diff": {
+        "files": [
+          {
+            "path": "config.json",
+            "base": "config.json",
+            "size": 855,
+            "same": 855,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 855,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00001-of-00004.safetensors",
+            "base": "model-00001-of-00004.safetensors",
+            "size": 4976698672,
+            "same": 4976698672,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4976698672,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00002-of-00004.safetensors",
+            "base": "model-00002-of-00004.safetensors",
+            "size": 4999802720,
+            "same": 4999802720,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4999802720,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00003-of-00004.safetensors",
+            "base": "model-00003-of-00004.safetensors",
+            "size": 4915916176,
+            "same": 4915916176,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 4915916176,
+            "changed_runs": 0,
+            "largest_run": 0
+          },
+          {
+            "path": "model-00004-of-00004.safetensors",
+            "base": "model-00004-of-00004.safetensors",
+            "size": 1168138808,
+            "same": 1167883189,
+            "moved": 0,
+            "new": 255619,
+            "same_blocks": 1167876664,
+            "changed_runs": 1,
+            "largest_run": 255619,
+            "changed": [
+              [
+                98610600,
+                255619
+              ]
+            ]
+          },
+          {
+            "path": "model.safetensors.index.json",
+            "base": "model.safetensors.index.json",
+            "size": 23950,
+            "same": 23950,
+            "moved": 0,
+            "new": 0,
+            "same_blocks": 23950,
+            "changed_runs": 0,
+            "largest_run": 0
+          }
+        ],
+        "size": 16060581181,
+        "same": 16060325562,
+        "moved": 0,
+        "new": 255619,
+        "new_stored": 169986,
+        "same_blocks": 16060319037,
+        "changed_runs": 1,
+        "largest_run": 255619
+      }
+    }
+  },
+  "original_files": [
+    {
+      "name": "cpu-baseline.json",
+      "bytes": 11939,
+      "sha256": "37087179e0d835eda5f7d97179f30111e226d1502209a840dbfd6a70bcf16170"
+    },
+    {
+      "name": "benchmark.json",
+      "bytes": 20581,
+      "sha256": "ec88a380701fb8a59d8ef81ad228b25235ff873f87e5b2e90423803e683db630"
+    },
+    {
+      "name": "validation.json",
+      "bytes": 6337,
+      "sha256": "66d02d847db7eeedd58c57cd4eede9ac29554a7b0d9290a16a4d142adf84d41f"
+    },
+    {
+      "name": "environment.json",
+      "bytes": 483,
+      "sha256": "066e2c121746d082a46272f2634370917bc9d3dad0aa16eb05e04597343dc364"
+    },
+    {
+      "name": "red-test.log",
+      "bytes": 252,
+      "sha256": "6b9b9bc0e19e3db569171c7f259e7d6fa578e727f475a9e39021c430ec53ed8e"
+    },
+    {
+      "name": "green-suite.log",
+      "bytes": 1694,
+      "sha256": "c331a48bd234b87204a1e2c79025230674b75aa4684471f6cb5bacbb9129730d"
+    },
+    {
+      "name": "build-both.log",
+      "bytes": 52,
+      "sha256": "4c9a30d25567f21fe499535b2cc7b21fdc5ee171d17e19b8a38d9ee224a5e5a4"
+    }
+  ]
+}

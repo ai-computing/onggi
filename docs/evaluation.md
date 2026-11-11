@@ -1,5 +1,9 @@
 # Evaluation
 
+2026-10-30 CPU update: [live diff plan reuse](diff-plan-2026-10-30.md) reduced
+CLI comparison medians by 8–14% on 8B sparse checkpoints. This measures a CPU
+planning stage separately from the device/serving measurements below.
+
 Measured 2026-10-22 on the lab's RNGD + ATOM node with [`bench/baselines.sh`](../bench/baselines.sh) (#51), over one
 Rebellions ATOM Llama-3.1-8B build set: 18 files, 263.9 GB (decode and prefill graphs for several batch sizes and
 sequence buckets, each embedding the weights).

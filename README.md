@@ -9,6 +9,9 @@ English · [한국어](README.ko.md)
 > ([deploy/csi](deploy/csi/README.md)) serves them as read-only volumes on Kubernetes. The controller (compile farm,
 > prefetch) follows in P3. Measurements against common methods: [docs/evaluation.md](docs/evaluation.md).
 
+Live delta comparison: [reuse target metadata planning](docs/diff-plan-2026-10-30.md)
+reduced measured CLI time by 8–14% on the 8B sparse-update fixtures, with identical range output.
+
 NPUs compile models ahead of time, one artifact per model × SDK × device × sequence bucket × batch × options. On our
 RNGD + ATOM node, one Llama-3.1-8B build set for Rebellions ATOM takes **262 GB** because every graph embeds the
 weights, and FuriosaAI RNGD keeps three copies of weights that are byte-identical to the HF checkpoint. Content-defined
