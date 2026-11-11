@@ -34,6 +34,7 @@ usage:
                                                  evict from a node cache what recently used
                                                  artifacts do not need
   onggi dedup-report [flags] <path>...           measure how much the files would shrink in onggi
+  onggi casync  publish|pull|verify|attest ...   casync-format artifacts with state-aware in-place reuse
   onggi csi     --store S [flags]                CSI node plugin: serve artifacts as read-only volumes (Linux)
   onggi peer serve --cache DIR [--listen :7070]   serve a node cache to other nodes' pulls (--peers)
   onggi version
@@ -61,6 +62,8 @@ func main() {
 		os.Exit(inspect(os.Args[2:], os.Stdout, os.Stderr))
 	case "diff":
 		os.Exit(diff(os.Args[2:], os.Stdout, os.Stderr))
+	case "casync":
+		os.Exit(casyncCmd(os.Args[2:], os.Stdout, os.Stderr))
 	case "csi":
 		os.Exit(csiNode(os.Args[2:], os.Stderr))
 	case "rm-ref":
