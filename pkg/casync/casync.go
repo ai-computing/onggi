@@ -248,6 +248,36 @@ func (e *Engine) plan(target *Artifact, tidx []desync.Index, b store.Base) (keep
 		p.kept[i], s = sameOffset(bidx[j].Chunks, tidx[i].Chunks)
 		p.same += s
 	}
+	// Variants of different shapes usually name their files differently (decode_S256_B2 vs _B8).
+	// A target file without a namesake takes the unused base file that holds the most of its
+	// bytes at the same offset, decided from the two indexes alone.
+	used := map[int]bool{}
+	for _, j := range p.pair {
+		if j >= 0 {
+			used[j] = true
+		}
+	}
+	for i := range target.Files {
+		if p.pair[i] >= 0 {
+			continue
+		}
+		best, bestSame := -1, int64(0)
+		var bestKept []bool
+		for j := range ba.Files {
+			if used[j] {
+				continue
+			}
+			k, s := sameOffset(bidx[j].Chunks, tidx[i].Chunks)
+			if s > bestSame {
+				best, bestSame, bestKept = j, s, k
+			}
+		}
+		if best >= 0 {
+			p.pair[i], p.kept[i] = best, bestKept
+			p.same += bestSame
+			used[best] = true
+		}
+	}
 	return p, nil
 }
 

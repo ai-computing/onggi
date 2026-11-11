@@ -152,3 +152,46 @@ func TestSameOffset(t *testing.T) {
 		t.Fatalf("same=%d of %d", same, len(aligned))
 	}
 }
+
+// TestKeepRenamed: variants of different shapes name their files differently; Keep pairs the
+// target file with the base file that holds most of it at the same offset.
+func TestKeepRenamed(t *testing.T) {
+	ctx := context.Background()
+	e, root := setup(t)
+	base, aligned, _ := variants()
+	write := func(name, file string, data []byte) string {
+		d := filepath.Join(root, "src-"+name)
+		os.MkdirAll(d, 0o755)
+		if err := os.WriteFile(filepath.Join(d, file), data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return d
+	}
+	mA, err := e.Publish(ctx, write("a", "decode_B2.bin", base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mB, err := e.Publish(ctx, write("b", "decode_B8.bin", aligned))
+	if err != nil {
+		t.Fatal(err)
+	}
+	dA := filepath.Join(root, "art", "A")
+	os.MkdirAll(dA, 0o755)
+	if _, err := e.Pull(ctx, mA, dA, nil); err != nil {
+		t.Fatal(err)
+	}
+	offer := &csi.Offer{Bases: []store.Base{{Manifest: mA, Dir: dA}},
+		Claim: func(b store.Base) (string, bool) { return b.Dir, true }}
+	dB := filepath.Join(root, "art", "B")
+	os.MkdirAll(dB, 0o755)
+	st, err := e.Pull(ctx, mB, dB, offer)
+	if err != nil || st.Base != mA.String() || st.Verified != 0 || st.Reused < int64(len(aligned))*8/10 {
+		t.Fatalf("keep renamed: %v %+v", err, st)
+	}
+	if !bytes.Equal(readFile(t, filepath.Join(dB, "decode_B8.bin")), aligned) {
+		t.Fatal("keep renamed: output differs")
+	}
+	if _, err := os.Stat(filepath.Join(dA, "decode_B2.bin")); !os.IsNotExist(err) {
+		t.Fatal("keep renamed must consume the base file")
+	}
+}
