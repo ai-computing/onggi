@@ -19,6 +19,7 @@ import (
 const casyncUsage = `onggi casync — artifacts in casync format (desync chunk store), with state-aware in-place reuse
 
   onggi casync publish --store S --index I <dir>        chunk dir into S; print the manifest digest
+  onggi casync chunks  --store S --index I <manifest>   print the chunk list of every file (JSON)
   onggi casync pull    --store S --index I [--attest A] <manifest> <dir>
         [--base M --base-dir D]     take base M over (Keep): write only differing chunks; kept chunks are
                                     read back unless A attests the base unchanged since it was written
@@ -75,6 +76,40 @@ func casyncCmd(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintf(stdout, "%s\t%.2fs\n", d, time.Since(start).Seconds())
+		return 0
+	case "chunks":
+		// Dump the chunk list of every file of a manifest (start, size, id) as JSON, for capacity
+		// and transfer accounting outside the engine.
+		if fs.NArg() != 1 {
+			fmt.Fprint(stderr, casyncUsage)
+			return 2
+		}
+		m, err := digest.Parse(fs.Arg(0))
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 2
+		}
+		a, idxs, err := e.Load(m)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		type fileChunks struct {
+			Path   string      `json:"path"`
+			Size   int64       `json:"size"`
+			Chunks [][3]string `json:"chunks"`
+		}
+		out := make([]fileChunks, len(a.Files))
+		for i, f := range a.Files {
+			out[i] = fileChunks{Path: f.Path, Size: f.Size}
+			for _, c := range idxs[i].Chunks {
+				out[i].Chunks = append(out[i].Chunks, [3]string{fmt.Sprint(c.Start), fmt.Sprint(c.Size), c.ID.String()})
+			}
+		}
+		if err := json.NewEncoder(stdout).Encode(out); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
 		return 0
 	case "pull", "verify", "attest":
 		if fs.NArg() != 2 {
