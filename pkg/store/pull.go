@@ -37,7 +37,27 @@ type PullOptions struct {
 	Bases   []Base
 	Claim   func(Base) (dir string, ok bool)
 	MinSame float64
+	// VerifyKept makes a pull that takes a base over read back every chunk it leaves in place and
+	// check its hash, so nothing reaches the new artifact unchecked. A chunk that fails (the base
+	// was damaged after it was pulled) is fetched like any other.
+	VerifyKept bool
+	// BaseCopy says when a base that is not taken over is read where it is (#58).
+	BaseCopy BaseCopy
 }
+
+// BaseCopy is the rule for reading a base that stays intact.
+type BaseCopy int
+
+const (
+	// BaseCopyAlways reads the base whenever it holds MinSame of the artifact anywhere.
+	BaseCopyAlways BaseCopy = iota
+	// BaseCopyRemote reads the base only if the store is not local. Packs on this machine are
+	// read in large ranges and decoded faster than a base is read and hashed chunk by chunk:
+	// on 15-18 GB artifacts a local store took 32-35 s where the base took 44-47 s.
+	BaseCopyRemote
+	// BaseCopyNever never reads a base that is not taken over.
+	BaseCopyNever
+)
 
 // PullStats reports a pull.
 type PullStats struct {
@@ -50,6 +70,8 @@ type PullStats struct {
 	Cached     int64         `json:"cached"`               // stored bytes added to the node cache
 	Base       string        `json:"base,omitempty"`       // the artifact this pull turned into the new one
 	Reused     int64         `json:"reused"`               // bytes left in place in the base's files
+	Verified   int64         `json:"verified"`             // of those, bytes read back and hash-checked (VerifyKept)
+	Repaired   int64         `json:"repaired"`             // bytes of the base that failed that check and were fetched instead
 	BaseBest   int64         `json:"base_best"`            // bytes the best offered base keeps at the same offsets, taken or not (#49)
 	LocalBase  string        `json:"local_base,omitempty"` // a base read where it is, not consumed (#58)
 	LocalBytes int64         `json:"local_bytes"`          // bytes read from that base's files
@@ -158,12 +180,17 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
 					return st, err
 				}
+				if o.VerifyKept {
+					st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.MaxRange)
+					st.Reused -= st.Repaired
+				}
 			}
 		}
 		// too little in place, but the base holds the bytes elsewhere: read them from it (#58)
-		if !claimed && okMost {
+		copyBase := o.BaseCopy == BaseCopyAlways || o.BaseCopy == BaseCopyRemote && !s.B.Caps().Local
+		if !claimed && okMost && copyBase {
 			st.LocalBase = most.base.Manifest.String()
-			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers); err != nil {
+			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.MaxRange); err != nil {
 				return st, err
 			}
 		}

@@ -110,32 +110,22 @@ func (s *Store) chooseBase(ctx context.Context, m *Manifest, newExt [][]Extent, 
 }
 
 // fromBase reads, from the base's files where they are, the stored chunks a pull still needs
-// that the base holds anywhere (#58). The base is not consumed. Each chunk is hash-checked; one
-// that cannot be read or does not match is left for the other sources. It returns the bytes read.
-func fromBase(ctx context.Context, p rebasePlan, nodes []node, done []bool, handles []*os.File, workers int) (int64, error) {
-	type job struct {
-		node int32
-		file int
-		off  int64
-	}
-	var jobs []job
+// that the base holds anywhere (#58). The base is not consumed. Chunks that follow one another in
+// a base file are read together. Each chunk is hash-checked; one that cannot be read or does not
+// match is left for the other sources. It returns the bytes read.
+func fromBase(ctx context.Context, p rebasePlan, nodes []node, done []bool, handles []*os.File, workers int, maxRange int64) (int64, error) {
+	var jobs []rjob
 	for i := range nodes {
 		if !nodes[i].stored || done[i] {
 			continue
 		}
 		if f, e, ok := p.find(nodes[i].chunk); ok && e.Len == nodes[i].loc.Length {
-			jobs = append(jobs, job{int32(i), f, e.Off})
+			jobs = append(jobs, rjob{int32(i), f, e.Off, int(e.Len)})
 		}
 	}
 	if len(jobs) == 0 {
 		return 0, nil
 	}
-	slices.SortFunc(jobs, func(a, b job) int { // read each base file front to back
-		if a.file != b.file {
-			return a.file - b.file
-		}
-		return cmp.Compare(a.off, b.off)
-	})
 	files := make([]*os.File, len(p.files))
 	defer func() {
 		for _, f := range files {
@@ -156,40 +146,51 @@ func fromBase(ctx context.Context, p rebasePlan, nodes []node, done []bool, hand
 	var n atomic.Int64
 	var mu sync.Mutex
 	var firstErr error
-	var wg sync.WaitGroup
-	w := max(workers, 1)
-	per := (len(jobs) + w - 1) / w
-	for a := 0; a < len(jobs); a += per {
-		part := jobs[a:min(a+per, len(jobs))]
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			var buf []byte
-			for _, j := range part {
-				if ctx.Err() != nil {
-					return
-				}
-				nd := &nodes[j.node]
-				if cap(buf) < int(nd.loc.Length) {
-					buf = make([]byte, nd.loc.Length)
-				}
-				b := buf[:nd.loc.Length]
-				if _, err := files[j.file].ReadAt(b, j.off); err != nil || digest.Of(b) != nd.chunk {
-					continue
-				}
-				if err := emit(nodes, j.node, b, 0, handles); err != nil {
-					mu.Lock()
-					firstErr = cmp.Or(firstErr, err)
-					mu.Unlock()
-					return
-				}
-				done[j.node] = true
-				n.Add(int64(len(b)))
-			}
-		}()
-	}
-	wg.Wait()
+	readSpans(ctx, files, jobs, workers, maxRange, func(j rjob, b []byte) {
+		if b == nil || digest.Of(b) != nodes[j.node].chunk {
+			return
+		}
+		if err := emit(nodes, j.node, b, 0, handles); err != nil {
+			mu.Lock()
+			firstErr = cmp.Or(firstErr, err)
+			mu.Unlock()
+			return
+		}
+		done[j.node] = true
+		n.Add(int64(len(b)))
+	})
 	return n.Load(), firstErr
+}
+
+// verifyKept reads back, from the files of the new artifact, every chunk a taken-over base left
+// in place, and checks its hash. A chunk that fails in any of its places is no longer done, so
+// the pull fetches it and writes it everywhere it goes. It returns the bytes that passed and the
+// bytes that did not.
+func verifyKept(ctx context.Context, nodes []node, handles []*os.File, done []bool, workers int, maxRange int64) (ok, bad int64) {
+	var jobs []rjob
+	for i := range nodes {
+		if !nodes[i].stored || !done[i] {
+			continue
+		}
+		places(nodes, int32(i), 0, func(t target) {
+			jobs = append(jobs, rjob{int32(i), int(t.file), t.off, int(nodes[i].loc.Length)})
+		})
+	}
+	failed := make([]atomic.Bool, len(nodes))
+	readSpans(ctx, handles, jobs, workers, maxRange, func(j rjob, b []byte) {
+		if b == nil || digest.Of(b) != nodes[j.node].chunk {
+			failed[j.node].Store(true)
+		}
+	})
+	for _, j := range jobs {
+		if failed[j.node].Load() {
+			done[j.node] = false
+			bad += int64(j.n)
+		} else {
+			ok += int64(j.n)
+		}
+	}
+	return ok, bad
 }
 
 // sameAt says whether base holds e's chunk at e's offset.

@@ -38,6 +38,9 @@ func csiNode(args []string, stderr io.Writer) int {
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
 	gcGrace := fs.Duration("gc-grace", time.Hour, "grace period of the node cache's GC")
 	rebaseIdle := fs.Duration("rebase-idle", 5*time.Minute, "a pull may turn an artifact no volume used for this long into the new one, writing only what differs (0: never)")
+	maxArtifacts := fs.Int("max-artifacts", 0, "artifacts kept per node; a pull takes an idle one over only when the node holds this many, least recently used first (0: no limit)")
+	verifyKept := fs.Bool("verify-kept", false, "read back and hash-check every chunk a pull leaves in place when it takes an artifact over")
+	baseCopy := fs.String("base-copy", "remote", "read an idle artifact that is not taken over where it is: remote (only if the store is not local), always, never")
 	peerListen := fs.String("peer-listen", "", "serve the node cache to other nodes' pulls on this address, e.g. :7070 (#37)")
 	peers := fs.String("peers", "", "comma-separated peer URLs asked for chunks before the store")
 	peersDNS := fs.String("peers-dns", "", "host:port whose name resolves to the peers, e.g. a headless Service; re-resolved every 30 s")
@@ -106,6 +109,18 @@ func csiNode(args []string, stderr io.Writer) int {
 	}
 	mounter := csi.NewMounter()
 	m.RebaseIdle, m.Unmount = *rebaseIdle, mounter.Unmount
+	m.MaxArtifacts, m.VerifyKept = *maxArtifacts, *verifyKept
+	switch *baseCopy {
+	case "remote":
+		m.BaseCopy = store.BaseCopyRemote
+	case "always":
+		m.BaseCopy = store.BaseCopyAlways
+	case "never":
+		m.BaseCopy = store.BaseCopyNever
+	default:
+		logger.Printf("-base-copy: %q is not remote, always or never", *baseCopy)
+		return 2
+	}
 	n := &csi.Node{
 		Version: version,
 		NodeID:  *nodeID,

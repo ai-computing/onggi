@@ -1,6 +1,7 @@
 package csi
 
 import (
+	"sort"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,7 +62,10 @@ func (m *Materializer) materialized() ([]digest.Digest, error) {
 	return out, nil
 }
 
-// Evict removes the artifacts that no volume uses and that nothing used for at least idle.
+// Evict removes the artifacts that no volume uses and that nothing used for at least idle. With
+// MaxArtifacts set it then removes the least recently used of the remaining unused artifacts
+// until the node holds at most that many; artifacts a volume or a pull uses always stay, so the
+// node can be over the limit while they are all in use.
 // unmount is called on the directory first: on Linux it holds the read-only self-bind that
 // publishing made. The directory leaves artifacts/ by a rename under the materializer's lock,
 // so Ensure either finds it complete or pulls it again; deleting the files happens after.
@@ -74,38 +78,73 @@ func (m *Materializer) Evict(now time.Time, idle time.Duration, unmount func(dir
 	}
 	var gone []digest.Digest
 	var trash []string
-	for _, d := range ds {
-		if _, busy := m.inflight[d]; busy {
-			continue
-		}
-		if n, err := m.users(d); err != nil || n > 0 {
-			continue
-		}
-		if now.Sub(m.lastUsed(d)) < idle {
-			continue
-		}
+	over := map[digest.Digest]bool{}
+	// remove takes d out of artifacts/. ok false: it stays (logged); err: stop.
+	remove := func(d digest.Digest) (bool, error) {
 		dir := m.Dir(d)
 		if unmount != nil {
 			if err := unmount(dir); err != nil {
 				m.logf("evict %s: %v", d, err)
-				continue
+				return false, nil
 			}
 		}
 		t, err := os.MkdirTemp(filepath.Join(m.Root, "tmp"), "evict-")
 		if err != nil {
-			m.mu.Unlock()
-			return gone, err
+			return false, err
 		}
 		dst := filepath.Join(t, d.Hex())
 		if err := os.Rename(dir, dst); err != nil {
 			os.Remove(t)
 			m.logf("evict %s: %v", d, err)
-			continue
+			return false, nil
 		}
 		os.Remove(m.usedFile(d))
 		os.Remove(filepath.Join(m.Root, "leases", d.Hex()))
 		trash = append(trash, t)
 		gone = append(gone, d)
+		return true, nil
+	}
+	left := 0
+	var spare []digest.Digest // unused, but used too recently for idle
+	for _, d := range ds {
+		if _, busy := m.inflight[d]; busy {
+			left++
+			continue
+		}
+		if n, err := m.users(d); err != nil || n > 0 {
+			left++
+			continue
+		}
+		if now.Sub(m.lastUsed(d)) < idle {
+			left++
+			spare = append(spare, d)
+			continue
+		}
+		ok, err := remove(d)
+		if err != nil {
+			m.mu.Unlock()
+			return gone, err
+		}
+		if !ok {
+			left++
+		}
+	}
+	if m.MaxArtifacts > 0 && left > m.MaxArtifacts {
+		sort.Slice(spare, func(i, j int) bool { return m.lastUsed(spare[i]).Before(m.lastUsed(spare[j])) })
+		for _, d := range spare {
+			if left <= m.MaxArtifacts {
+				break
+			}
+			ok, err := remove(d)
+			if err != nil {
+				m.mu.Unlock()
+				return gone, err
+			}
+			if ok {
+				left--
+				over[d] = true
+			}
+		}
 	}
 	m.mu.Unlock()
 	for _, t := range trash {
@@ -114,7 +153,11 @@ func (m *Materializer) Evict(now time.Time, idle time.Duration, unmount func(dir
 		}
 	}
 	for _, d := range gone {
-		m.logf("evicted %s (no volume, idle %s or more)", d, idle)
+		if over[d] {
+			m.logf("evicted %s (no volume, least recently used above the limit of %d)", d, m.MaxArtifacts)
+		} else {
+			m.logf("evicted %s (no volume, idle %s or more)", d, idle)
+		}
 	}
 	return gone, nil
 }
