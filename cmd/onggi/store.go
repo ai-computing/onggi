@@ -26,6 +26,7 @@ import (
 
 type storeFlags struct {
 	url, durability, min, avg, max, sub, subKinds, packSize, frame *string
+	frameFlat *bool
 }
 
 func addStoreFlags(fs *flag.FlagSet) storeFlags {
@@ -38,6 +39,7 @@ func addStoreFlags(fs *flag.FlagSet) storeFlags {
 		sub:        fs.String("sub", "4KiB", "average sub-chunk size for two-level chunking, 0 for one level (only when creating a store)"),
 		subKinds:   fs.String("sub-kinds", "atom-prefill,atom-decode,atom-other", "file kinds that get sub-chunks, or all (only when creating a store)"),
 		packSize:   fs.String("pack-size", "64MiB", "pack object size (only when creating a store)"),
+		frameFlat:  fs.Bool("frame-flat", false, "with --sub 0, compress the new chunks of a one-level store in frames of --frame too (only when creating a store)"),
 		frame:      fs.String("frame", "256KiB", "compress new chunks of sub-chunked files together up to this size, 0 for one by one (only when creating a store)"),
 	}
 }
@@ -100,6 +102,13 @@ func (f storeFlags) open(ctx context.Context) (*store.Store, backend.Refs, error
 				c.SubKinds = append(c.SubKinds, layout.Kind(strings.TrimSpace(k)))
 			}
 		}
+	}
+	if c.Sub == nil && *f.frameFlat && *f.frame != "0" {
+		fr, err := size(*f.frame)
+		if err != nil {
+			return nil, nil, err
+		}
+		c.Frame, c.FrameFlat = int64(fr), true
 	}
 	s, err := store.OpenWith(ctx, b, c)
 	return s, b, err

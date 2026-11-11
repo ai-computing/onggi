@@ -5,6 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/ai-computing/onggi/pkg/backend"
+	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
+	"github.com/ai-computing/onggi/pkg/chunker"
+	"github.com/ai-computing/onggi/pkg/codec"
 )
 
 // A base damaged after it was pulled is not carried into the new artifact: with VerifyKept the
@@ -161,5 +166,90 @@ func TestBaseRangeDoesNotChangeTheResult(t *testing.T) {
 	}
 	if local[0] != local[1] || local[0] < int64(len(w))*9/10 {
 		t.Fatalf("bytes read from the base: chunk by chunk %d, joined %d", local[0], local[1])
+	}
+}
+
+// A base given only to read is never claimed; it is held while it is read and released after.
+func TestReadBasesAreHeldAndNeverClaimed(t *testing.T) {
+	ctx := context.Background()
+	s := openTwoLevel(t, t.TempDir())
+	w := random(51, 8<<20)
+	v := append([]byte(nil), w...)
+	copy(v[3<<20:], random(52, 200<<10))
+	b, nm, src := rebaseFixture(t, s, map[string][]byte{"decode_B2.rbln": w}, map[string][]byte{"decode_B8.rbln": v})
+	held, released := 0, 0
+	out := t.TempDir()
+	st, err := s.Pull(ctx, nm, out, PullOptions{ReadBases: []Base{b},
+		Claim: func(Base) (string, bool) { t.Fatal("claimed a base given only to read"); return "", false },
+		Hold: func(x Base) (func(), bool) {
+			if x.Manifest != b.Manifest {
+				t.Fatalf("held %s", x.Manifest)
+			}
+			held++
+			return func() { released++ }, true
+		}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+	if held != 1 || released != 1 || st.LocalBase != b.Manifest.String() || st.Base != "" || st.LocalBytes < int64(len(v))*8/10 {
+		t.Fatalf("held %d, released %d, %+v", held, released, st)
+	}
+	if _, err := os.Stat(filepath.Join(b.Dir, "decode_B2.rbln")); err != nil {
+		t.Fatalf("the base was touched: %v", err)
+	}
+
+	// a base that cannot be held is not read
+	out = t.TempDir()
+	st, err = s.Pull(ctx, nm, out, PullOptions{ReadBases: []Base{b}, Hold: func(Base) (func(), bool) { return nil, false }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sameTree(t, src, out)
+	if st.LocalBase != "" || st.LocalBytes != 0 {
+		t.Fatalf("read a base it could not hold: %+v", st)
+	}
+}
+
+// A one-level store with FrameFlat stores its chunks in frames and gives the same files back;
+// compressible data takes less room than without frames.
+func TestFlatStoreCanFrameItsChunks(t *testing.T) {
+	ctx := context.Background()
+	data := make([]byte, 6<<20)
+	for i := range data { // compressible, but not chunk by chunk identical
+		data[i] = byte(i>>9) ^ byte(i%7)
+	}
+	src := t.TempDir()
+	write(t, filepath.Join(src, "decode_B2.rbln"), data)
+	sizes := map[bool]int64{}
+	for _, framed := range []bool{false, true} {
+		b, err := bfs.Open(t.TempDir(), backend.DurabilityNone)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s, err := OpenWith(ctx, b, Create{Chunker: chunker.Params{Min: 1 << 10, Avg: 4 << 10, Max: 16 << 10},
+			PackSize: 1 << 20, Frame: 256 << 10, FrameFlat: framed})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if (s.Config.Frame > 0) != framed || s.Config.Sub != nil {
+			t.Fatalf("framed %v: config %+v", framed, s.Config)
+		}
+		m, _, err := s.Push(ctx, src, PushOptions{Compress: codec.ModeAuto})
+		if err != nil {
+			t.Fatal(err)
+		}
+		out := t.TempDir()
+		if _, err := s.Pull(ctx, m, out, PullOptions{}); err != nil {
+			t.Fatal(err)
+		}
+		sameTree(t, src, out)
+		err = b.List(ctx, backend.Pack, func(_ string, n int64) error { sizes[framed] += n; return nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if sizes[true] <= 0 || sizes[true] >= sizes[false] {
+		t.Fatalf("packs: %d B framed, %d B unframed", sizes[true], sizes[false])
 	}
 }

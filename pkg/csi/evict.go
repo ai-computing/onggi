@@ -107,7 +107,7 @@ func (m *Materializer) Evict(now time.Time, idle time.Duration, unmount func(dir
 	left := 0
 	var spare []digest.Digest // unused, but used too recently for idle
 	for _, d := range ds {
-		if _, busy := m.inflight[d]; busy {
+		if _, busy := m.inflight[d]; busy || m.reading[d] > 0 {
 			left++
 			continue
 		}

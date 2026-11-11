@@ -52,6 +52,9 @@ type Create struct {
 	SubKinds []layout.Kind   // file kinds that get sub-chunks; empty: all
 	PackSize int64
 	Frame    int64 // compression frames for sub-chunked files (#52); used only with Sub
+	// FrameFlat frames the new chunks of a one-level store too (Sub nil): Frame is then the frame
+	// size. It exists to compare flat chunking with two levels under the same compression.
+	FrameFlat bool
 }
 
 // DefaultSubKinds are the kinds whose compile variants rearrange the same bytes (#15).
@@ -85,6 +88,8 @@ func OpenWith(ctx context.Context, b backend.Backend, c Create) (*Store, error) 
 		cfg = Config{Schema: "onggi.store.v1", Chunker: p, PackSize: packSize, Sub: c.Sub, Created: time.Now().UTC()}
 		if c.Sub != nil {
 			cfg.SubKinds, cfg.Frame = c.SubKinds, c.Frame
+		} else if c.FrameFlat {
+			cfg.Frame = c.Frame
 		}
 		data, _ := json.MarshalIndent(cfg, "", "  ")
 		if err := b.Put(ctx, configKey, bytes.NewReader(data), int64(len(data))); err != nil {

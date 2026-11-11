@@ -43,6 +43,11 @@ type PullOptions struct {
 	VerifyKept bool
 	// BaseCopy says when a base that is not taken over is read where it is (#58).
 	BaseCopy BaseCopy
+	// ReadBases are artifacts on the node the pull may read where they are but never consumes
+	// (nil: Bases). They may be in use. Hold, if set, is called before one is read and keeps it
+	// from being taken over or evicted until the returned release is called (ok false: gone).
+	ReadBases []Base
+	Hold      func(Base) (release func(), ok bool)
 	// BaseRange is the largest single read from a base's files (0: MaxRange). Chunks that follow
 	// one another are read together up to this; 1 reads chunk by chunk.
 	BaseRange int64
@@ -171,33 +176,50 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		return st, err
 	}
 	done := make([]bool, len(nodes)) // in place from a base, or written from peers
-	if len(o.Bases) > 0 && o.Claim != nil {
+	readBases := o.ReadBases
+	if readBases == nil {
+		readBases = o.Bases
+	}
+	if len(o.Bases) > 0 && o.Claim != nil || len(readBases) > 0 {
 		minSame := o.MinSame
 		if minSame <= 0 {
 			minSame = DefaultMinSame
 		}
-		p, ok, most, okMost := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame)
-		st.BaseBest = p.same
+		newExt := extentsOf(nodes, len(m.Files), false)
 		claimed := false
-		if ok {
-			if dir, ok := o.Claim(p.base); ok {
-				claimed = true
-				st.Base = p.base.Manifest.String()
-				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
-					return st, err
-				}
-				if o.VerifyKept {
-					st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.BaseRange)
-					st.Reused -= st.Repaired
+		if len(o.Bases) > 0 && o.Claim != nil {
+			p, ok, _, _ := s.chooseBase(ctx, m, newExt, o.Bases, minSame)
+			st.BaseBest = p.same
+			if ok {
+				if dir, ok := o.Claim(p.base); ok {
+					claimed = true
+					st.Base = p.base.Manifest.String()
+					if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
+						return st, err
+					}
+					if o.VerifyKept {
+						st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.BaseRange)
+						st.Reused -= st.Repaired
+					}
 				}
 			}
 		}
-		// too little in place, but the base holds the bytes elsewhere: read them from it (#58)
+		// nothing taken over, but an artifact on the node holds the bytes: read them from it (#58)
 		copyBase := o.BaseCopy == BaseCopyAlways || o.BaseCopy == BaseCopyRemote && !s.B.Caps().Local
-		if !claimed && okMost && copyBase {
-			st.LocalBase = most.base.Manifest.String()
-			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.BaseRange); err != nil {
-				return st, err
+		if !claimed && copyBase && len(readBases) > 0 {
+			if _, _, most, okMost := s.chooseBase(ctx, m, newExt, readBases, minSame); okMost {
+				release, held := func() {}, true
+				if o.Hold != nil {
+					release, held = o.Hold(most.base)
+				}
+				if held {
+					st.LocalBase = most.base.Manifest.String()
+					st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.BaseRange)
+					release()
+					if err != nil {
+						return st, err
+					}
+				}
 			}
 		}
 	}
