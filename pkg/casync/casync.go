@@ -47,6 +47,9 @@ const (
 // Engine reads and writes artifacts in casync format.
 type Engine struct {
 	Store     desync.LocalStore
+	// Src, if set, is where pulls read chunks from instead of Store (for example a remote HTTP
+	// chunk server); Store still receives published chunks.
+	Src       desync.Store
 	IndexDir  string
 	AttestDir string // "" : never trust kept chunks, always read them back
 	Workers   int
@@ -261,16 +264,21 @@ func (e *Engine) plan(target *Artifact, tidx []desync.Index, b store.Base) (keep
 		if p.pair[i] >= 0 {
 			continue
 		}
-		best, bestSame := -1, int64(0)
+		best, bestSame, bestShared := -1, int64(0), int64(0)
 		var bestKept []bool
 		for j := range ba.Files {
 			if used[j] {
 				continue
 			}
 			k, s := sameOffset(bidx[j].Chunks, tidx[i].Chunks)
-			if s > bestSame {
-				best, bestSame, bestKept = j, s, k
+			// prefer bytes at the same offset (Keep); otherwise bytes held anywhere (a seed for Copy)
+			sh := sharedBytes([]desync.Index{bidx[j]}, []desync.Index{tidx[i]})
+			if s > bestSame || (s == bestSame && sh > bestShared) {
+				best, bestSame, bestShared, bestKept = j, s, sh, k
 			}
+		}
+		if bestSame == 0 && bestShared == 0 {
+			best = -1
 		}
 		if best >= 0 {
 			p.pair[i], p.kept[i] = best, bestKept
@@ -357,7 +365,34 @@ func (e *Engine) unchanged(d digest.Digest, path, p string) bool {
 // Pull writes artifact m into the empty directory dest. With an offer it takes an idle aligned
 // base over (Keep), or reads a base that stays intact (Copy); otherwise it assembles from the
 // store (Reconstruct). It satisfies csi.Puller.
-func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *csi.Offer) (store.PullStats, error) {
+func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *csi.Offer) (st store.PullStats, err error) {
+	var src desync.Store = e.Store
+	if e.Src != nil {
+		src = e.Src
+	}
+	cs := &countingStore{Store: src}
+	defer func() { st.FetchedChunks, st.FetchedBytes = cs.n.Load(), cs.b.Load() }()
+	return e.pull(ctx, m, dest, offer, cs)
+}
+
+// countingStore counts the chunks a pull takes from its chunk source and their logical size.
+type countingStore struct {
+	desync.Store
+	n, b atomic.Int64
+}
+
+func (c *countingStore) GetChunk(id desync.ChunkID) (*desync.Chunk, error) {
+	ch, err := c.Store.GetChunk(id)
+	if err == nil {
+		if d, derr := ch.Data(); derr == nil {
+			c.n.Add(1)
+			c.b.Add(int64(len(d)))
+		}
+	}
+	return ch, err
+}
+
+func (e *Engine) pull(ctx context.Context, m digest.Digest, dest string, offer *csi.Offer, src desync.Store) (store.PullStats, error) {
 	start := time.Now()
 	a, idxs, err := e.Load(m)
 	if err != nil {
@@ -397,7 +432,7 @@ func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *
 		if best.same > 0 && float64(best.same) >= minSame*float64(st.Bytes) {
 			if dir, ok := offer.Claim(best.base); ok {
 				st.Base = best.base.Manifest.String()
-				if err := e.keep(ctx, a, idxs, best, dir, finals, done, offer.VerifyKept || e.VerifyKept, &st); err != nil {
+				if err := e.keep(ctx, a, idxs, best, dir, finals, done, offer.VerifyKept || e.VerifyKept, &st, src); err != nil {
 					return st, err
 				}
 			}
@@ -406,17 +441,22 @@ func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *
 	// Copy: a base that stays where it is seeds the files Keep did not produce
 	var release func()
 	var seedBase *keepPlan
-	// The chunk store of this engine is local, so reading a sibling instead of the store is chosen
-	// only when asked for explicitly (BaseCopyAlways); BaseCopyRemote means "only for a remote store".
-	if offer != nil && len(offer.Readable) > 0 && offer.BaseCopy == store.BaseCopyAlways {
+	// Reading a sibling instead of the chunk source pays off when that source is remote (Src set,
+	// BaseCopyRemote) or when asked for explicitly (BaseCopyAlways).
+	copyOK := offer != nil && (offer.BaseCopy == store.BaseCopyAlways || (offer.BaseCopy == store.BaseCopyRemote && e.Src != nil))
+	if copyOK && len(offer.Readable) > 0 {
 		var most keepPlan
+		var mostShared int64
 		for _, b := range offer.Readable {
-			if p, err := e.plan(a, idxs, b); err == nil && p.same > most.same {
-				most = p
+			if p, err := e.plan(a, idxs, b); err == nil {
+				// a seed serves chunks at any offset, so count the target bytes the sibling holds anywhere
+				if sh := sharedBytes(p.idxs, idxs); sh > mostShared {
+					most, mostShared = p, sh
+				}
 			}
 		}
-		// the same threshold as Keep (Algorithm 1): a sibling that holds less is not worth reading
-		if most.same > 0 && float64(most.same) >= minSame*float64(st.Bytes) {
+		// the same threshold as Keep (Algorithm 1), on bytes held anywhere in the sibling
+		if mostShared > 0 && float64(mostShared) >= minSame*float64(st.Bytes) {
 			ok := true
 			release = func() {}
 			if offer.Hold != nil {
@@ -446,11 +486,11 @@ func (e *Engine) Pull(ctx context.Context, m digest.Digest, dest string, offer *
 			s, err := desync.NewIndexSeed(partial, src, seedBase.idxs[j])
 			if err == nil {
 				seeds = append(seeds, s)
-				st.LocalBytes += countKept(seedBase.kept[i], idxs[i].Chunks)
+				st.LocalBytes += sharedBytes([]desync.Index{seedBase.idxs[j]}, []desync.Index{idxs[i]})
 			}
 		}
 		t0 := time.Now()
-		if _, err := desync.AssembleFile(ctx, partial, idxs[i], e.Store, seeds, desync.AssembleOptions{N: e.Workers, InvalidSeedAction: desync.InvalidSeedActionSkip}); err != nil {
+		if _, err := desync.AssembleFile(ctx, partial, idxs[i], src, seeds, desync.AssembleOptions{N: e.Workers, InvalidSeedAction: desync.InvalidSeedActionSkip}); err != nil {
 			os.Remove(partial)
 			return st, fmt.Errorf("%s: %w", a.Files[i].Path, err)
 		}
@@ -484,7 +524,7 @@ func countKept(kept []bool, chunks []desync.IndexChunk) int64 {
 // keep turns the claimed base's files into the target's: each paired file is moved into place,
 // resized, and only its differing chunks are written from the store. Kept chunks are read back and
 // hash-checked unless the file is attested unchanged since this engine wrote it.
-func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p keepPlan, dir string, finals []string, done []bool, verify bool, st *store.PullStats) error {
+func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p keepPlan, dir string, finals []string, done []bool, verify bool, st *store.PullStats, src desync.Store) error {
 	for i, j := range p.pair {
 		if j < 0 {
 			continue
@@ -515,7 +555,7 @@ func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p k
 			st.Repaired += bad
 		}
 		t1 := time.Now()
-		written, err := e.writeChunks(ctx, f, idxs[i].Chunks, kept)
+		written, err := e.writeChunks(ctx, f, idxs[i].Chunks, kept, src)
 		if err != nil {
 			f.Close()
 			return err
@@ -583,7 +623,7 @@ func (e *Engine) verifyKept(ctx context.Context, f *os.File, chunks []desync.Ind
 
 // writeChunks writes every chunk that is not kept, from the store (each chunk's digest is checked
 // when it is read from the store). It returns the bytes written.
-func (e *Engine) writeChunks(ctx context.Context, f *os.File, chunks []desync.IndexChunk, kept []bool) (int64, error) {
+func (e *Engine) writeChunks(ctx context.Context, f *os.File, chunks []desync.IndexChunk, kept []bool, src desync.Store) (int64, error) {
 	var written atomic.Int64
 	var firstErr error
 	var once sync.Once
@@ -595,7 +635,7 @@ func (e *Engine) writeChunks(ctx context.Context, f *os.File, chunks []desync.In
 			defer wg.Done()
 			for i := range work {
 				c := chunks[i]
-				ch, err := e.Store.GetChunk(c.ID)
+				ch, err := src.GetChunk(c.ID)
 				if err == nil {
 					var b []byte
 					if b, err = ch.Data(); err == nil {
@@ -670,3 +710,21 @@ func (e *Engine) Verify(ctx context.Context, m digest.Digest, dir string) error 
 	return nil
 }
 
+// sharedBytes counts the bytes of the target's chunks that also occur, at any offset, in the base.
+func sharedBytes(base, target []desync.Index) int64 {
+	have := map[desync.ChunkID]bool{}
+	for _, x := range base {
+		for _, c := range x.Chunks {
+			have[c.ID] = true
+		}
+	}
+	var n int64
+	for _, x := range target {
+		for _, c := range x.Chunks {
+			if have[c.ID] {
+				n += int64(c.Size)
+			}
+		}
+	}
+	return n
+}

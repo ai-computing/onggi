@@ -84,6 +84,8 @@ type PullStats struct {
 	LocalBase  string        `json:"local_base,omitempty"` // a base read where it is, not consumed (#58)
 	LocalBytes int64         `json:"local_bytes"`          // bytes read from that base's files
 	Ranges     int           `json:"ranges"`
+	FetchedChunks int64      `json:"fetched_chunks"` // chunks taken from the chunk source (casync engine)
+	FetchedBytes  int64      `json:"fetched_bytes"`  // their logical size
 	Duration   time.Duration `json:"duration_ns"`
 }
 

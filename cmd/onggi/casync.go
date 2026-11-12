@@ -7,8 +7,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"time"
+
+	"github.com/folbricht/desync"
 
 	"github.com/ai-computing/onggi/pkg/casync"
 	"github.com/ai-computing/onggi/pkg/csi"
@@ -47,11 +50,18 @@ func casyncCmd(args []string, stdout, stderr io.Writer) int {
 	verifyKept := fs.Bool("verify-kept", false, "read back kept chunks even if the base is attested unchanged")
 	noSync := fs.Bool("no-sync", false, "do not sync written files (desync's default behaviour)")
 	logPhases := fs.Bool("log", false, "log phase durations to stderr")
+	remote := fs.String("remote", "", "pull: read chunks from this HTTP chunk server instead of --store")
 	if err := fs.Parse(args[1:]); err != nil || *storeDir == "" || *indexDir == "" {
 		fmt.Fprint(stderr, casyncUsage)
 		return 2
 	}
 	e, err := casync.New(*storeDir, *indexDir, *attestDir, *workers)
+	if err == nil && *remote != "" {
+		var u *url.URL
+		if u, err = url.Parse(*remote); err == nil {
+			e.Src, err = desync.NewRemoteHTTPStore(u, desync.StoreOptions{N: *workers, Timeout: 5 * time.Minute})
+		}
+	}
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1

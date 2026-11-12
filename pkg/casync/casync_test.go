@@ -195,3 +195,38 @@ func TestKeepRenamed(t *testing.T) {
 		t.Fatal("keep renamed must consume the base file")
 	}
 }
+
+// TestCopyShiftedFetchesLittle: with a separate chunk source (as a remote store would be), Copy
+// seeds from a sibling whose content sits at other offsets and fetches only what it lacks.
+func TestCopyShiftedFetchesLittle(t *testing.T) {
+	ctx := context.Background()
+	e, root := setup(t)
+	base, _, shifted := variants()
+	mA, _ := e.Publish(ctx, publish(t, e, root, "a", base))
+	mC, _ := e.Publish(ctx, publish(t, e, root, "c", shifted))
+	dA := filepath.Join(root, "art", "A")
+	os.MkdirAll(dA, 0o755)
+	if _, err := e.Pull(ctx, mA, dA, nil); err != nil {
+		t.Fatal(err)
+	}
+	e.Src = e.Store // a distinct chunk source: Copy is chosen with BaseCopyRemote
+	dC := filepath.Join(root, "art", "C")
+	os.MkdirAll(dC, 0o755)
+	st, err := e.Pull(ctx, mC, dC, &csi.Offer{Readable: []store.Base{{Manifest: mA, Dir: dA}}, BaseCopy: store.BaseCopyRemote})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(readFile(t, filepath.Join(dC, "model.bin")), shifted) {
+		t.Fatal("copy shifted: output differs")
+	}
+	if st.FetchedBytes*5 > int64(len(shifted)) || st.LocalBytes == 0 {
+		t.Fatalf("copy shifted fetched %d of %d B (local %d B)", st.FetchedBytes, len(shifted), st.LocalBytes)
+	}
+	// without a sibling the whole target comes from the chunk source
+	dC2 := filepath.Join(root, "art", "C2")
+	os.MkdirAll(dC2, 0o755)
+	st2, err := e.Pull(ctx, mC, dC2, nil)
+	if err != nil || st2.FetchedBytes < int64(len(shifted)) {
+		t.Fatalf("reconstruct fetched %d of %d B: %v", st2.FetchedBytes, len(shifted), err)
+	}
+}
