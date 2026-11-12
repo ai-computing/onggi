@@ -460,6 +460,8 @@ def code_one(refs, target, T, modes_path=None):
     phases = [0]
     acc = ph[0]
     for p in order_ph:
+        if os.environ.get("VCODEC_ALIGNED") == "1":   # ablation: match only at block-aligned offsets
+            break
         if ph[p] == 0 or len(phases) >= 8 or acc >= 0.99 * max(ph.sum(), 1):
             break
         if p != 0:
@@ -494,6 +496,14 @@ def code_one(refs, target, T, modes_path=None):
     del out
     log("decoded", ok, round(t5 - t4, 2), "s")
     cnt = np.bincount(mode, minlength=4) * B
+    shipped = None
+    if modes_path and os.environ.get("VCODEC_SAVE"):
+        # the descriptor as one file a node can fetch: the three streams and the tail, zstd -19
+        dpath = modes_path.replace(".modes.npy", ".vmd.npz")
+        np.savez(dpath, ops=ops, res=res, intra=intra, tail=tail, nb=np.int64(nb), v_bytes=np.int64(len(V)),
+                 refs=np.array(refs), target=np.array(target))
+        subprocess.run(["zstd", "-q", "-f", "-19", "-T16", "--long=27", dpath, "-o", dpath + ".zst"], check=True)
+        shipped = os.path.getsize(dpath + ".zst")
     if modes_path and os.environ.get("VCODEC_DUMP"):
         # the descriptor itself, for a device-side replay: match runs (target byte offset,
         # reference byte offset, length) and the other blocks (target block index, mode)
@@ -517,6 +527,7 @@ def code_one(refs, target, T, modes_path=None):
     nontriv = int(len(V) - cnt[1])
     return {
         "refs": refs, "target": target, "T": T, "v_bytes": int(len(V)), "lossless": ok,
+        "shipped_bytes": shipped, "aligned_only": os.environ.get("VCODEC_ALIGNED") == "1",
         "sample": {"blocks": int(len(cand)), "hit_blocks": int(hit_blocks), "hits": int(len(shift)),
                    "phase_hist_top": {int(p): int(ph[p]) for p in order_ph[:8]}, "phases_indexed": phases,
                    "top_shifts": [{"shift": int(us[k]), "count": int(cs[k])} for k in oc]},

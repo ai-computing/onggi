@@ -50,8 +50,18 @@ GAP = int(os.environ.get("REPLAY_GAP", str(1 << 20)))  # bytes of target a merge
 
 # Measured cost of one copy call and of host upload per platform (notes/npu-d2d-20261112):
 #   rngd-a3: copy_ per call 120 us, upload 3.7 GB/s; rbln-b3: v2v_multi 1.6 us per copy, upload 21.6 GB/s.
-COSTS = {"rngd": dict(call_s=120e-6, h2d_Bps=3.7e9), "rbln": dict(call_s=1.6e-6, h2d_Bps=21.6e9),
-         "rbln-unbatched": dict(call_s=5.0e-6, h2d_Bps=21.6e9), "cpu": dict(call_s=1e-6, h2d_Bps=10e9)}
+COSTS = {"rngd": dict(call_s=120e-6, h2d_Bps=3.7e9, d2d_Bps=24.4e9),
+         "rbln": dict(call_s=1.6e-6, h2d_Bps=21.6e9, d2d_Bps=21.7e9),
+         "rbln-unbatched": dict(call_s=5.0e-6, h2d_Bps=21.6e9, d2d_Bps=21.7e9),
+         "cpu": dict(call_s=1e-6, h2d_Bps=10e9, d2d_Bps=10e9)}
+
+
+def estimate(platform, n_copies, copy_bytes, patch_bytes, target_bytes):
+    """Predicted seconds of the rebuild and of a full upload, from the measured cost table."""
+    c = COSTS.get(platform, COSTS["cpu"])
+    rebuild = n_copies * c["call_s"] + copy_bytes / c["d2d_Bps"] + patch_bytes / c["h2d_Bps"]
+    upload = target_bytes / c["h2d_Bps"]
+    return rebuild, upload
 
 
 def absorb_threshold(platform):
@@ -315,6 +325,7 @@ def replay_inplace(runs_path, out, platform):
     segs = []
     far = []
     far_bytes = 0
+    need_ring = set()        # windows whose original bytes a later copy reads: only these are saved
     for d, s_, l in pieces_cp:
         w = d // WIN
         a = w * WIN
@@ -327,6 +338,7 @@ def replay_inplace(runs_path, out, platform):
             elif x >= ring_lo:
                 take = min(s_ + l - x, WIN - x % WIN, a + WIN - x)
                 segs.append((w, dd, "ring", (x // WIN) % nslots, x % WIN, take))
+                need_ring.add(x // WIN)
             else:
                 take = min(s_ + l - x, ring_lo - x, PIECE - (far_bytes % PIECE))
                 segs.append((w, dd, "far", far_bytes // PIECE, far_bytes % PIECE, take))
@@ -387,9 +399,24 @@ def replay_inplace(runs_path, out, platform):
     need[r["other"][r["other"] < al // BLK]] = True
     for d0, l in gone:
         need[d0 // BLK:(d0 + l) // BLK] = True
+    # runs at odd offsets cannot be addressed in 16-bit device elements: their blocks are uploaded
+    for d0, l in zip(odd_d.tolist(), odd_l.tolist()):
+        need[d0 // BLK:(d0 + l + BLK - 1) // BLK] = True
+    res["odd_runs"] = int(len(odd_d))
+    res["odd_bytes"] = int(odd_l.sum())
     patch_blocks = np.nonzero(need)[0]
     pb = tgt[:al].reshape(-1, BLK)[patch_blocks].copy()
     res.update(patch_blocks=int(len(patch_blocks)), patch_bytes=int(len(patch_blocks) * BLK))
+    nwin = (max(x[0] for x in pieces) // WIN + 1) if pieces else 0
+    n_copies = len(segs) + len(far) + len(need_ring)
+    copy_bytes = sum(sg[5] for sg in segs) + sum(l for _, l in far) + len(need_ring) * WIN
+    res.update(windows=int(nwin), ring_saves=len(need_ring), relocate_bytes=int(sum(sg[5] for sg in segs)))
+    est_rebuild, est_upload = estimate(platform, n_copies, copy_bytes, res["patch_bytes"], al)
+    in_host = os.environ.get("REPLAY_TARGET_IN_HOST") == "1"
+    # the far scratch is known before the first write; beyond its budget the target is uploaded
+    far_budget = int(os.environ.get("REPLAY_FAR_BUDGET", str(1 << 30)))
+    res.update(est_rebuild_s=est_rebuild, est_upload_s=est_upload, target_in_host=in_host, far_budget=far_budget,
+               choice=("upload" if (in_host and est_upload < est_rebuild) or far_bytes > far_budget else "rebuild"))
 
     def E(b):
         return b // 2
@@ -438,7 +465,8 @@ def replay_inplace(runs_path, out, platform):
         last_w = max(plan) if plan else -1
         for w in range(0, last_w + 1):
             a = w * WIN
-            flush([(Bf[a // PIECE].data_ptr() + a % PIECE, ringt[w % nslots].data_ptr(), WIN)])
+            if w in need_ring:
+                flush([(Bf[a // PIECE].data_ptr() + a % PIECE, ringt[w % nslots].data_ptr(), WIN)])
             ops = []
             for d, origin, key, off, l, c, dd, ds in plan.get(w, []):
                 st = {"live": Bf, "ring": ringt, "far": fart}[origin][key]
@@ -453,7 +481,8 @@ def replay_inplace(runs_path, out, platform):
     last_w = max(plan) if plan else -1
     for w in range(0, last_w + 1):
         a = w * WIN
-        ringt[w % nslots].copy_(Bf[a // PIECE][E(a % PIECE):E(a % PIECE) + E(WIN)])
+        if w in need_ring:
+            ringt[w % nslots].copy_(Bf[a // PIECE][E(a % PIECE):E(a % PIECE) + E(WIN)])
         for d, origin, key, off, l, c, dd, ds in plan.get(w, []):
             dt = Bf[d // PIECE]
             st = {"live": Bf, "ring": ringt, "far": fart}[origin][key]
@@ -508,6 +537,18 @@ def replay_inplace(runs_path, out, platform):
                mismatch_bytes=0 if ok else int((got != want).sum()),
                sha256=hashlib.sha256(got.tobytes() + tgt[al:vb].tobytes()).hexdigest(),
                target_sha256=hashlib.sha256(tgt[:vb].tobytes()).hexdigest())
+    del got
+    if res["target_in_host"]:
+        # the other path: upload the whole target from host memory into the same buffer
+        hostp = [torch.from_numpy(tgt[o:min(o + PIECE, al)].view(np.int16).copy()) for o in range(0, al, PIECE)]
+        sync()
+        t3 = time.perf_counter()
+        for dst_t, src_t in zip(Bf, hostp):
+            dst_t[:src_t.numel()].copy_(src_t)
+        sync()
+        res["upload_s"] = time.perf_counter() - t3
+        res["upload_correct"] = bool(np.array_equal(np.concatenate([b.cpu().numpy().view(np.uint8) for b in Bf])[:al], want))
+        res["measured_choice"] = "upload" if res["upload_s"] < res["rebuild_s"] else "rebuild"
     with open(out, "w") as f:
         json.dump(res, f, indent=1)
     print(json.dumps({k: v for k, v in res.items() if k != "load"}))
