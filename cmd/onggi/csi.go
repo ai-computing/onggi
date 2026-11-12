@@ -17,6 +17,7 @@ import (
 	bfs "github.com/ai-computing/onggi/pkg/backend/fs"
 	"github.com/ai-computing/onggi/pkg/csi"
 	"github.com/ai-computing/onggi/pkg/digest"
+	"github.com/ai-computing/onggi/pkg/casync"
 	"github.com/ai-computing/onggi/pkg/peer"
 	"github.com/ai-computing/onggi/pkg/store"
 )
@@ -38,6 +39,13 @@ func csiNode(args []string, stderr io.Writer) int {
 	keepUsed := fs.Duration("keep-used", 7*24*time.Hour, "the node cache keeps what artifacts used within this period need")
 	gcGrace := fs.Duration("gc-grace", time.Hour, "grace period of the node cache's GC")
 	rebaseIdle := fs.Duration("rebase-idle", 5*time.Minute, "a pull may turn an artifact no volume used for this long into the new one, writing only what differs (0: never)")
+	maxArtifacts := fs.Int("max-artifacts", 0, "artifacts kept per node; a pull takes an idle one over only when the node holds this many, least recently used first (0: no limit)")
+	verifyKept := fs.Bool("verify-kept", true, "read back and hash-check every chunk a pull leaves in place when it takes an artifact over")
+	baseCopy := fs.String("base-copy", "remote", "read an idle artifact that is not taken over where it is: remote (only if the store is not local), always, never")
+	engine := fs.String("engine", "store", "how artifacts are materialized: store (onggi packs) or casync (desync chunk store with state-aware in-place reuse)")
+	casyncStore := fs.String("casync-store", "", "casync engine: desync local chunk store")
+	casyncIndex := fs.String("casync-index", "", "casync engine: directory of artifact indexes (onggi casync publish)")
+	casyncVerify := fs.Bool("casync-verify-always", false, "casync engine: read back kept chunks even when the base is attested unchanged")
 	peerListen := fs.String("peer-listen", "", "serve the node cache to other nodes' pulls on this address, e.g. :7070 (#37)")
 	peers := fs.String("peers", "", "comma-separated peer URLs asked for chunks before the store")
 	peersDNS := fs.String("peers-dns", "", "host:port whose name resolves to the peers, e.g. a headless Service; re-resolved every 30 s")
@@ -100,12 +108,31 @@ func csiNode(args []string, stderr io.Writer) int {
 		}
 	}
 	m := &csi.Materializer{Root: *dataDir, Pull: csi.StorePullerPeers(s, openCache, peerList, tmp, *workers), Logf: logger.Printf, MaxPulls: *pulls}
+	if *engine == "casync" {
+		e, err := casync.New(*casyncStore, *casyncIndex, filepath.Join(*dataDir, "casync-attest"), *workers)
+		if err != nil || *casyncStore == "" || *casyncIndex == "" {
+			logger.Print("casync engine: needs -casync-store and -casync-index: ", err)
+			return 2
+		}
+		e.VerifyKept, e.Logf = *casyncVerify, logger.Printf
+		m.Pull = e.Pull
+		*verifyKept = *casyncVerify // the engine decides from the attestation; the offer forces a read-back only on request
+	} else if *engine != "store" {
+		logger.Printf("-engine: %q is not store or casync", *engine)
+		return 2
+	}
 	if err := m.Init(); err != nil {
 		logger.Print("data dir: ", err)
 		return 1
 	}
 	mounter := csi.NewMounter()
 	m.RebaseIdle, m.Unmount = *rebaseIdle, mounter.Unmount
+	m.MaxArtifacts, m.VerifyKept = *maxArtifacts, *verifyKept
+	var ok bool
+	if m.BaseCopy, ok = parseBaseCopy(*baseCopy); !ok {
+		logger.Printf("-base-copy: %q is not remote, always or never", *baseCopy)
+		return 2
+	}
 	n := &csi.Node{
 		Version: version,
 		NodeID:  *nodeID,

@@ -37,7 +37,35 @@ type PullOptions struct {
 	Bases   []Base
 	Claim   func(Base) (dir string, ok bool)
 	MinSame float64
+	// VerifyKept makes a pull that takes a base over read back every chunk it leaves in place and
+	// check its hash, so nothing reaches the new artifact unchecked. A chunk that fails (the base
+	// was damaged after it was pulled) is fetched like any other.
+	VerifyKept bool
+	// BaseCopy says when a base that is not taken over is read where it is (#58).
+	BaseCopy BaseCopy
+	// ReadBases are artifacts on the node the pull may read where they are but never consumes
+	// (nil: Bases). They may be in use. Hold, if set, is called before one is read and keeps it
+	// from being taken over or evicted until the returned release is called (ok false: gone).
+	ReadBases []Base
+	Hold      func(Base) (release func(), ok bool)
+	// BaseRange is the largest single read from a base's files (0: MaxRange). Chunks that follow
+	// one another are read together up to this; 1 reads chunk by chunk.
+	BaseRange int64
 }
+
+// BaseCopy is the rule for reading a base that stays intact.
+type BaseCopy int
+
+const (
+	// BaseCopyAlways reads the base whenever it holds MinSame of the artifact anywhere.
+	BaseCopyAlways BaseCopy = iota
+	// BaseCopyRemote reads the base only if the store is not local. Packs on this machine are
+	// read in large ranges and decoded faster than a base is read and hashed chunk by chunk:
+	// on 15-18 GB artifacts a local store took 32-35 s where the base took 44-47 s.
+	BaseCopyRemote
+	// BaseCopyNever never reads a base that is not taken over.
+	BaseCopyNever
+)
 
 // PullStats reports a pull.
 type PullStats struct {
@@ -50,10 +78,14 @@ type PullStats struct {
 	Cached     int64         `json:"cached"`               // stored bytes added to the node cache
 	Base       string        `json:"base,omitempty"`       // the artifact this pull turned into the new one
 	Reused     int64         `json:"reused"`               // bytes left in place in the base's files
+	Verified   int64         `json:"verified"`             // of those, bytes read back and hash-checked (VerifyKept)
+	Repaired   int64         `json:"repaired"`             // bytes of the base that failed that check and were fetched instead
 	BaseBest   int64         `json:"base_best"`            // bytes the best offered base keeps at the same offsets, taken or not (#49)
 	LocalBase  string        `json:"local_base,omitempty"` // a base read where it is, not consumed (#58)
 	LocalBytes int64         `json:"local_bytes"`          // bytes read from that base's files
 	Ranges     int           `json:"ranges"`
+	FetchedChunks int64      `json:"fetched_chunks"` // chunks taken from the chunk source (casync engine)
+	FetchedBytes  int64      `json:"fetched_bytes"`  // their logical size
 	Duration   time.Duration `json:"duration_ns"`
 }
 
@@ -104,6 +136,9 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 	if o.MaxRange <= 0 {
 		o.MaxRange = 16 << 20
 	}
+	if o.BaseRange <= 0 {
+		o.BaseRange = o.MaxRange
+	}
 	m, err := s.ReadManifest(ctx, manifest)
 	if err != nil {
 		return PullStats{}, err
@@ -143,28 +178,50 @@ func (s *Store) Pull(ctx context.Context, manifest digest.Digest, dest string, o
 		return st, err
 	}
 	done := make([]bool, len(nodes)) // in place from a base, or written from peers
-	if len(o.Bases) > 0 && o.Claim != nil {
+	readBases := o.ReadBases
+	if readBases == nil {
+		readBases = o.Bases
+	}
+	if len(o.Bases) > 0 && o.Claim != nil || len(readBases) > 0 {
 		minSame := o.MinSame
 		if minSame <= 0 {
 			minSame = DefaultMinSame
 		}
-		p, ok, most, okMost := s.chooseBase(ctx, m, extentsOf(nodes, len(m.Files), false), o.Bases, minSame)
-		st.BaseBest = p.same
+		newExt := extentsOf(nodes, len(m.Files), false)
 		claimed := false
-		if ok {
-			if dir, ok := o.Claim(p.base); ok {
-				claimed = true
-				st.Base = p.base.Manifest.String()
-				if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
-					return st, err
+		if len(o.Bases) > 0 && o.Claim != nil {
+			p, ok, _, _ := s.chooseBase(ctx, m, newExt, o.Bases, minSame)
+			st.BaseBest = p.same
+			if ok {
+				if dir, ok := o.Claim(p.base); ok {
+					claimed = true
+					st.Base = p.base.Manifest.String()
+					if st.Reused, err = rebase(p, dir, m, nodes, handles, done); err != nil {
+						return st, err
+					}
+					if o.VerifyKept {
+						st.Verified, st.Repaired = verifyKept(ctx, nodes, handles, done, o.Workers, o.BaseRange)
+						st.Reused -= st.Repaired
+					}
 				}
 			}
 		}
-		// too little in place, but the base holds the bytes elsewhere: read them from it (#58)
-		if !claimed && okMost {
-			st.LocalBase = most.base.Manifest.String()
-			if st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers); err != nil {
-				return st, err
+		// nothing taken over, but an artifact on the node holds the bytes: read them from it (#58)
+		copyBase := o.BaseCopy == BaseCopyAlways || o.BaseCopy == BaseCopyRemote && !s.B.Caps().Local
+		if !claimed && copyBase && len(readBases) > 0 {
+			if _, _, most, okMost := s.chooseBase(ctx, m, newExt, readBases, minSame); okMost {
+				release, held := func() {}, true
+				if o.Hold != nil {
+					release, held = o.Hold(most.base)
+				}
+				if held {
+					st.LocalBase = most.base.Manifest.String()
+					st.LocalBytes, err = fromBase(ctx, most, nodes, done, handles, o.Workers, o.BaseRange)
+					release()
+					if err != nil {
+						return st, err
+					}
+				}
 			}
 		}
 	}

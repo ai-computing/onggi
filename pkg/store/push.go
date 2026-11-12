@@ -408,7 +408,7 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 	var list []ChunkRef
 	var nb int64
 	var fb *frameBuilder // new chunks of a sub-chunked file go out in compression frames (#52)
-	if twoLevel && s.Config.Frame > 0 {
+	if s.Config.Frame > 0 && (twoLevel || s.Config.Sub == nil) {
 		fb = &frameBuilder{limit: int(s.Config.Frame), mode: mode}
 	}
 	for {
@@ -430,6 +430,14 @@ func (s *Store) chunkFile(ctx context.Context, path string, twoLevel bool, mode 
 			continue
 		}
 		if !twoLevel {
+			if fb != nil { // a framed one-level store (Create.FrameFlat)
+				n, err := fb.add(ctx, ch, d, out)
+				if err != nil {
+					return nil, 0, err
+				}
+				nb += n
+				continue
+			}
 			n, err := send(ctx, ch, d, mode, out)
 			if err != nil {
 				return nil, 0, err

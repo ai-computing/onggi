@@ -180,7 +180,7 @@ func (s *Store) Delete(ctx context.Context, k backend.Key) error {
 
 // Caps: range reads; atomic create through link or rename.
 func (s *Store) Caps() backend.Capabilities {
-	return backend.Capabilities{RangeReads: true, AtomicCreate: true, Durability: s.durability}
+	return backend.Capabilities{RangeReads: true, AtomicCreate: true, Durability: s.durability, Local: true}
 }
 
 // ---- refs: a lock file per ref makes SetRef a compare-and-swap on a single mount.

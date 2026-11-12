@@ -29,6 +29,13 @@ type Puller func(ctx context.Context, m digest.Digest, dest string, offer *Offer
 type Offer struct {
 	Bases []store.Base
 	Claim func(store.Base) (dir string, ok bool)
+	// VerifyKept and BaseCopy are passed to the pull (store.PullOptions).
+	VerifyKept bool
+	BaseCopy   store.BaseCopy
+	// Readable are artifacts the pull may read where they are, in use or not; Hold keeps one
+	// from being taken over or evicted while it is read.
+	Readable []store.Base
+	Hold     func(store.Base) (release func(), ok bool)
 }
 
 // StorePuller pulls from s through the node cache (nil: no cache), assembling cache packs in tmp.
@@ -57,6 +64,8 @@ func StorePullerPeers(s *store.Store, openCache func(context.Context) (*store.St
 		}
 		if offer != nil {
 			o.Bases, o.Claim = offer.Bases, offer.Claim
+			o.VerifyKept, o.BaseCopy = offer.VerifyKept, offer.BaseCopy
+			o.ReadBases, o.Hold = offer.Readable, offer.Hold
 		}
 		return s.Pull(ctx, m, dest, o)
 	}
@@ -84,9 +93,22 @@ type Materializer struct {
 	// MaxPulls bounds distinct artifacts materialized concurrently (0: one).
 	// Set before the first Ensure; retries for one digest still share one pull.
 	MaxPulls int
+	// MaxArtifacts is how many artifacts the node keeps (0: no limit). With a limit, a pull takes
+	// an idle artifact over only when the node already holds that many, least recently used
+	// first: the artifact it consumes is the one that would be evicted to make room. Below the
+	// limit nothing is consumed, so a free slot is never filled by destroying a warm artifact.
+	// Evict removes the least recently used idle artifacts above the limit.
+	MaxArtifacts int
+	// VerifyKept makes a pull that takes an artifact over read back and hash-check every chunk it
+	// leaves in place (store.PullOptions.VerifyKept).
+	VerifyKept bool
+	// BaseCopy says when an idle artifact that is not taken over is read where it is
+	// (store.PullOptions.BaseCopy).
+	BaseCopy store.BaseCopy
 
 	mu       sync.Mutex
 	inflight map[digest.Digest]*flight
+	reading  map[digest.Digest]int // pulls reading an artifact where it is
 	slots    chan struct{}
 }
 
@@ -370,11 +392,14 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 	}
 	m.mu.Lock()
 	ds, _ := m.materialized()
-	var bases []store.Base
+	var bases, readable []store.Base
 	inUse, recent := 0, 0
 	for _, b := range ds {
+		if b == d {
+			continue
+		}
+		readable = append(readable, store.Base{Manifest: b, Dir: m.Dir(b)})
 		switch {
-		case b == d:
 		case m.idle(b, time.Now()):
 			bases = append(bases, store.Base{Manifest: b, Dir: m.Dir(b)})
 		case m.busy(b):
@@ -384,15 +409,51 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 		}
 	}
 	m.mu.Unlock()
-	if len(bases) == 0 {
-		if len(ds) > 0 {
-			m.logf("pull of %s: no artifact to take over (%d in use, %d used within %s)", d, inUse, recent, m.RebaseIdle)
-		}
+	if len(readable) == 0 {
 		return nil, claimed
 	}
-	sort.Slice(bases, func(i, j int) bool { return m.lastUsed(bases[i].Manifest).After(m.lastUsed(bases[j].Manifest)) })
+	if len(bases) == 0 {
+		m.logf("pull of %s: no artifact to take over (%d in use, %d used within %s)", d, inUse, recent, m.RebaseIdle)
+	}
+	// To consume: most recently used first. With a limit, only the least recently used idle
+	// artifact, the one eviction would remove: the cache policy picks the victim, not the pull.
+	sort.Slice(bases, func(i, j int) bool {
+		a, b := m.lastUsed(bases[i].Manifest), m.lastUsed(bases[j].Manifest)
+		if m.MaxArtifacts > 0 {
+			return a.Before(b)
+		}
+		return a.After(b)
+	})
+	if m.MaxArtifacts > 0 && len(bases) > 1 {
+		bases = bases[:1]
+	}
 	if len(bases) > 3 {
 		bases = bases[:3]
+	}
+	// To read: most recently used first, in use or not.
+	sort.Slice(readable, func(i, j int) bool {
+		return m.lastUsed(readable[i].Manifest).After(m.lastUsed(readable[j].Manifest))
+	})
+	if len(readable) > 3 {
+		readable = readable[:3]
+	}
+	hold := func(b store.Base) (func(), bool) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		if !isDir(m.Dir(b.Manifest)) {
+			return nil, false
+		}
+		if m.reading == nil {
+			m.reading = map[digest.Digest]int{}
+		}
+		m.reading[b.Manifest]++
+		return func() {
+			m.mu.Lock()
+			if m.reading[b.Manifest]--; m.reading[b.Manifest] <= 0 {
+				delete(m.reading, b.Manifest)
+			}
+			m.mu.Unlock()
+		}, true
 	}
 	claim := func(b store.Base) (string, bool) {
 		m.mu.Lock()
@@ -400,7 +461,17 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 		if !m.idle(b.Manifest, time.Now()) {
 			return "", false
 		}
+		if m.MaxArtifacts > 0 {
+			if ds, err := m.materialized(); err != nil || len(ds) < m.MaxArtifacts {
+				return "", false // a free slot: consume nothing
+			}
+		}
 		dir := m.Dir(b.Manifest)
+		// A file with a second hard link would change outside the artifact too; leave it alone.
+		if p, err := aliased(dir); err != nil || p != "" {
+			m.logf("rebase from %s refused: %q has another hard link (err %v)", b.Manifest, p, err)
+			return "", false
+		}
 		if m.Unmount != nil {
 			if err := m.Unmount(dir); err != nil {
 				m.logf("rebase from %s: %v", b.Manifest, err)
@@ -422,21 +493,27 @@ func (m *Materializer) offer(d digest.Digest) (*Offer, *[]string) {
 		*claimed = append(*claimed, t)
 		return dst, true
 	}
-	return &Offer{Bases: bases, Claim: claim}, claimed
+	return &Offer{Bases: bases, Claim: claim, VerifyKept: m.VerifyKept, BaseCopy: m.BaseCopy,
+		Readable: readable, Hold: hold}, claimed
 }
 
-// idle says whether artifact d may be consumed: materialized, no volume, no pull, unused for
-// RebaseIdle. The caller holds m.mu.
+// idle says whether artifact d may be consumed: materialized, no volume, no pull, and, on a node
+// without a capacity, unused for RebaseIdle. With a capacity the victim is the artifact eviction
+// would delete anyway, so waiting would only lose its bytes: no lease is all it needs.
+// The caller holds m.mu.
 func (m *Materializer) idle(d digest.Digest, now time.Time) bool {
 	if m.busy(d) || !isDir(m.Dir(d)) {
 		return false
+	}
+	if m.MaxArtifacts > 0 {
+		return true
 	}
 	return now.Sub(m.lastUsed(d)) >= m.RebaseIdle
 }
 
 // busy says whether a volume or a pull uses artifact d. The caller holds m.mu.
 func (m *Materializer) busy(d digest.Digest) bool {
-	if _, ok := m.inflight[d]; ok {
+	if _, ok := m.inflight[d]; ok || m.reading[d] > 0 {
 		return true
 	}
 	n, err := m.users(d)

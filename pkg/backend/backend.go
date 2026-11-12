@@ -49,6 +49,8 @@ type Capabilities struct {
 	RangeReads   bool
 	AtomicCreate bool // a second Put of the same key can never expose partial or mixed bytes
 	Durability   Durability
+	// Local says the objects are files on this machine, so a range read costs no round trip.
+	Local bool
 }
 
 // Backend stores immutable objects.
