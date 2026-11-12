@@ -524,7 +524,7 @@ func countKept(kept []bool, chunks []desync.IndexChunk) int64 {
 // keep turns the claimed base's files into the target's: each paired file is moved into place,
 // resized, and only its differing chunks are written from the store. Kept chunks are read back and
 // hash-checked unless the file is attested unchanged since this engine wrote it.
-func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p keepPlan, dir string, finals []string, done []bool, verify bool, st *store.PullStats, src desync.Store) error {
+func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p keepPlan, dir string, finals []string, done []bool, verify bool, st *store.PullStats, chunkSrc desync.Store) error {
 	for i, j := range p.pair {
 		if j < 0 {
 			continue
@@ -555,7 +555,7 @@ func (e *Engine) keep(ctx context.Context, a *Artifact, idxs []desync.Index, p k
 			st.Repaired += bad
 		}
 		t1 := time.Now()
-		written, err := e.writeChunks(ctx, f, idxs[i].Chunks, kept, src)
+		written, err := e.writeChunks(ctx, f, idxs[i].Chunks, kept, chunkSrc)
 		if err != nil {
 			f.Close()
 			return err
